@@ -1,0 +1,25 @@
+{
+  "name": "carrotjuice",
+  "main": "server.js",
+  "dependencies": {
+    "apicache": "0.0.12",
+    "bcrypt-nodejs": "latest",
+    "body-parser": "~1.0.0",
+    "connect-flash": "~0.1.1",
+    "cookie-parser": "~1.0.0",
+    "ejs": "~0.8.5",
+    "express": "^4.0.0",
+    "express-password-reset": "latest",
+    "express-session": "~1.0.0",
+    "method-override": "~1.0.0",
+    "mongoose": "~3.8.1",
+    "morgan": "~1.0.0",
+    "passport": "~0.1.17",
+    "passport-facebook": "~1.0.2",
+    "passport-google-oauth": "latest",
+    "passport-local": "~0.1.6",
+    "passport-twitter": "~1.0.2",
+    "request-json": "latest",
+    "request": "2.60.0"
+  }
+}

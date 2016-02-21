@@ -1,0 +1,32 @@
+<div>
+  <div style='z-index:1;position:relative;left:30px;width:500px;'>
+    <div class="btn-group" role="group" aria-label="...">
+<!--       <button type="button" ng-click='change_division()' style='min-width:80px' class="btn btn-default">{{division_text}}</button> -->
+      <button type="button" ng-click='change_coloring()' class="btn btn-default">{{coloring_text}}</button>
+    </div>
+    <br>
+<!--     <input type="checkbox"
+       ng-model="compare_mode"
+          [name="compare_mode"]
+    > Comparison mode
+    <br>
+    <br>
+    <select ng-model="period" ng-change="update_compare_period(0, period);" required ng-options="period as period.name for period in periods"></select>
+    <br>
+    <br> -->
+<!--     <guide style = 'z-index:1;' index='0'></guide> -->
+    <br>
+    <p ng-show='!!compare_mode'>
+      <select ng-model="period2" ng-change="update_compare_period(1, period2);" required ng-options="period as period.name for period in periods"></select>
+      <br>
+      <br>
+      <guide style = 'z-index:1;' index='1'></guide>
+    </p>
+
+    <div style='z-index:1;position:relative;left:30px;' ng-show='is_loading'>
+      <img src='ajax-loader.gif'></img>
+    </div>
+
+
+
+</div>
