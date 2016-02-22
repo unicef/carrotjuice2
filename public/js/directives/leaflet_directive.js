@@ -1,5 +1,3 @@
-
-
 app.directive('leaflet', function ($http, $timeout, $q) {
   return {
     restrict: 'EA',
@@ -10,7 +8,7 @@ app.directive('leaflet', function ($http, $timeout, $q) {
       // Default to Brazil for now
       country_iso  = 'br'
       map_center = [-22.518375, -50.625000]
-      map_zoom   = 6
+      map_zoom   = 5
       // Loading spinner
       scope.is_loading = true
       // Division raw polygons
@@ -99,7 +97,7 @@ app.directive('leaflet', function ($http, $timeout, $q) {
         scope.matrix     = !!scope.matrix ? scope.matrix : null
 
         scope.is_loading = true
-        $http.get('/api/diagonal/matrix/' + division + '/' + country_iso  )
+        $http.get('/api/diagonal/' + division + '/' + country_iso  )
         .then(function(data){
           scope.matrix = data.data
           // used in get_strength
