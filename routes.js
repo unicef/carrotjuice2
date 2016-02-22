@@ -39,13 +39,13 @@ module.exports = function(app, passport) {
 
   // Geojson for populating map with divisions
   app.get(
-    '/api/division/:divis_kind/:iso_country',
+    '/api/division/:divis_kind/:country_iso',
      isLoggedIn,
      apicache('5 days'),
      function(req, res) {
     // log user request
     helper.save_request(req, 'logged_in')
-    url = base_url + 'division/' + req.params['divis_kind'] + '/' + req.params['iso_country'];
+    url = base_url + 'division/' + req.params['divis_kind'] + '/' + req.params['country_iso'];
     client.get(url, function(error, response, geojson){
       try{
         res.json(geojson);
