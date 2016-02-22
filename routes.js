@@ -17,13 +17,15 @@ module.exports = function(app, passport) {
   }
 
   // Matrix with diagonal for coloring divisions by pop density on load
-  app.get('/api/diagonal/matrix/:divis_kind/:country_iso', function(req, res) {
+  app.get(
+    '/api/diagonal/:divis_kind/:country_iso',
+    function(req, res) {
     // log user request
     helper.save_request(req, 'logged_in')
 
     country_iso = req.params['country_iso']
     divis_kind  = req.params['divis_kind']
-    url         = base_url  + 'diagonal/matrix/' + divis_kind + '/' + country_iso
+    url         = base_url  + 'diagonal/' + divis_kind + '/' + country_iso
 
     client.get(url, function(err, response, data) {
       try{
@@ -36,7 +38,11 @@ module.exports = function(app, passport) {
   });
 
   // Geojson for populating map with divisions
-  app.get('/api/division/:divis_kind/:iso_country', isLoggedIn, apicache('5 days'), function(req, res) {
+  app.get(
+    '/api/division/:divis_kind/:iso_country',
+     isLoggedIn,
+     apicache('5 days'),
+     function(req, res) {
     // log user request
     helper.save_request(req, 'logged_in')
     url = base_url + 'division/' + req.params['divis_kind'] + '/' + req.params['iso_country'];
@@ -49,6 +55,13 @@ module.exports = function(app, passport) {
       }
     })
   });
+
+
+  // show the home page (will also have our login links)
+  app.get('/webgl', function(req, res) {
+      res.render('webgl.ejs')
+  });
+
 
 // normal routes ===============================================================
   // show the home page (will also have our login links)
@@ -82,7 +95,7 @@ module.exports = function(app, passport) {
   // the callback after google has authenticated the user
   app.get('/auth/google/callback',
   passport.authenticate('google', {
-          successRedirect : '/main',
+          successRedirect : '/api/webgl',
           failureRedirect : '/'
   }));
 
