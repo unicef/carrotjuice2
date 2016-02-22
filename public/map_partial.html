@@ -1,18 +1,19 @@
 <style>
-  .controls{
+  .d3_controls{
     z-index:1;
     position:relative;
     left:30px;
   }
 
-
 </style>
-<div>
-  <div class='controls'>
-    <div class="btn-group" role="group">
-      <button type="button" ng-click='change_coloring()' class="btn btn-default">{{coloring_text}}</button>
-    </div>
-    <div class='controls' ng-show='is_loading'>
-      <img src='ajax-loader.gif'></img>
-    </div>
+
+<div class='d3_controls'>
+  <div class="btn-group" role="group">
+    <button type="button" ng-click='change_coloring()' class="btn btn-default">
+    {{coloring_text}}</button>
+  </div>
+
+  <div class='d3_controls' ng-show='is_loading'>
+    <img src='ajax-loader.gif'></img>
+  </div>
 </div>
