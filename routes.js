@@ -17,13 +17,13 @@ module.exports = function(app, passport) {
   }
 
   // Matrix with diagonal for coloring divisions by pop density on load
-  app.get('/api/diagonal/matrix/:divis_kind/:country_iso', function(req, res) {
+  app.get('/api/diagonal/:divis_kind/:country_iso', function(req, res) {
     // log user request
     helper.save_request(req, 'logged_in')
 
     country_iso = req.params['country_iso']
     divis_kind  = req.params['divis_kind']
-    url         = base_url  + 'diagonal/matrix/' + divis_kind + '/' + country_iso
+    url         = base_url  + 'diagonal/' + divis_kind + '/' + country_iso
 
     client.get(url, function(err, response, data) {
       try{

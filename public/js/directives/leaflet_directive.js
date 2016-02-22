@@ -99,7 +99,7 @@ app.directive('leaflet', function ($http, $timeout, $q) {
         scope.matrix     = !!scope.matrix ? scope.matrix : null
 
         scope.is_loading = true
-        $http.get('/api/diagonal/matrix/' + division + '/' + country_iso  )
+        $http.get('/api/diagonal/' + division + '/' + country_iso  )
         .then(function(data){
           scope.matrix = data.data
           // used in get_strength
