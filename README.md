@@ -15,7 +15,7 @@
 
 # Developer API
 
-#### dictionary
+### Dictionary
 - divis_kind: division kind - Any polygon that can be drawn on a map. Kinds inlcude: admin, cell. 
 - country_iso: ISO 3166-1 alpha-2 – two-letter country codes
 
