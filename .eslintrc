@@ -15,5 +15,8 @@
   "env": {
     // Don't warn for Mocha globals.
     "mocha": true
+  },
+  "globals": {
+    "L": false  // Leaflet global object.
   }
 }
