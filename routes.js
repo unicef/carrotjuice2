@@ -35,6 +35,20 @@ module.exports = function(app, passport) {
     })
   });
 
+  // Get population for all admin regions.
+  app.get('/api/admin_pop/:country_code', function(req, res) {
+    helper.save_request(req, 'logged_in')
+    var url = base_url + 'admin_pop/' + req.params.country_code;
+    client.get(url, function(err, response, data) {
+      try {
+        res.json(data);
+      } catch(e) {
+        console.error("/admin_pop/ error:", e);
+        res.json([]);
+      }
+    })
+  });
+
   // Geojson for populating map with divisions
   app.get('/api/division/:divis_kind/:country_iso', isLoggedIn, apicache('5 days'), function(req, res) {
     // log user request
