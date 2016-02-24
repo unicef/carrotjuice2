@@ -14,7 +14,8 @@
       <script src="/js/functions_weather.js"></script>
       <script src="/js/functions_mosquito_mortality.js"></script>
       <script src="/js/angular_app.js"></script>
-      <script src="/js/directives/leaflet_directive.js" type="text/javascript"></script>
+      <!-- <script src="/js/directives/leaflet_directive.js" type="text/javascript"></script> -->
+      <script src="/js/directives/jetpack_directive.js" type="text/javascript"></script>
 
 
     <script>
@@ -30,7 +31,8 @@
           <a href="/logout" class="btn btn-default btn-sm">Logout</a>
       </div>
       <div ng-controller = 'mainCtrl'>
-        <leaflet  class='col-xs-6' style='width:100%; height:900;'></leaflet>
+        <!-- <leaflet  class='col-xs-6' style='width:100%; height:900;'></leaflet> -->
+        <jetpack class='col-xs-6' style='width:100%; height:500;'></jetpack>
       </div>
     </div>
     <script>
