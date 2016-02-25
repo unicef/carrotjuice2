@@ -1,4 +1,4 @@
-app.directive('jetpack', function($http, $timeout, $q) {
+app.directive('jetpack', function($http) {
   return {
     restrict: 'E',  // Restrict to element matches only.
     templateUrl: 'map_partial.html',
@@ -45,6 +45,8 @@ app.directive('jetpack', function($http, $timeout, $q) {
       function fetch_admin_polygons(country_code) {
         ++scope.num_loading;
         console.log('Fetching admin polygons..');
+        // TODO(jetpack): http service returns object with "success". use that
+        // instead?
         return $http.get('/api/admin_polygons/' + country_code)
           .then(function(response) {
             --scope.num_loading;
