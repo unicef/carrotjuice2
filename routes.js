@@ -16,6 +16,22 @@ module.exports = function(app, passport) {
     whitelist = whitelist.split(/\s+/)
   }
 
+  // Get polygons for admin regions.
+  app.get('/api/admin_polygons/:country_code', function(req, res) {
+    helper.save_request(req, 'logged_in');
+    var url = base_url + 'admin_polygons/' + req.params.country_code;
+    // TODO(jetpack): what's response?
+    client.get(url, function(err, _response, data) {
+      try {
+        if (err) { throw err; }
+        res.json(data);
+      } catch (e) {
+        console.error("/admin_polygons/ error:", e);
+        res.json([]);
+      }
+    });
+  });
+
   // Get population for all admin regions.
   app.get('/api/admin_populations/:country_code', function(req, res) {
     helper.save_request(req, 'logged_in');
