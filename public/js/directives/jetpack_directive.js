@@ -71,6 +71,7 @@ app.directive('jetpack', function($http, $timeout, $q) {
       function draw(map, admin_polygons) {
         console.log('Drawing.');
 
+        // TODO(jetpack): painfully slow - optimize!
         L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         if (admin_polygons) {
           console.log('Adding admin polygons.');

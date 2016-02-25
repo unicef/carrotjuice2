@@ -17,7 +17,7 @@ module.exports = function(app, passport) {
   }
 
   // Get polygons for admin regions.
-  app.get('/api/admin_polygons/:country_code', function(req, res) {
+  app.get('/api/admin_polygons/:country_code', apicache('1 day'), function(req, res) {
     helper.save_request(req, 'logged_in');
     var url = base_url + 'admin_polygons/' + req.params.country_code;
     // TODO(jetpack): what's response?
@@ -33,7 +33,7 @@ module.exports = function(app, passport) {
   });
 
   // Get population for all admin regions.
-  app.get('/api/admin_populations/:country_code', function(req, res) {
+  app.get('/api/admin_populations/:country_code', apicache('1 day'), function(req, res) {
     helper.save_request(req, 'logged_in');
     var url = base_url + 'admin_populations/' + req.params.country_code;
     // TODO(jetpack): what's response?
