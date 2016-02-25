@@ -17,12 +17,12 @@ app.directive('jetpack', function($http) {
       scope.num_loading = 0;
       scope.error_message = null;
 
-      draw(map);
+      draw();
 
       fetch_admin_polygons(country_code)
         .then(function() {
           console.log('Admin polygons fetched. Redraw!');
-          draw(map, admin_polygons);
+          draw();
         });
 
       /** Return map.
@@ -67,10 +67,8 @@ app.directive('jetpack', function($http) {
       }
 
       /** Draw the map.
-       * @param{todo} map - TODO(jetpack): what's this?
-       * @param{FeatureCollection} admin_polygons - Polygons of admin regions.
        */
-      function draw(map, admin_polygons) {
+      function draw() {
         console.log('Drawing.');
 
         // TODO(jetpack): painfully slow - optimize!
