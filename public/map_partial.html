@@ -13,7 +13,7 @@
 </style>
 <div>
   <div class="error" ng-show="error_message">{{error_message}}</div>
-  <div class="controls" ng-show="num_loading > 0">
-    <img src="ajax-loader.gif"></img>
+  <div class="controls">
+    <img ng-show="num_loading > 0" src="ajax-loader.gif"></img>
   </div>
 </div>
