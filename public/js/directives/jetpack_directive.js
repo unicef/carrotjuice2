@@ -7,7 +7,7 @@ app.directive('jetpack', function($http, $timeout, $q) {
       console.log('link top..');
       var country_code = 'br';  // Hardcoded to Brazil for now.
       var map_center = [-14.5, -54.0];
-      var map_zoom = 4;
+      var map_zoom = 5;
       var map = get_map();
 
       // GeoJSON FeatureCollection of admin regions.
@@ -72,11 +72,25 @@ app.directive('jetpack', function($http, $timeout, $q) {
         console.log('Drawing.');
 
         // TODO(jetpack): painfully slow - optimize!
+        // - simplify-geometry? https://www.npmjs.com/package/simplify-geometry
+        // - cull non-visible?
+        // - show higher-level admin regions above a certain zoom level?
+        // - copy over timeit/stopwatch stuff from resources for lightweight
+        //   timing.
         L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         if (admin_polygons) {
-          console.log('Adding admin polygons.');
-          var polygons = L.layerGroup(admin_polygons.features.map(L.geoJson));
-          polygons.addTo(map);
+          ++scope.num_loading;
+          console.log('Adding admin polygons..');
+          var region_options = {style: {stroke: false}};
+          var geojsons = admin_polygons.features
+          // .filter(function(x, i) { return i % 2 === 0; })
+              .map(function(f) { return L.geoJson(f, region_options); });
+          console.log('Converted to geojson..');
+          var layerGroup = L.layerGroup(geojsons);
+          console.log('Added to layerGroup..');
+          layerGroup.addTo(map);
+          --scope.num_loading;
+          console.log('Added to map!');
         }
       }
 
