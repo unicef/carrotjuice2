@@ -17,17 +17,19 @@ module.exports = function(app, passport) {
   }
 
   // Get population for all admin regions.
-  app.get('/api/admin_pop/:country_code', function(req, res) {
-    helper.save_request(req, 'logged_in')
-    var url = base_url + 'admin_pop/' + req.params.country_code;
-    client.get(url, function(err, response, data) {
+  app.get('/api/admin_populations/:country_code', function(req, res) {
+    helper.save_request(req, 'logged_in');
+    var url = base_url + 'admin_populations/' + req.params.country_code;
+    // TODO(jetpack): what's response?
+    client.get(url, function(err, _response, data) {
       try {
+        if (err) { throw err; }
         res.json(data);
-      } catch(e) {
-        console.error("/admin_pop/ error:", e);
+      } catch (e) {
+        console.error("/admin_populations/ error:", e);
         res.json([]);
       }
-    })
+    });
   });
 
   // Matrix with diagonal for coloring divisions by pop density on load
