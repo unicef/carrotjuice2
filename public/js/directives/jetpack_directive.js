@@ -8,6 +8,9 @@ app.directive('jetpack', function($http) {
       var country_code = 'br';  // Hardcoded to Brazil for now.
       var map_center = [-14.5, -54.0];
       var map_zoom = 5;
+      // When zoomed out more, the polygons look really messed up. This zoom
+      // level already shows all of Brazil.
+      var min_map_zoom = 4;
       var map = get_map();
 
       // GeoJSON FeatureCollection of admin regions.
@@ -33,7 +36,9 @@ app.directive('jetpack', function($http) {
         return L.map(element[0], {
           center: map_center,
           zoom: map_zoom,
-          layers: []
+          minZoom: min_map_zoom,
+          fadeAnimation: false,
+          attributionControl: false
         });
       }
 
@@ -71,13 +76,17 @@ app.directive('jetpack', function($http) {
       function draw() {
         console.log('Drawing.');
 
+        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+          .addTo(map);
+
         // TODO(jetpack): painfully slow - optimize!
         // - simplify-geometry? https://www.npmjs.com/package/simplify-geometry
         // - cull non-visible?
+        // - TileLayer/canvas?
+        //   http://leafletjs.com/reference.html#tilelayer-canvas
         // - show higher-level admin regions above a certain zoom level?
         // - copy over timeit/stopwatch stuff from resources for lightweight
         //   timing.
-        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         if (admin_polygons) {
           ++scope.num_loading;
           console.log('Adding admin polygons..');
