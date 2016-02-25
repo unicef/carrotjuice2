@@ -16,6 +16,20 @@ module.exports = function(app, passport) {
     whitelist = whitelist.split(/\s+/)
   }
 
+  // Get population for all admin regions.
+  app.get('/api/admin_pop/:country_code', function(req, res) {
+    helper.save_request(req, 'logged_in')
+    var url = base_url + 'admin_pop/' + req.params.country_code;
+    client.get(url, function(err, response, data) {
+      try {
+        res.json(data);
+      } catch(e) {
+        console.error("/admin_pop/ error:", e);
+        res.json([]);
+      }
+    })
+  });
+
   // Matrix with diagonal for coloring divisions by pop density on load
   app.get('/api/diagonal/:divis_kind/:country_iso', function(req, res) {
     // log user request
@@ -31,20 +45,6 @@ module.exports = function(app, passport) {
       }catch(e){
         console.log("PROBLEM with Matrices!")
         res.json([])
-      }
-    })
-  });
-
-  // Get population for all admin regions.
-  app.get('/api/admin_pop/:country_code', function(req, res) {
-    helper.save_request(req, 'logged_in')
-    var url = base_url + 'admin_pop/' + req.params.country_code;
-    client.get(url, function(err, response, data) {
-      try {
-        res.json(data);
-      } catch(e) {
-        console.error("/admin_pop/ error:", e);
-        res.json([]);
       }
     })
   });
