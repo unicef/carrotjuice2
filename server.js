@@ -1,7 +1,4 @@
-// server.js
-
-// set up ======================================================================
-// get all the tools we need
+var compress = require('compression');
 var express  = require('express');
 var app      = express();
 var port     = process.env.PORT || 8080;
@@ -25,6 +22,7 @@ mongoose.connect(mongoUri); // connect to our database
 require('./config/passport')(passport); // pass passport for configuration
 
 // set up our express application
+app.use(compress());  // gzip
 app.use(express.static(__dirname + '/public'));                 // set the static files location /public/img will be /img for users
 app.use('/bower_components',  express.static(__dirname + '/bower_components'));
 app.use(morgan('dev')); // log every request to the console
