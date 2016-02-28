@@ -1,3 +1,4 @@
+# This is a convenient base image that has Node installed
 FROM node:4.3.1
 
 # NOTE(zora): we copy package.json into /code first, so we don't have

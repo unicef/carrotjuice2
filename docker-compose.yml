@@ -1,11 +1,15 @@
+# Apparently both the frontend and backend node services talk directly to Mongo,
+# so we need this here, even though we're using a fake server for `majicbox`.
 mongo:
     image: mongo:latest
     ports: [27017]
 
+# Fake server emulating the `majicbox` (previously `resources`) repository
 itest-majicbox-server:
     build: itest-majicbox-server
     ports: [80]
 
+# Containerizes the frontend and connects it to the fake `majicbox` server.
 itest-frontend:
     build: .
     command: node server.js
@@ -17,6 +21,8 @@ itest-frontend:
         - "itest-majicbox-server"
         - "mongo"
 
+# Runs integration tests with Mocha. Reuses the same image as `itest-frontend`,
+# just calls a different command.
 itest:
   build: .
   command: ./node_modules/mocha/bin/mocha itest
