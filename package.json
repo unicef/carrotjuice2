@@ -3,6 +3,7 @@
   "main": "server.js",
   "dependencies": {
     "apicache": "0.0.12",
+    "async": "^1.5.2",
     "bcrypt-nodejs": "latest",
     "body-parser": "~1.0.0",
     "compression": "^1.6.1",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "eslint": "^2.2.0",
     "eslint-config-google": "^0.4.0",
-    "eslint-config-xo": "^0.11.0"
+    "eslint-config-xo": "^0.11.0",
+    "mocha": "^2.4.5"
   }
 }
