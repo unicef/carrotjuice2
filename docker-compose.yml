@@ -1,0 +1,24 @@
+mongo:
+    image: mongo:latest
+    ports: [27017]
+
+itest-majicbox-server:
+    build: itest-majicbox-server
+    ports: [80]
+
+itest-frontend:
+    build: .
+    command: node server.js
+    ports: [8080]
+    environment:
+        - "MAJICBOX_BASE_URL=http://itest-majicbox-server/api/"
+        - "MONGOHQ_URL=mongodb://mongo:27017/mydb"
+    links:
+        - "itest-majicbox-server"
+        - "mongo"
+
+itest:
+  build: .
+  command: ./node_modules/mocha/bin/mocha itest
+  links:
+      - "itest-frontend"
