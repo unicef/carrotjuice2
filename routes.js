@@ -1,7 +1,7 @@
 module.exports = function(app, passport) {
   var config       = require('./config'); // get our config file
   var helper       = require('./lib')
-  var request      = require('request');
+  var request_lib  = require('request');
   var apicache     = require('apicache').options({ debug: true }).middleware;
   var request_json = require('request-json');
   var base_url     = process.env.base_url  || config.base_url
@@ -16,37 +16,28 @@ module.exports = function(app, passport) {
     whitelist = whitelist.split(/\s+/)
   }
 
-  // Get polygons for admin regions.
-  app.get('/api/admin_polygons/:country_code', apicache('1 day'), function(req, res) {
+  var forward_route = function(req, res, next) {
+    if (!req.url.match(/^\/api\//)) {
+      return next(new Error("Bad URL " + req.url));
+    }
+    var url_without_api = req.url.replace(/^\/api\//, '')
     helper.save_request(req, 'logged_in');
-    var url = base_url + 'admin_polygons/' + req.params.country_code;
-    // TODO(jetpack): what's response?
-    client.get(url, function(err, _response, data) {
-      try {
-        if (err) { throw err; }
-        res.json(data);
-      } catch (e) {
-        console.error("/admin_polygons/ error:", e);
-        res.json([]);
-      }
+    var url = base_url + url_without_api;
+
+    // hopefully, make the request w/o re-parsing JSON
+    request_lib(url, function(error, response, body) {
+      if (error) { return next(error); }
+      res.set('Content-Type', 'application/json');
+      res.status(response.statusCode);
+      res.send(body);
     });
-  });
+  };
+
+  // Get polygons for admin regions.
+  app.get('/api/admin_polygons/:country_code', apicache('1 day'), forward_route);
 
   // Get population for all admin regions.
-  app.get('/api/admin_populations/:country_code', apicache('1 day'), function(req, res) {
-    helper.save_request(req, 'logged_in');
-    var url = base_url + 'admin_populations/' + req.params.country_code;
-    // TODO(jetpack): what's response?
-    client.get(url, function(err, _response, data) {
-      try {
-        if (err) { throw err; }
-        res.json(data);
-      } catch (e) {
-        console.error("/admin_populations/ error:", e);
-        res.json([]);
-      }
-    });
-  });
+  app.get('/api/admin_populations/:country_code', apicache('1 day'), forward_route);
 
   // Matrix with diagonal for coloring divisions by pop density on load
   app.get('/api/diagonal/:divis_kind/:country_iso', function(req, res) {
