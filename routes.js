@@ -1,8 +1,9 @@
-var config = require('./config'); // get our config file
-var helper = require('./lib');
 var request_lib = require('request');
 var apicache = require('apicache').options({debug: true}).middleware;
 var request_json = require('request-json');
+
+var Entry = require('./app/models/entry');
+var config = require('./config');
 
 var base_url = process.env.base_url || config.base_url;
 var client = request_json.createClient(base_url);
@@ -27,8 +28,8 @@ function setup_routes(app, passport) {
       return next(new Error("Bad URL " + req.url));
     }
     var url_without_api = req.url.replace(/^\/api\//, '');
-    helper.save_request(req, 'logged_in');
     var url = base_url + url_without_api;
+    save_request(req, 'logged_in');
 
     // hopefully, make the request w/o re-parsing JSON
     request_lib(url, function(error, response, body) {
@@ -113,6 +114,19 @@ function isLoggedIn(req, res, next) {
   } else {
     res.redirect('/login');
   }
+}
+
+// Log user's request
+// eslint-disable-next-line require-jsdoc
+function save_request(req, kind) {
+  var entry = new Entry({
+    ip: req.header('x-forwarded-for'),
+    ip2: req._remoteAddress,
+    date: new Date(),
+    url: req.url,
+    kind: kind
+  });
+  entry.save();
 }
 
 module.exports = {
