@@ -1,7 +1,6 @@
 var compress = require('compression');
 var express  = require('express');
 var app      = express();
-var port     = process.env.PORT || 8080;
 var mongoose = require('mongoose');
 var passport = require('passport');
 var flash    = require('connect-flash');
@@ -14,10 +13,6 @@ var session      = require('express-session');
 var methodOverride = require('method-override'); // simulate DELETE and PUT (express4)
 
 app.use('/favicon.ico', express.static('images/favicon.ico'));
-var mongoUri = process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/mydb';
-
-// configuration ===============================================================
-mongoose.connect(mongoUri); // connect to our database
 
 require('./config/passport')(passport); // pass passport for configuration
 
@@ -43,5 +38,8 @@ app.use(methodOverride());
 require('./routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
 
 // launch ======================================================================
-app.listen(port);
-console.log('The magic happens on port ' + port);
+var config = require('./config');
+mongoose.connect(config.database);
+app.listen(config.port);
+console.log('Connected to datasbase', config.database);
+console.log('The magic happens on', config.port);
