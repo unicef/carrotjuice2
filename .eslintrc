@@ -17,6 +17,8 @@
     "mocha": true
   },
   "globals": {
-    "L": false  // Leaflet global object.
+    "L": false,  // leaflet
+    "_": false,  // lodash
+    "math": false,  // mathjs
   }
 }
