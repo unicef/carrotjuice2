@@ -42,3 +42,20 @@ function summary_stats(xs) {
 function log_rescale(x, min, max) {
   return Math.log(x - min + 1) / Math.log(max - min + 1);
 }
+
+/**
+ * Parse YYYY-MM-DD date string from an ISO format string. Example:
+ * '2016-03-01T00:00:00.000Z' -> '2016-03-01'
+ *
+ * @param{string} iso_string - Date string in ISO format.
+ * @return{string} YYYY-MM-DD date string.
+ */
+function iso_to_yyyymmdd(iso_string) {
+  var match = iso_string.match(/(\d{4}-\d{2}-\d{2})T/);
+  if (match && match.length === 2) {
+    return match[1];
+  } else {
+    console.error('Failed to YYYY-MM-DD from string:', iso_string);
+    return null;
+  }
+}

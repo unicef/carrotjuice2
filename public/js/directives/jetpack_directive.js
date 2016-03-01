@@ -26,11 +26,15 @@ app.directive('jetpack', function($http) {
       // Map from date to region_code to weather data (currently just
       // `temp_mean`).
       var region_weather;
-      var region_weather_last;
+      // Map from region_code to weather data (equivalent to
+      // region_weather[scope.current_date]).
+      var region_weather_current_date;
 
       // How many things are loading. If > 0, view will display a spinner.
       scope.num_loading = 0;
       scope.error_message = null;
+      // Date of data, in ISO stirng format (e.g. "2016-03-01T00:00:00.000Z").
+      scope.current_date = '';
 
       draw();
       fetch_regions_and_weather(country_code).then(draw);
@@ -61,16 +65,15 @@ app.directive('jetpack', function($http) {
         var weather_fetch = $http.get('/api/country_weather/' + country_code)
             .then(function(response) {
               stopwatch.click('Fetching weather complete: ' + response.status);
-              if (response.data.length === 0) {
-                throw new Error('Got empty admin_pops, weird!');
-              } else {
-                region_weather = response.data;
-                // TODO(jetpack): HACKS.
-                region_weather_last = _.values(region_weather)[0];
-              }
+              // Relying on the `catch` below for error handling.
+              region_weather = response.data;
+              // There should only be 1 date key in the response map: the latest
+              // date for which we have data.
+              scope.current_date = _.keys(region_weather)[0];
+              region_weather_current_date = region_weather[scope.current_date];
             }).catch(function(err) {
-              console.error('Error fetching regions:', err);
-              scope.error_message = 'Error getting administrative regions!';
+              console.error('Error with weather data:', err);
+              scope.error_message = 'Error getting weather!';
             });
         var region_fetch = $http.get('/api/regions/' + country_code)
             .then(function(response) {
@@ -84,10 +87,10 @@ app.directive('jetpack', function($http) {
                     // Augment region
                     var geo_feature = region.geo_feature;
                     _.set(geo_feature, ['properties', 'name'], region.name);
-                    if (region_weather_last &&
-                        region_weather_last[region.region_code]) {
+                    if (region_weather_current_date) {
                       _.set(geo_feature, ['properties', 'temp'],
-                            region_weather_last[region.region_code].temp_mean);
+                            region_weather_current_date[region.region_code]
+                            .temp_mean);
                     }
                     result[region.region_code] = geo_feature;
                     return result;
