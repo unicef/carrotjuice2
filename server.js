@@ -41,7 +41,7 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 app.use(methodOverride()); // simulate DELETE and PUT (express4)
 
 // load our routes and pass in our app and fully configured passport
-routes(app, passport);
+routes.setup_routes(app, passport);
 
 // launch ======================================================================
 mongoose.connect(config.database);
