@@ -1,20 +1,27 @@
+// TODO(jetpack): is this really the best way to specify globals? :-/
+/* global log_rescale, stopwatch */
+
+// TODO(jetpack): what's proper way to handle errors? currently just setting
+// scope.error_message and logging to console..
+
 app.directive('jetpack', function($http) {
   return {
     restrict: 'E',  // Restrict to element matches only.
     templateUrl: 'map_partial.html',
 
     link: function(scope, element, attrs, controller) {
-      console.log('link top..');
-      var country_code = 'br';  // Hardcoded to Brazil for now.
-      var map_center = [-14.5, -54.0];
-      var map_zoom = 5;
+      stopwatch.reset('the top!');
+      // Brazil.
+      var country_code = 'br';
+      var map_center = [-19.0, -45.5];
+      var map_zoom = 7;
       // When zoomed out more, the polygons look really messed up. This zoom
       // level already shows all of Brazil.
-      var min_map_zoom = 4;
+      var min_map_zoom = 5;
       var map = get_map();
 
       var most_recent_date_with_data;
-      // Map from region_code to Region document.
+      // Map from region_code to GeoFeature, with properties `name` and `temp`.
       var regions;
       // Map from date to region_code to weather data (currently just
       // `temp_mean`).
@@ -26,18 +33,10 @@ app.directive('jetpack', function($http) {
       scope.error_message = null;
 
       draw();
+      fetch_regions_and_weather(country_code).then(draw);
 
-      fetch_regions_and_weather(country_code)
-        .then(function() {
-          console.log('Admin polygons fetched. Redraw!');
-          draw();
-        });
-
-      /** Return map.
-       * @return{todo} Map. TODO(jetpack): what's this type?
-       */
+      /** @return{map} Leaflet map. */
       function get_map() {
-        console.log('Getting map.');
         return L.map(element[0], {
           center: map_center,
           zoom: map_zoom,
@@ -45,25 +44,6 @@ app.directive('jetpack', function($http) {
           fadeAnimation: false,
           attributionControl: false
         });
-      }
-
-      /** Returns summary statistics.
-       * @param{Iterable} xs - Numbers to generate stats for.
-       * @return{Object} Map with fields 'min', 'max', and 'total'.
-       */
-      function summary_stats(xs) {
-        return xs.reduce(function(stats, x) {
-          if (x < stats.min) { stats.min = x; }
-          if (x > stats.max) { stats.max = x; }
-          stats.total += x;
-          return stats;
-        }, {min: Infinity, max: -Infinity, total: 0});
-      }
-
-      /** Logarithmically rescales a value in [min, max]. */
-      // eslint-disable-next-line require-jsdoc
-      function log_rescale(x, min, max) {
-        return Math.log(x - min + 1) / Math.log(max - min + 1);
       }
 
       /**
@@ -74,30 +54,13 @@ app.directive('jetpack', function($http) {
        */
       function fetch_regions_and_weather(country_code) {
         ++scope.num_loading;
-        console.log('Fetching regions and weather..');
+        stopwatch.click('Fetching regions and weather..');
         // TODO(jetpack): http service returns object with "success". use that
         // instead?
-        // TODO(jetpack): what's proper way to handle errors?
         // TODO(jetpack): factor these two...
-        var region_fetch = $http.get('/api/regions/' + country_code)
-            .then(function(response) {
-              console.log('Fetching regions complete:', response.status);
-              if (response.data.length === 0) {
-                throw new Error('Got empty regions, weird!');
-              } else {
-                regions = response.data.reduce(function(result, region) {
-                  result[region.region_code] = region;
-                  return result;
-                }, {});
-              }
-            })
-            .catch(function(err) {
-              console.error('Error fetching regions:', err);
-              scope.error_message = 'Error getting administrative regions!';
-            });
         var weather_fetch = $http.get('/api/country_weather/' + country_code)
             .then(function(response) {
-              console.log('Fetching weather complete:', response.status);
+              stopwatch.click('Fetching weather complete: ' + response.status);
               if (response.data.length === 0) {
                 throw new Error('Got empty admin_pops, weird!');
               } else {
@@ -109,6 +72,35 @@ app.directive('jetpack', function($http) {
               console.error('Error fetching regions:', err);
               scope.error_message = 'Error getting administrative regions!';
             });
+        var region_fetch = $http.get('/api/regions/' + country_code)
+            .then(function(response) {
+              stopwatch.click('Fetching regions complete: ' + response.status);
+              if (response.data.length === 0) {
+                throw new Error('Got empty regions, weird!');
+              } else {
+                return weather_fetch.then(function() {
+                  // Now `region_weather_last` has potentially been populated.
+                  regions = response.data.reduce(function(result, region) {
+                    // Augment region
+                    var geo_feature = region.geo_feature;
+                    _.set(geo_feature, ['properties', 'name'], region.name);
+                    if (region_weather_last &&
+                        region_weather_last[region.region_code]) {
+                      _.set(geo_feature, ['properties', 'temp'],
+                            region_weather_last[region.region_code].temp_mean);
+                    }
+                    result[region.region_code] = geo_feature;
+                    return result;
+                  }, {});
+                  stopwatch.click('Stored regions as geofeatures.');
+                });
+              }
+            })
+            .catch(function(err) {
+              console.error('Error fetching regions:', err);
+              scope.error_message = 'Error getting administrative regions!';
+            });
+
         --scope.num_loading;
         return Promise.all([region_fetch, weather_fetch]);
       }
@@ -124,47 +116,38 @@ app.directive('jetpack', function($http) {
 
       /** Draw the map. */
       function draw() {
-        console.log('Drawing.');
+        stopwatch.click('Drawing.');
 
         L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
           .addTo(map);
 
         // TODO(jetpack): painfully slow - optimize!
         // - simplify-geometry? https://www.npmjs.com/package/simplify-geometry
-        // - cull non-visible? 
-       // - TileLayer/canvas?
+        // - TopoJSON to send less data over the wire (br polygons are ~45MB!)
+        // - cull non-visible?
+        // - TileLayer/canvas?
         //   http://leafletjs.com/reference.html#tilelayer-canvas
         // - show higher-level admin regions above a certain zoom level?
-        // - copy over timeit/stopwatch stuff from resources for lightweight
-        //   timing.
+        // - web workers, so at least we don't block?
         if (regions) {
-          console.log('Adding admin polygons..');
           var geojsons = _.values(regions)
-              //.filter(function(x, i) { return i % 10 === 0; })
-              .map(function(region) {
-                var f = region.geo_feature;
-                f.properties = {name: region.name};
-                if (region_weather_last) {
-                  f.properties.temp =
-                    region_weather_last[region.region_code].temp_mean;
-                }
-                return L.geoJson(f, {
+          // .filter(function(x, i) { return i % 10 === 0; })
+              .map(function(geo_feature) {
+                return L.geoJson(geo_feature, {
                   style: {
                     stroke: false,  // No borders.
-                    fillOpacity: log_rescale(f.properties.temp, 25, 1000)
+                    fillOpacity: log_rescale(geo_feature.properties.temp,
+                                             25, 1000)
                   },
                   onEachFeature: onEachFeature
                 });
               });
-          console.log('Converted to geojson..');
+          stopwatch.click('Converted to geojson..');
           var layerGroup = L.layerGroup(geojsons);
-          console.log('Added to layerGroup..');
           layerGroup.addTo(map);
-          console.log('Added to map!');
+          stopwatch.click('Added to map!');
         }
       }
-
-      console.log('..link bottom');
     }
   };
 });
