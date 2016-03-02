@@ -7,7 +7,7 @@
     background: rgba(222, 222, 222, 0.7);
     display: inline-block;
   }
-  .current_date {
+  .current-date {
     font-size: 1.5em;
   }
   .error {
@@ -19,7 +19,7 @@
   }
 </style>
 <div class="controls">
-  <div class="current_date" ng-show="current_date">{{iso_to_yyyymmdd(current_date)}}</div>
+  <div class="current-date" ng-show="current_date">{{iso_to_yyyymmdd(current_date)}}</div>
   <div class="error" ng-show="error_message">{{error_message}}</div>
   <select ng-model="current_coloring" ng-options="c for c in coloring_options"
           ng-change="change_coloring()"></select>
