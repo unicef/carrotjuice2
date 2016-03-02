@@ -170,17 +170,20 @@ app.directive('jetpack', function($http) {
         stopwatch.click('Initializing map.');
 
         var basemaps = {
+          'CartoDB': L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+          }),
           'ESRI Gray': L.tileLayer(esri_url('Canvas/World_Light_Gray_Base'), {
-            attribution: '<a href="http://doc.arcgis.com/en/living-atlas/item/?itemId=149a9bb14d604bd18f4597b21c19fac7">ESRI</a>'
+            attribution: '&copy; <a href="http://doc.arcgis.com/en/living-atlas/item/?itemId=149a9bb14d604bd18f4597b21c19fac7">ESRI</a>'
           }),
           'ESRI Streets': L.tileLayer(esri_url('World_Street_Map'), {
-            attribution: '<a href="http://doc.arcgis.com/en/living-atlas/item/?itemId=8bf7167d20924cbf8e25e7b11c7c502c">ESRI</a>'
+            attribution: '&copy; <a href="http://doc.arcgis.com/en/living-atlas/item/?itemId=8bf7167d20924cbf8e25e7b11c7c502c">ESRI</a>'
           }),
           'ESRI Imagery': L.tileLayer(esri_url('World_Imagery'), {
-            attribution: '<a href="http://doc.arcgis.com/en/living-atlas/item/?itemId=a2e7c99be14d421abac4f002d6c301f5">ESRI</a>'
+            attribution: '&copy; <a href="http://doc.arcgis.com/en/living-atlas/item/?itemId=a2e7c99be14d421abac4f002d6c301f5">ESRI</a>'
           }),
           'OpenStreetMap': L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '<a href="http://www.openstreetmap.org/copyright">OSM</a>'
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           })
         };
 
@@ -193,7 +196,7 @@ app.directive('jetpack', function($http) {
           zoom: map_zoom,
           minZoom: min_map_zoom,
           fadeAnimation: false,
-          layers: [basemaps['ESRI Gray'], map_region_layer]
+          layers: [basemaps.CartoDB, map_region_layer]
         });
 
         map.attributionControl.setPrefix('Carotene');
