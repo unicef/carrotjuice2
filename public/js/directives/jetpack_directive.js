@@ -126,7 +126,9 @@ app.directive('jetpack', function($http) {
        */
       function get_region_style(feature) {
         var style = {
-          weight: 0  // Hide borders by default.
+          fillColor: '#03F',
+          color: '#000',  // Border color.
+          weight: 2
         };
         // TODO(jetpack): Use real science and stuff.
         switch (scope.current_coloring) {
@@ -152,20 +154,24 @@ app.directive('jetpack', function($http) {
       function onEachFeature(feature, layer) {
         var region_popup = L.popup({
           closeButton: false,
-          offset: L.point(0, -5)
+          offset: L.point(0, -10),
+          className: 'custom-popup'
         }, layer);
         region_popup.setContent('<b>'+feature.properties.name+'</b>');
 
         var mouseover = function(e) {
           var layer = e.target;
           layer.setStyle({
-            weight: 5
+            weight: 5,
+            opacity: 1
           });
-          region_popup.setLatLng(e.latlng);
-          map.openPopup(region_popup);
         };
         var mouseout = function(e) {
           scope.region_geojson.resetStyle(e.target);
+        };
+        var mousemove = function(e) {
+          region_popup.setLatLng(e.latlng);
+          map.openPopup(region_popup);
         };
         var click = function(e) {
           scope.current_region = e.target.feature.properties;
@@ -175,6 +181,7 @@ app.directive('jetpack', function($http) {
         layer.on({
           mouseover: mouseover,
           mouseout: mouseout,
+          mousemove: mousemove,
           click: click
         });
       }
@@ -249,7 +256,7 @@ app.directive('jetpack', function($http) {
 
         stopwatch.click('Converting to leaflet geojson..');
         scope.region_geojson = L.geoJson(
-          _.values(regions).filter(function(x, i) { return i % 10 === 0; }), {
+          _.values(regions).filter(function(x, i) { return i % 1 === 0; }), {
             onEachFeature: onEachFeature,
             style: get_region_style
           });

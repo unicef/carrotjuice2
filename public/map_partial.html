@@ -35,6 +35,17 @@
     font-size: 1.5em;
     font-weight: bold;
   }
+
+  .custom-popup .leaflet-popup-tip-container {
+    display: none;  // Kill popup stem/tip thingy.
+  }
+  .custom-popup .leaflet-popup-content {
+    margin: .1em .1em;  // Smaller margins.
+  }
+  .custom-popup .leaflet-popup-content-wrapper {
+    border-radius: .3em;  // Smaller radius.
+  }
+
 </style>
 {{redraw_notify()}}
 <div class="controls">
