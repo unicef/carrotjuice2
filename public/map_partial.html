@@ -2,7 +2,9 @@
   .controls {
     z-index: 1;
     position: relative;
-    left: 3em;
+    top: 1em;
+    left: 2em;
+    padding: 0.3em;
     font-size: 1.5em;
     background: rgba(222, 222, 222, 0.7);
     display: inline-block;
@@ -17,7 +19,24 @@
     display: {{debug_display_value}};
     color: red;
   }
+
+  .info {
+    z-index: 1;
+    position: absolute;
+    left: 1em;
+    bottom: 2em;
+    padding: 0.3em;
+    width: 15em;
+    font-size: 2em;
+    background: rgba(222, 222, 222, 0.8);
+    //display: inline-block;
+  }
+  .region-name {
+    font-size: 1.5em;
+    font-weight: bold;
+  }
 </style>
+{{redraw_notify()}}
 <div class="controls">
   <div class="current-date" ng-show="current_date">{{iso_to_yyyymmdd(current_date)}}</div>
   <div class="error" ng-show="error_message">{{error_message}}</div>
@@ -28,4 +47,19 @@
       date: {{current_date}}<br>
       num_loading: {{num_loading}}
   </div>
+</div>
+<div class="info">
+  <div class="region-name">{{current_region.name}}</div>
+  <div class="region-temp">{{current_region.temp}}</div>
+  ..info panel..<br>
+  ..info panel..<br>
+  ..info panel..<br>
+  ..info panel..<br>
+  ..info panel..<br>
+  ..info panel..<br>
+  ..info panel..<br>
+  ..info panel..<br>
+  ..info panel..<br>
+  ..info panel..<br>
+  ..info panel..<br>
 </div>

@@ -31,8 +31,10 @@ app.directive('jetpack', function($http) {
       // region_weather[scope.current_date]).
       var region_weather_current_date;
 
+      // For debugging.
       var display_debug_info = true;
       scope.debug_display_value = display_debug_info ? 'block' : 'none';
+      scope.redraw_notify = function() { console.log('redrawing now!'); };
 
       // How many things are loading. If > 0, view will display a spinner.
       scope.num_loading = 0;
@@ -41,11 +43,14 @@ app.directive('jetpack', function($http) {
       scope.current_date = '';
       scope.iso_to_yyyymmdd = iso_to_yyyymmdd;  // Expose util function.
       // Leaflet GeoJSON object for all regions.
-      scope.region_geojson;
+      scope.region_geojson = null;
       // Map coloring options.
       scope.coloring_options = ['temperature', 'mosquito prevalence',
                                 'mosquito oviposition'];
       scope.current_coloring = scope.coloring_options[0];
+
+      // Selected region.
+      scope.current_region = null;
 
       scope.change_coloring = function() {
         console.log('Coloring changed to:', scope.current_coloring);
@@ -145,23 +150,32 @@ app.directive('jetpack', function($http) {
       /** Set up interactions on region features. */
       // eslint-disable-next-line require-jsdoc
       function onEachFeature(feature, layer) {
+        var region_popup = L.popup({
+          closeButton: false,
+          offset: L.point(0, -5)
+        }, layer);
+        region_popup.setContent('<b>'+feature.properties.name+'</b>');
+
         var mouseover = function(e) {
           var layer = e.target;
           layer.setStyle({
             weight: 5
           });
+          region_popup.setLatLng(e.latlng);
+          map.openPopup(region_popup);
         };
         var mouseout = function(e) {
           scope.region_geojson.resetStyle(e.target);
         };
-
-        if (feature.properties && feature.properties.name) {
-          layer.bindPopup(feature.properties.name + " " +
-                          feature.properties.temp);
-        }
+        var click = function(e) {
+          scope.current_region = e.target.feature.properties;
+          console.log('clicked. current_region now:', scope.current_region);
+          scope.$apply();
+        };
         layer.on({
           mouseover: mouseover,
-          mouseout: mouseout
+          mouseout: mouseout,
+          click: click
         });
       }
 
@@ -202,6 +216,7 @@ app.directive('jetpack', function($http) {
         var overlays = {
           'Administrative regions': map_region_layer
         };
+
         // TODO(jetpack): uh what's element[0]?
         var map = L.map(element[0], {
           center: map_center,
@@ -234,7 +249,7 @@ app.directive('jetpack', function($http) {
 
         stopwatch.click('Converting to leaflet geojson..');
         scope.region_geojson = L.geoJson(
-          _.values(regions).filter(function(x, i) { return i % 1 === 0; }), {
+          _.values(regions).filter(function(x, i) { return i % 10 === 0; }), {
             onEachFeature: onEachFeature,
             style: get_region_style
           });
