@@ -12,9 +12,19 @@
   .error {
     font-size: 3em;
   }
+  .debug {
+    display: {{debug_display_value}};
+    color: red;
+  }
 </style>
 <div class="controls">
-  <div class="current_date" ng-show="current_date">{{current_date}}</div>
+  <div class="current_date" ng-show="current_date">{{iso_to_yyyymmdd(current_date)}}</div>
   <div class="error" ng-show="error_message">{{error_message}}</div>
-  <img ng-show="num_loading > 0" src="ajax-loader.gif"></img>
+  <select ng-model="current_coloring" ng-options="c for c in coloring_options"
+          ng-change="change_coloring()"></select>
+  <img ng-show="num_loading > 0" src="ajax-loader.gif"/>
+  <div class="debug">
+      date: {{current_date}}<br>
+      num_loading: {{num_loading}}
+  </div>
 </div>

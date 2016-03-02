@@ -55,7 +55,7 @@ function iso_to_yyyymmdd(iso_string) {
   if (match && match.length === 2) {
     return match[1];
   } else {
-    console.error('Failed to YYYY-MM-DD from string:', iso_string);
+    // console.error('Failed to YYYY-MM-DD from string:', iso_string);
     return null;
   }
 }

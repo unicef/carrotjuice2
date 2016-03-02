@@ -11,6 +11,7 @@ app.directive('jetpack', function($http) {
 
     link: function(scope, element, attrs, controller) {
       stopwatch.reset('the top!');
+
       // Brazil.
       var country_code = 'br';
       var map_center = [-19.0, -45.5];
@@ -30,14 +31,28 @@ app.directive('jetpack', function($http) {
       // region_weather[scope.current_date]).
       var region_weather_current_date;
 
+      var display_debug_info = true;
+      scope.debug_display_value = display_debug_info ? 'block' : 'none';
+
       // How many things are loading. If > 0, view will display a spinner.
       scope.num_loading = 0;
       scope.error_message = null;
       // Date of data, in ISO stirng format (e.g. "2016-03-01T00:00:00.000Z").
       scope.current_date = '';
+      scope.iso_to_yyyymmdd = iso_to_yyyymmdd;  // Expose util function.
+      // Leaflet GeoJSON objects.
+      scope.region_geojsons = [];
+      // Map coloring options.
+      scope.coloring_options = ['temperature', 'mosquito prevalence',
+                                'mosquito oviposition'];
+      scope.current_coloring = scope.coloring_options[0];
 
-      draw();
-      fetch_regions_and_weather(country_code).then(draw);
+      scope.change_coloring = function() {
+        console.log('Coloring changed to:', scope.current_coloring);
+        _.values(scope.region_geojsons).forEach(function(geojson) {
+          geojson.setStyle(get_region_style);
+        });
+      };
 
       /** @return{map} Leaflet map. */
       function get_map() {
@@ -117,6 +132,36 @@ app.directive('jetpack', function($http) {
         }
       }
 
+      /**
+       * Return style for admin region. Coloring depends on
+       * `scope.current_coloring` setting.
+       *
+       * @param{Feature} feature - Admin region GeoJSON feature.
+       * @return{object} Style for the region.
+       */
+      function get_region_style(feature) {
+        var style = {
+          stroke: false  // No borders.
+        };
+        // TODO(jetpack): Use real science and stuff.
+        switch (scope.current_coloring) {
+          case 'temperature':
+            style.fillOpacity = log_rescale(feature.properties.temp, 25, 5000);
+            break;
+          case 'mosquito prevalence':
+            style.fillOpacity =
+              log_rescale(feature.properties.temp * 5, 25, 5000);
+            break;
+          case 'mosquito oviposition':
+            style.fillOpacity =
+              log_rescale(feature.properties.temp * 10, 25, 5000);
+            break;
+          default:
+            console.error('Unknown coloring type:', scope.current_coloring);
+        }
+        return style;
+      }
+
       /** Draw the map. */
       function draw() {
         stopwatch.click('Drawing.');
@@ -133,24 +178,24 @@ app.directive('jetpack', function($http) {
         // - show higher-level admin regions above a certain zoom level?
         // - web workers, so at least we don't block?
         if (regions) {
-          var geojsons = _.values(regions)
+          scope.region_geojsons = _.values(regions)
           // .filter(function(x, i) { return i % 10 === 0; })
-              .map(function(geo_feature) {
-                return L.geoJson(geo_feature, {
-                  style: {
-                    stroke: false,  // No borders.
-                    fillOpacity: log_rescale(geo_feature.properties.temp,
-                                             25, 1000)
-                  },
-                  onEachFeature: onEachFeature
-                });
+            .map(function(geo_feature) {
+              return L.geoJson(geo_feature, {
+                onEachFeature: onEachFeature,
+                style: get_region_style
               });
+            });
           stopwatch.click('Converted to geojson..');
-          var layerGroup = L.layerGroup(geojsons);
+          var layerGroup = L.layerGroup(scope.region_geojsons);
           layerGroup.addTo(map);
           stopwatch.click('Added to map!');
         }
       }
+
+      // Go!
+      draw();
+      fetch_regions_and_weather(country_code).then(draw);
     }
   };
 });
