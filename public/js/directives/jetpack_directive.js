@@ -40,8 +40,8 @@ app.directive('jetpack', function($http) {
       // Date of data, in ISO stirng format (e.g. "2016-03-01T00:00:00.000Z").
       scope.current_date = '';
       scope.iso_to_yyyymmdd = iso_to_yyyymmdd;  // Expose util function.
-      // Leaflet GeoJSON objects.
-      scope.region_geojsons = [];
+      // Leaflet GeoJSON object for all regions.
+      scope.region_geojson;
       // Map coloring options.
       scope.coloring_options = ['temperature', 'mosquito prevalence',
                                 'mosquito oviposition'];
@@ -49,9 +49,7 @@ app.directive('jetpack', function($http) {
 
       scope.change_coloring = function() {
         console.log('Coloring changed to:', scope.current_coloring);
-        _.values(scope.region_geojsons).forEach(function(geojson) {
-          geojson.setStyle(get_region_style);
-        });
+        scope.region_geojson.setStyle(get_region_style);
       };
 
       /**
@@ -114,15 +112,6 @@ app.directive('jetpack', function($http) {
           .then(function() { --scope.num_loading; scope.$apply(); });
       }
 
-      /** Set up layer to show admin name popup on click. */
-      // eslint-disable-next-line require-jsdoc
-      function onEachFeature(feature, layer) {
-        if (feature.properties && feature.properties.name) {
-          layer.bindPopup(feature.properties.name + " " +
-                          feature.properties.temp);
-        }
-      }
-
       /**
        * Return style for admin region. Coloring depends on
        * `scope.current_coloring` setting.
@@ -132,7 +121,7 @@ app.directive('jetpack', function($http) {
        */
       function get_region_style(feature) {
         var style = {
-          stroke: false  // No borders.
+          weight: 0  // Hide borders by default.
         };
         // TODO(jetpack): Use real science and stuff.
         switch (scope.current_coloring) {
@@ -151,6 +140,15 @@ app.directive('jetpack', function($http) {
             console.error('Unknown coloring type:', scope.current_coloring);
         }
         return style;
+      }
+
+      /** Set up interactions on region features. */
+      // eslint-disable-next-line require-jsdoc
+      function onEachFeature(feature, layer) {
+        if (feature.properties && feature.properties.name) {
+          layer.bindPopup(feature.properties.name + " " +
+                          feature.properties.temp);
+        }
       }
 
       /**
@@ -220,19 +218,15 @@ app.directive('jetpack', function($http) {
           return console.error('No regions to draw :(');
         }
 
-        stopwatch.click('Converting to leaflet geojsons..');
-        scope.region_geojsons = _.values(regions)
-        // .filter(function(x, i) { return i % 10 === 0; })
-          .map(function(geo_feature) {
-            return L.geoJson(geo_feature, {
-              onEachFeature: onEachFeature,
-              style: get_region_style
-            });
+        stopwatch.click('Converting to leaflet geojson..');
+        scope.region_geojson = L.geoJson(
+          _.values(regions).filter(function(x, i) { return i % 1 === 0; }), {
+            onEachFeature: onEachFeature,
+            style: get_region_style
           });
 
         stopwatch.click('Adding to map layer..');
-        scope.region_geojsons.forEach(
-          map_region_layer.addLayer.bind(map_region_layer));
+        map_region_layer.addLayer(scope.region_geojson);
         stopwatch.click('Added to map!');
       });
     }
