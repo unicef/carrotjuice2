@@ -134,7 +134,7 @@ app.directive('jetpack', function($http) {
             break;
           case 'mosquito oviposition':
             style.fillOpacity =
-              log_rescale(feature.properties.temp * 10, 25, 5000);
+            log_rescale(Math.max(feature.properties.temp / 2, 25), 25, 5000);
             break;
           default:
             console.error('Unknown coloring type:', scope.current_coloring);
@@ -145,10 +145,24 @@ app.directive('jetpack', function($http) {
       /** Set up interactions on region features. */
       // eslint-disable-next-line require-jsdoc
       function onEachFeature(feature, layer) {
+        var mouseover = function(e) {
+          var layer = e.target;
+          layer.setStyle({
+            weight: 5
+          });
+        };
+        var mouseout = function(e) {
+          scope.region_geojson.resetStyle(e.target);
+        };
+
         if (feature.properties && feature.properties.name) {
           layer.bindPopup(feature.properties.name + " " +
                           feature.properties.temp);
         }
+        layer.on({
+          mouseover: mouseover,
+          mouseout: mouseout
+        });
       }
 
       /**
