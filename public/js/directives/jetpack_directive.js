@@ -14,14 +14,14 @@ app.directive('jetpack', function($http) {
 
       // Brazil.
       var country_code = 'br';
-      var map_center = [-19.0, -45.5];
-      var map_zoom = 7;
+      var map_center = [-23.3, -46.3];  // São Paulo.
+      var map_zoom = 9;
       // When zoomed out more, the polygons look really messed up. This zoom
       // level already shows all of Brazil.
       var min_map_zoom = 5;
-      var map = get_map();
+      var map_region_layer = L.layerGroup();
+      var map = initialize_map();
 
-      var most_recent_date_with_data;
       // Map from region_code to GeoFeature, with properties `name` and `temp`.
       var regions;
       // Map from date to region_code to weather data (currently just
@@ -53,17 +53,6 @@ app.directive('jetpack', function($http) {
           geojson.setStyle(get_region_style);
         });
       };
-
-      /** @return{map} Leaflet map. */
-      function get_map() {
-        return L.map(element[0], {
-          center: map_center,
-          zoom: map_zoom,
-          minZoom: min_map_zoom,
-          fadeAnimation: false,
-          attributionControl: false
-        });
-      }
 
       /**
        * Downloads region data (including GeoJSON features) and weather data.
@@ -119,8 +108,10 @@ app.directive('jetpack', function($http) {
               scope.error_message = 'Error getting administrative regions!';
             });
 
-        --scope.num_loading;
-        return Promise.all([region_fetch, weather_fetch]);
+        // TODO(jetpack): view doesn't seem to notice num_loading being
+        // decremented here? Only gets right value after the next redraw..
+        return Promise.all([region_fetch, weather_fetch])
+          .then(function() { --scope.num_loading; scope.$apply(); });
       }
 
       /** Set up layer to show admin name popup on click. */
@@ -162,14 +153,59 @@ app.directive('jetpack', function($http) {
         return style;
       }
 
-      /** Draw the map. */
-      function draw() {
-        stopwatch.click('Drawing.');
+      /**
+       * Small helper to return URL to ESRI basemap tiles. See
+       * http://doc.arcgis.com/en/living-atlas/ for ESRI basemaps.
+       *
+       * @param{string} basemap_name - Name of ESRI basemap.
+       * @return{string} URL Leaflet tile layer format.
+       */
+      function esri_url(basemap_name) {
+        return 'http://server.arcgisonline.com/ArcGIS/rest/services/' +
+          basemap_name + '/MapServer/tile/{z}/{y}/{x}';
+      }
 
-        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
-          .addTo(map);
+      /** @return{map} Leaflet map. */
+      function initialize_map() {
+        stopwatch.click('Initializing map.');
 
-        // TODO(jetpack): painfully slow - optimize!
+        var basemaps = {
+          'ESRI Gray': L.tileLayer(esri_url('Canvas/World_Light_Gray_Base'), {
+            attribution: '<a href="http://doc.arcgis.com/en/living-atlas/item/?itemId=149a9bb14d604bd18f4597b21c19fac7">ESRI</a>'
+          }),
+          'ESRI Streets': L.tileLayer(esri_url('World_Street_Map'), {
+            attribution: '<a href="http://doc.arcgis.com/en/living-atlas/item/?itemId=8bf7167d20924cbf8e25e7b11c7c502c">ESRI</a>'
+          }),
+          'ESRI Imagery': L.tileLayer(esri_url('World_Imagery'), {
+            attribution: '<a href="http://doc.arcgis.com/en/living-atlas/item/?itemId=a2e7c99be14d421abac4f002d6c301f5">ESRI</a>'
+          }),
+          'OpenStreetMap': L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '<a href="http://www.openstreetmap.org/copyright">OSM</a>'
+          })
+        };
+
+        var overlays = {
+          'Administrative regions': map_region_layer
+        };
+        // TODO(jetpack): uh what's element[0]?
+        var map = L.map(element[0], {
+          center: map_center,
+          zoom: map_zoom,
+          minZoom: min_map_zoom,
+          fadeAnimation: false,
+          layers: [basemaps['ESRI Gray'], map_region_layer]
+        });
+
+        map.attributionControl.setPrefix('Carotene');
+        L.control.layers(basemaps, overlays).addTo(map);
+        L.control.scale().addTo(map);
+
+        return map;
+      }
+
+      // Go! Load region polygons and latest weather data.
+      fetch_regions_and_weather(country_code).then(function() {
+        // TODO(jetpack): slow... optimize!
         // - simplify-geometry? https://www.npmjs.com/package/simplify-geometry
         // - TopoJSON to send less data over the wire (br polygons are ~45MB!)
         // - cull non-visible?
@@ -177,25 +213,25 @@ app.directive('jetpack', function($http) {
         //   http://leafletjs.com/reference.html#tilelayer-canvas
         // - show higher-level admin regions above a certain zoom level?
         // - web workers, so at least we don't block?
-        if (regions) {
-          scope.region_geojsons = _.values(regions)
-          // .filter(function(x, i) { return i % 10 === 0; })
-            .map(function(geo_feature) {
-              return L.geoJson(geo_feature, {
-                onEachFeature: onEachFeature,
-                style: get_region_style
-              });
-            });
-          stopwatch.click('Converted to geojson..');
-          var layerGroup = L.layerGroup(scope.region_geojsons);
-          layerGroup.addTo(map);
-          stopwatch.click('Added to map!');
+        if (!regions) {
+          return console.error('No regions to draw :(');
         }
-      }
 
-      // Go!
-      draw();
-      fetch_regions_and_weather(country_code).then(draw);
+        stopwatch.click('Converting to leaflet geojsons..');
+        scope.region_geojsons = _.values(regions)
+        // .filter(function(x, i) { return i % 10 === 0; })
+          .map(function(geo_feature) {
+            return L.geoJson(geo_feature, {
+              onEachFeature: onEachFeature,
+              style: get_region_style
+            });
+          });
+
+        stopwatch.click('Adding to map layer..');
+        scope.region_geojsons.forEach(
+          map_region_layer.addLayer.bind(map_region_layer));
+        stopwatch.click('Added to map!');
+      });
     }
   };
 });
