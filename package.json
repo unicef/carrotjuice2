@@ -23,7 +23,8 @@
     "passport-local": "~0.1.6",
     "passport-twitter": "~1.0.2",
     "request": "2.60.0",
-    "request-json": "latest"
+    "request-json": "latest",
+    "webpack": "^1.12.14"
   },
   "devDependencies": {
     "eslint": "^2.2.0",
