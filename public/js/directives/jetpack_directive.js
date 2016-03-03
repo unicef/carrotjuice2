@@ -1,5 +1,5 @@
 // TODO(jetpack): is this really the best way to specify globals? :-/
-/* global app, iso_to_yyyymmdd, log_rescale, stopwatch */
+/* global app, d3, iso_to_yyyymmdd, log_rescale, stopwatch */
 
 // TODO(jetpack): what's proper way to handle errors? currently just setting
 // scope.error_message and logging to console..
@@ -15,7 +15,7 @@ app.directive('jetpack', function($http) {
       // Brazil.
       var country_code = 'br';
       var map_center = [-23.3, -46.3];  // São Paulo.
-      var map_zoom = 9;
+      var map_zoom = 6;
       // When zoomed out more, the polygons look really messed up. This zoom
       // level already shows all of Brazil.
       var min_map_zoom = 5;
@@ -35,7 +35,7 @@ app.directive('jetpack', function($http) {
       var weather_by_date_and_region;
 
       // For debugging.
-      var display_debug_info = true;
+      var display_debug_info = false;
       scope.debug_display_value = display_debug_info ? 'block' : 'none';
       scope.redraw_notify = function() { console.log('redrawing now!'); };
 
@@ -240,20 +240,31 @@ app.directive('jetpack', function($http) {
         }
         var style = {
           fillColor: '#03F',
+          fillOpacity: 1,
           color: '#000',  // Border color.
           opacity: 1,
           weight: weight
         };
+
         // TODO(jetpack): Use real science and stuff.
+        var temp_to_prevalence = d3.scale.log().domain([1, 50])
+            .range(['green', 'yellow', 'red']);
+        var temp_to_oviposition = d3.scale.sqrt().domain([1, 50])
+            .range(['white', 'purple', 'red']);
+        var area_scale = d3.scale.log().domain([10, 10000])
+            .range(['blue', 'gray']);
         switch (scope.coloring_function) {
           case 'mosquito prevalence':
-            style.fillOpacity = log_rescale(feature.properties.temp, 1, 100);
+          //style.fillOpacity = log_rescale(feature.properties.temp, 1, 100);
+            style.fillColor = temp_to_prevalence(feature.properties.temp);
             break;
           case 'oviposition rate':
-            style.fillOpacity = log_rescale(feature.properties.temp * 0.5, 1, 100);
+          // style.fillOpacity = log_rescale(feature.properties.temp * 0.5, 1, 100);
+            style.fillColor = temp_to_oviposition(feature.properties.temp);
             break;
           case 'population density':
-            style.fillOpacity = log_rescale(feature.properties.geo_area_sqkm, 10, 100000);
+          //style.fillOpacity = log_rescale(feature.properties.geo_area_sqkm, 10, 100000);
+            style.fillColor = area_scale(feature.properties.geo_area_sqkm);
             break;
           default:
             console.error('Unknown coloring type:', scope.coloring_function);
