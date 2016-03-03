@@ -1,11 +1,10 @@
 var d3 = require('../bower_components/d3/d3.js');
 var React = require('react');
-var ReactDOM = require('../bower_components/react/react-dom.js');
+var ReactDOM = require('react/react-dom.js');
 
-var MainView = require('./view/main.jsx');
-/*
+var mainViews = require('./view/main.jsx');
+
 ReactDOM.render(
-  React.createElement(MainView, null),
-  document.body
+  React.createElement(mainViews.AppMain, null),
+  document.getElementById("main-content")
 );
-*/

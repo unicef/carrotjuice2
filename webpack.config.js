@@ -21,7 +21,10 @@ module.exports = {
   },
   resolve: {
     root: [path.join(__dirname, "bower_components")],
-    extensions: ['', '.js', '.jsx']
+    extensions: ['', '.js', '.jsx'],
+    alias: {
+      "react$": "react/react.js"
+    }
   },
   plugins: [
     new webpack.ResolverPlugin(
