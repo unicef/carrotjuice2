@@ -33,9 +33,6 @@ app.directive('jetpack', function($http) {
       // Map from date to region_code to weather data (currently just
       // `temp_mean`).
       var weather_by_date_and_region;
-      // Map from region_code to weather data (equivalent to
-      // wather_by_date_and_region[scope.current_date.toISOString()]).
-      var weather_by_region_for_current_date;
 
       // For debugging.
       var display_debug_info = true;
@@ -95,21 +92,41 @@ app.directive('jetpack', function($http) {
       // - Add next_date.
 
       // User chose a different date.
-      scope.prev_date = function() {
+      scope.prev_date = function() { change_date_relative(country_code, -1); };
+      scope.next_date = function() { change_date_relative(country_code, 1); };
+
+      // eslint-disable-next-line valid-jsdoc
+      /**
+       * Wrapper for `change_date` that takes a number of days relative to
+       * `current_date`.
+       */
+      function change_date_relative(country_code, n_days) {
+        var new_date = new Date(scope.current_date);
+        new_date.setDate(new_date.getDate() + n_days);
+        return change_date(country_code, new_date);
+      }
+
+      /**
+       * Fetch weather data for country for specified date.
+       *
+       * @param{string} country_code - Country.
+       * @param{Date} date - Date to change to.
+       * @return{Promise} Fulfilled when fetching, updating, and recoloring are
+       *   complete.
+       */
+      function change_date(country_code, date) {
         if (scope.num_loading > 0) {
-          return console.error('Already loading something!', scope.num_loading);
+          console.error('Already loading something!', scope.num_loading);
+          return Promise.reject('already loading something');
         }
         ++scope.num_loading;
-        var prev_date = new Date(scope.current_date);
-        prev_date.setDate(prev_date.getDate() - 1);
-        console.log('Requesting country weather for previous date:', prev_date);
-        fetch_country_weather_and_update_date(country_code, prev_date).then(function() {
+        console.log('Requesting country weather for date:', date);
+        return fetch_country_weather_and_update_data(country_code, date).then(function() {
           console.log('And now current_date is:', scope.current_date);
-          store_current_weather_in_geofeatures();
           recolor_regions();
           --scope.num_loading;
         });
-      };
+      }
 
       // TODO(jetpack): http service returns object with "success". use that instead?
 
@@ -143,14 +160,13 @@ app.directive('jetpack', function($http) {
 
       /**
        * Downloads weather data for all regions for the specified date and saves
-       * it in `weather_by_date_and_region`. Also updates
-       * `weather_by_region_for_current_date` and `scope.current_date`.
+       * it in `weather_by_date_and_region`.
        *
        * @param{string} country_code - The country.
        * @param{Date} date - Date to fetch data for (default: today).
-       * @return{Promise} Fulfilled once the request completes.
+       * @return{Promise} Fulfilled with response data once the request completes.
        */
-      function fetch_country_weather_and_update_date(country_code, date) {
+      function fetch_country_weather(country_code, date) {
         // When no date_str specified, we get the latest data available.
         var date_str = '';
         if (date === undefined) {
@@ -160,31 +176,43 @@ app.directive('jetpack', function($http) {
         }
         return $http.get('/api/country_weather/' + country_code + date_str)
           .then(function(response) {
-            stopwatch.click('Fetching weather complete: ' + response.status, response.data);
+            stopwatch.click('Fetching weather complete: ' + response.status);
             weather_by_date_and_region = _.merge(weather_by_date_and_region, response.data);
-            // Update `scope.current_date` and `weather_by_region_for_current_date`.
-            var actual_date_for_response_data = date;
-            if (actual_date_for_response_data === undefined) {
-              actual_date_for_response_data = _.keys(response.data)[0];
-              console.log('Latest available data was:', actual_date_for_response_data);
-            }
-            weather_by_region_for_current_date = response.data[actual_date_for_response_data];
-            scope.current_date = new Date(actual_date_for_response_data);
+            return response.data;
           });
       }
 
       /**
-       * Modifies geofeature_by_region by augmenting `properties` with current
-       * date's weather data.
+       * Fetches country weather, then updates local data:
+       * - Updates `current_date`.
+       * - Modifies `geofeature_by_region` by augmenting properties with new
+       *   weather data.
+       *
+       * @param{string} country_code - The country.
+       * @param{Date} date - Date to fetch data for (default: today).
+       * @return{Promise} Fulfilled once the request completes and data is updated.
        */
-      function store_current_weather_in_geofeatures() {
-        if (!weather_by_region_for_current_date) {
-          console.error('No weather for current date, not adding to geofeatures!');
-        }
-        _.keys(geofeature_by_region).forEach(function(region_code) {
-          geofeature_by_region[region_code].properties.temp =
-            weather_by_region_for_current_date[region_code].temp_mean;
-        });
+      function fetch_country_weather_and_update_data(country_code, date) {
+        return fetch_country_weather(country_code, date)
+          .then(function(response) {
+            // Update `scope.current_date`.
+            console.log('Latest available data had key:', _.keys(response)[0]);
+            if (date === undefined) {
+              console.log('No date given, setting current date to latest available.');
+              scope.current_date = new Date(_.keys(response)[0]);
+            } else {
+              scope.current_date = date;
+            }
+
+            // Update `geofeature_by_region`.
+            _.keys(geofeature_by_region).forEach(function(region_code) {
+              var date_key = scope.current_date.toISOString();
+              var region_data = weather_by_date_and_region[date_key][region_code];
+              if (region_data && region_data.temp_mean) {
+                geofeature_by_region[region_code].properties.temp = region_data.temp_mean;
+              }
+            });
+          });
       }
 
       /**
@@ -363,15 +391,13 @@ app.directive('jetpack', function($http) {
       // - show higher-level admin regions above a certain zoom level?
       // - web workers, so at least we don't block?
 
-      // Go! Load region polygons and latest weather data.
-      Promise.all([fetch_country_regions(country_code),
-                   fetch_country_weather_and_update_date(country_code)])
-        .then(store_current_weather_in_geofeatures)
+      // Go! Load region polygons and latest weather data, convert to polys, add to map.
+      fetch_country_regions(country_code)
         .then(function() {
-          if (!geofeature_by_region) {
-            return console.error('No regions to draw :(');
-          }
-
+          // Depends on `geofeature_by_region` being loaded by fetch_country_regions first.
+          return fetch_country_weather_and_update_data(country_code);
+        })
+        .then(function() {
           stopwatch.click('Converting to leaflet geojson..');
           scope.regions_geojson = L.geoJson(
             _.values(geofeature_by_region).filter(function(x, i) { return i % 1 === 0; }), {
