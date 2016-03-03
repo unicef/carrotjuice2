@@ -23,3 +23,7 @@ itest:
 .PHONY: clean
 clean:
 	docker-compose kill; docker-compose rm -f
+
+.PHONY: dev
+dev:
+	./node_modules/webpack/bin/webpack.js --watch
