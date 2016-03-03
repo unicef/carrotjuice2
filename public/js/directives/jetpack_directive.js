@@ -1,5 +1,5 @@
 // TODO(jetpack): is this really the best way to specify globals? :-/
-/* global iso_to_yyyymmdd, log_rescale, stopwatch */
+/* global app, iso_to_yyyymmdd, log_rescale, stopwatch */
 
 // TODO(jetpack): what's proper way to handle errors? currently just setting
 // scope.error_message and logging to console..
@@ -9,7 +9,7 @@ app.directive('jetpack', function($http) {
     restrict: 'E',  // Restrict to element matches only.
     templateUrl: 'map_partial.html',
 
-    link: function(scope, element, attrs, controller) {
+    link: function(scope, element, attrs, _controller) {
       stopwatch.reset('the top!');
 
       // Brazil.
@@ -209,7 +209,7 @@ app.directive('jetpack', function($http) {
             style.fillOpacity = log_rescale(feature.properties.temp * 0.5, 1, 100);
             break;
           case 'population density':
-            style.fillOpacity = log_rescale(feature.properties.geo_area_sqkm / 1000000, 10, 10000);
+            style.fillOpacity = log_rescale(feature.properties.geo_area_sqkm, 10, 100000);
             break;
           default:
             console.error('Unknown coloring type:', scope.coloring_function);
@@ -322,6 +322,9 @@ app.directive('jetpack', function($http) {
           }),
           'ESRI Imagery': L.tileLayer(esri_url('World_Imagery'), {
             attribution: '&copy; <a href="http://doc.arcgis.com/en/living-atlas/item/?itemId=a2e7c99be14d421abac4f002d6c301f5">ESRI</a>'
+          }),
+          'OSM Transit': L.tileLayer('http://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://thunderforest.com/">Thunderforest</a>'
           }),
           'OpenStreetMap': L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
