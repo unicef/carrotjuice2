@@ -69,7 +69,8 @@
   </div>
   <!-- TODO(jetpack): Make this nice. -->
   <div class="info-panel coloring-info">
-    <select ng-model="current_coloring" ng-options="c for c in coloring_options"
+    <select ng-model="coloring_function"
+            ng-options="c for c in coloring_function_options"
             ng-change="change_coloring()"></select>
     <div class="{{class_prevalence}}">Infectious mosquito prevalence</div>
     <div class="{{class_oviposition}}">Oviposition rate</div>

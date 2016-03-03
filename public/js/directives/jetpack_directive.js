@@ -22,14 +22,19 @@ app.directive('jetpack', function($http) {
       var map_region_layer = L.layerGroup();
       var map = initialize_map();
 
+      // TODO(jetpack): Rethink how this data is stored. What do we need to
+      // access, and how? Do we have duplication? What data will be needed for
+      // the prevalence/oviposition calculations? And population density? What
+      // needs to be accessible from scope?
+
       // Map from region_code to GeoFeature, with properties `name` and `temp`.
-      var regions;
+      var geofeature_by_region;
       // Map from date to region_code to weather data (currently just
       // `temp_mean`).
-      var region_weather;
+      var weather_by_date_and_region;
       // Map from region_code to weather data (equivalent to
-      // region_weather[scope.current_date]).
-      var region_weather_current_date;
+      // wather_by_date_and_region[scope.current_date.toISOString()]).
+      var weather_by_region_for_current_date;
 
       // For debugging.
       var display_debug_info = true;
@@ -39,16 +44,16 @@ app.directive('jetpack', function($http) {
       // How many things are loading. If > 0, view will display a spinner.
       scope.num_loading = 0;
       scope.error_message = null;
-      // Date of data, in ISO stirng format (e.g. "2016-03-01T00:00:00.000Z").
-      scope.current_date = '';
+      // Date of current data.
+      scope.current_date = null;
       scope.iso_to_yyyymmdd = iso_to_yyyymmdd;  // Expose util function.
       // Leaflet GeoJSON object for all regions.
       scope.region_geojson = null;
       // Map coloring options.
-      scope.coloring_options = ['mosquito prevalence',
-                                'oviposition rate',
-                                'population density'];
-      scope.current_coloring = scope.coloring_options[0];
+      scope.coloring_function_options = ['mosquito prevalence',
+                                         'oviposition rate',
+                                         'population density'];
+      scope.coloring_function = scope.coloring_function_options[0];
 
       // Selected region.
       scope.current_region = null;
@@ -56,13 +61,14 @@ app.directive('jetpack', function($http) {
       scope.current_region_temps = [];
 
       scope.change_coloring = function() {
-        console.log('Coloring changed to:', scope.current_coloring);
-        scope.class_prevalence = scope.current_coloring === 'mosquito prevalence'
-          ? 'coloring-selected' : 'coloring-nonselected';
-        scope.class_oviposition = scope.current_coloring === 'oviposition rate'
-          ? 'coloring-selected' : 'coloring-nonselected';
-        scope.class_population = scope.current_coloring === 'population density'
-          ? 'coloring-selected' : 'coloring-nonselected';
+        console.log('Coloring changed to:', scope.coloring_function);
+        scope.class_prevalence = scope.coloring_function === 'mosquito prevalence' ?
+          'coloring-selected' : 'coloring-nonselected';
+        scope.class_oviposition = scope.coloring_function === 'oviposition rate' ?
+          'coloring-selected' : 'coloring-nonselected';
+        scope.class_population = scope.coloring_function === 'population density' ?
+          'coloring-selected' : 'coloring-nonselected';
+        // Recolor based on new coloring_function.
         scope.region_geojson.setStyle(get_region_style);
       };
 
@@ -82,11 +88,12 @@ app.directive('jetpack', function($http) {
             .then(function(response) {
               stopwatch.click('Fetching weather complete: ' + response.status);
               // Relying on the `catch` below for error handling.
-              region_weather = response.data;
+              weather_by_date_and_region = response.data;
               // There should only be 1 date key in the response map: the latest
               // date for which we have data.
-              scope.current_date = _.keys(region_weather)[0];
-              region_weather_current_date = region_weather[scope.current_date];
+              var current_date_key = _.keys(weather_by_date_and_region)[0];
+              weather_by_region_for_current_date = weather_by_date_and_region[current_date_key];
+              scope.current_date = new Date(current_date_key);
             }).catch(function(err) {
               console.error('Error with weather data:', err);
               scope.error_message = 'Error getting weather!';
@@ -98,7 +105,6 @@ app.directive('jetpack', function($http) {
                 throw new Error('Got empty regions, weird!');
               } else {
                 return weather_fetch.then(function() {
-                  // Now `region_weather_current_date` has potentially been populated.
                   var result = {};
                   response.data.forEach(function(region) {
                     // Augment region.
@@ -106,13 +112,13 @@ app.directive('jetpack', function($http) {
                     _.set(geo_feature, ['properties', 'name'], region.name);
                     geo_feature.properties.region_code = region.region_code;
                     geo_feature.properties.geo_area_sqkm = region.geo_area_sqkm;
-                    if (region_weather_current_date) {
+                    if (weather_by_region_for_current_date) {
                       geo_feature.properties.temp =
-                        region_weather_current_date[region.region_code].temp_mean;
+                        weather_by_region_for_current_date[region.region_code].temp_mean;
                     }
                     result[region.region_code] = geo_feature;
                   });
-                  regions = result;
+                  geofeature_by_region = result;
                   stopwatch.click('Stored regions as geofeatures.');
                 });
               }
@@ -130,7 +136,7 @@ app.directive('jetpack', function($http) {
 
       /**
        * Return style for admin region. Coloring depends on
-       * `scope.current_coloring` setting.
+       * `scope.coloring_function` setting.
        *
        * @param{Feature} feature - Admin region GeoJSON feature.
        * @return{object} Style for the region.
@@ -142,18 +148,18 @@ app.directive('jetpack', function($http) {
           weight: 2
         };
         // TODO(jetpack): Use real science and stuff.
-        switch (scope.current_coloring) {
+        switch (scope.coloring_function) {
           case 'mosquito prevalence':
             style.fillOpacity = log_rescale(feature.properties.temp, 1, 100);
             break;
           case 'oviposition rate':
-          style.fillOpacity = log_rescale(feature.properties.temp * 0.5, 1, 100);
+            style.fillOpacity = log_rescale(feature.properties.temp * 0.5, 1, 100);
             break;
           case 'population density':
-            style.fillOpacity = log_rescale(feature.properties.geo_area_sqkm / 100000, 0, 5000);
+            style.fillOpacity = log_rescale(feature.properties.geo_area_sqkm / 1000000, 10, 10000);
             break;
           default:
-            console.error('Unknown coloring type:', scope.current_coloring);
+            console.error('Unknown coloring type:', scope.coloring_function);
         }
         return style;
       }
@@ -294,13 +300,13 @@ app.directive('jetpack', function($http) {
         //   http://leafletjs.com/reference.html#tilelayer-canvas
         // - show higher-level admin regions above a certain zoom level?
         // - web workers, so at least we don't block?
-        if (!regions) {
+        if (!geofeature_by_region) {
           return console.error('No regions to draw :(');
         }
 
         stopwatch.click('Converting to leaflet geojson..');
         scope.region_geojson = L.geoJson(
-          _.values(regions).filter(function(x, i) { return i % 1 === 0; }), {
+          _.values(geofeature_by_region).filter(function(x, i) { return i % 1 === 0; }), {
             onEachFeature: onEachFeature,
             style: get_region_style
           });
