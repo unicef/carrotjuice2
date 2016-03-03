@@ -174,6 +174,7 @@ app.directive('jetpack', function($http) {
       // eslint-disable-next-line require-jsdoc
       function onEachFeature(feature, layer) {
         var region_popup = L.popup({
+          autoPan: false,
           closeButton: false,
           offset: L.point(0, -10),
           className: 'custom-popup'
@@ -265,12 +266,15 @@ app.directive('jetpack', function($http) {
           zoom: map_zoom,
           minZoom: min_map_zoom,
           fadeAnimation: false,
-          layers: [basemaps.CartoDB, map_region_layer]
+          layers: [basemaps.CartoDB, map_region_layer],
+          zoomControl: false  // Added manually below.
         });
 
         map.attributionControl.setPrefix('Carotene');
         L.control.layers(basemaps, overlays).addTo(map);
-        L.control.scale().addTo(map);
+        L.control.scale({position: 'bottomright'}).addTo(map);
+        // The zoom control is added manually so that it's above the scale control.
+        L.control.zoom({position: 'bottomright'}).addTo(map);
 
         return map;
       }
