@@ -44,7 +44,7 @@ function setup_routes(app, passport) {
   app.get('/api/regions/:country_code', apicache('1 day'), forward_route);
 
   // Get recent weather data for all regions.
-  app.get('/api/country_weather/:country_code', apicache('1 day'),
+  app.get('/api/country_weather/:country_code/:time?', apicache('1 day'),
           forward_route);
 
   // Get weather data for a single regions.
