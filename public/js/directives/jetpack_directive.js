@@ -1,5 +1,5 @@
 // TODO(jetpack): is this really the best way to specify globals? :-/
-/* global log_rescale, stopwatch */
+/* global iso_to_yyyymmdd, log_rescale, stopwatch */
 
 // TODO(jetpack): what's proper way to handle errors? currently just setting
 // scope.error_message and logging to console..
@@ -51,6 +51,8 @@ app.directive('jetpack', function($http) {
 
       // Selected region.
       scope.current_region = null;
+      // Array of [YYYY-MM-DD string, mean temp] pairs.
+      scope.current_region_temps = [];
 
       scope.change_coloring = function() {
         console.log('Coloring changed to:', scope.current_coloring);
@@ -89,19 +91,20 @@ app.directive('jetpack', function($http) {
                 throw new Error('Got empty regions, weird!');
               } else {
                 return weather_fetch.then(function() {
-                  // Now `region_weather_last` has potentially been populated.
-                  regions = response.data.reduce(function(result, region) {
-                    // Augment region
+                  // Now `region_weather_current_date` has potentially been populated.
+                  var result = {};
+                  response.data.forEach(function(region) {
+                    // Augment region.
                     var geo_feature = region.geo_feature;
                     _.set(geo_feature, ['properties', 'name'], region.name);
+                    geo_feature.properties.region_code = region.region_code;
                     if (region_weather_current_date) {
-                      _.set(geo_feature, ['properties', 'temp'],
-                            region_weather_current_date[region.region_code]
-                            .temp_mean);
+                      geo_feature.properties.temp =
+                        region_weather_current_date[region.region_code].temp_mean;
                     }
                     result[region.region_code] = geo_feature;
-                    return result;
-                  }, {});
+                  });
+                  regions = result;
                   stopwatch.click('Stored regions as geofeatures.');
                 });
               }
@@ -149,6 +152,24 @@ app.directive('jetpack', function($http) {
         return style;
       }
 
+      /**
+       * Return URL to fetch N days worth of weather data for the region.
+       *
+       * @param{string} region_code - Region.
+       * @param{number} n_days - Number of days. Default of 180.
+       * @return{string} URL for /region_weather/ endpoint.
+       */
+      function region_weather_url(region_code, n_days) {
+        if (n_days === undefined) {
+          n_days = 180;
+        }
+        var today = new Date();
+        var start_date = new Date();
+        start_date.setDate(start_date.getDate() - n_days);
+        return '/api/region_weather/' + country_code + '/' + region_code + '/' +
+          iso_to_yyyymmdd(start_date) + '/' + iso_to_yyyymmdd(today);
+      }
+
       /** Set up interactions on region features. */
       // eslint-disable-next-line require-jsdoc
       function onEachFeature(feature, layer) {
@@ -157,7 +178,7 @@ app.directive('jetpack', function($http) {
           offset: L.point(0, -10),
           className: 'custom-popup'
         }, layer);
-        region_popup.setContent('<b>'+feature.properties.name+'</b>');
+        region_popup.setContent('<b>' + feature.properties.name + '</b>');
 
         var mouseover = function(e) {
           var layer = e.target;
@@ -176,7 +197,19 @@ app.directive('jetpack', function($http) {
         var click = function(e) {
           scope.current_region = e.target.feature.properties;
           console.log('clicked. current_region now:', scope.current_region);
-          scope.$apply();
+          stopwatch.reset('Fetching region weather..');
+          $http.get(region_weather_url(e.target.feature.properties.region_code))
+            .then(function(response) {
+              stopwatch.click('Fetching region weather complete: ' + response.status);
+              var weather_history = response.data;
+              scope.current_region_temps = _.keys(weather_history).map(function(date) {
+                return [iso_to_yyyymmdd(date), weather_history[date].temp_mean];
+              });
+              console.log('Region weather series: ', scope.current_region_temps);
+            }).catch(function(err) {
+              console.error('Error with region weather data:', err);
+              scope.error_message = 'Error getting region weather!';
+            });
         };
         layer.on({
           mouseover: mouseover,
@@ -202,6 +235,7 @@ app.directive('jetpack', function($http) {
       function initialize_map() {
         stopwatch.click('Initializing map.');
 
+        /* eslint-disable max-len */
         var basemaps = {
           'CartoDB': L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
@@ -219,6 +253,7 @@ app.directive('jetpack', function($http) {
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           })
         };
+        /* eslint-enable max-len */
 
         var overlays = {
           'Administrative regions': map_region_layer

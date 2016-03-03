@@ -59,18 +59,11 @@
       num_loading: {{num_loading}}
   </div>
 </div>
-<div class="info">
+<div class="info" ng-show="current_region">
   <div class="region-name">{{current_region.name}}</div>
   <div class="region-temp">{{current_region.temp}}</div>
-  ..info panel..<br>
-  ..info panel..<br>
-  ..info panel..<br>
-  ..info panel..<br>
-  ..info panel..<br>
-  ..info panel..<br>
-  ..info panel..<br>
-  ..info panel..<br>
-  ..info panel..<br>
-  ..info panel..<br>
-  ..info panel..<br>
+  <div>{{current_region.region_code}}</div>
+  <div ng-repeat="(index, date_temp_pair) in current_region_temps">
+    {{date_temp_pair[0]}} - {{date_temp_pair[1]}} °C
+  </div>
 </div>
