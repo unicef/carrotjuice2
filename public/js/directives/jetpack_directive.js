@@ -54,10 +54,16 @@ app.directive('jetpack', function($http) {
         ['mosquito prevalence', 'oviposition rate', 'population density'];
       scope.coloring_function = scope.coloring_function_options[0];
 
-      // Selected region.
+      // Properties object of selected region.
       scope.current_region = null;
+      // Layer for selected region. Only used in mouse interaction code to reset
+      // styling on selected regions.
+      var current_region_layer = null;
       // Array of [YYYY-MM-DD string, mean temp] pairs.
       scope.current_region_temps = [];
+
+      // TODO(jetpack): terrible hacks just to get the right thing bolded.
+      scope.class_prevalence = 'coloring-selected';
 
       // User chose a different coloring function.
       scope.change_coloring = function() {
@@ -121,11 +127,15 @@ app.directive('jetpack', function($http) {
         }
         ++scope.num_loading;
         console.log('Requesting country weather for date:', date);
-        return fetch_country_weather_and_update_data(country_code, date).then(function() {
-          console.log('And now current_date is:', scope.current_date);
-          recolor_regions();
-          --scope.num_loading;
-        });
+        return fetch_country_weather_and_update_data(country_code, date)
+          .then(function() {
+            console.log('And now current_date is:', scope.current_date);
+            recolor_regions();
+            --scope.num_loading;
+          }).catch(function(err) {
+            console.error('Failed trying to change date, maybe going into the future?', err);
+            --scope.num_loading;
+          });
       }
 
       // TODO(jetpack): http service returns object with "success". use that instead?
@@ -223,10 +233,16 @@ app.directive('jetpack', function($http) {
        * @return{object} Style for the region.
        */
       function get_region_style(feature) {
+        var weight = 1;
+        if (scope.current_region &&
+            scope.current_region.region_code === feature.properties.region_code) {
+          weight = 4;
+        }
         var style = {
           fillColor: '#03F',
           color: '#000',  // Border color.
-          weight: 2
+          opacity: 1,
+          weight: weight
         };
         // TODO(jetpack): Use real science and stuff.
         switch (scope.coloring_function) {
@@ -284,21 +300,38 @@ app.directive('jetpack', function($http) {
 
         var mouseover = function(e) {
           var layer = e.target;
-          layer.setStyle({
-            weight: 5,
-            opacity: 1
-          });
+          // Don't set styling on a selected region: the style for selected
+          // regions uses a heavier border.
+          if (!(scope.current_region &&
+                scope.current_region.region_code === layer.feature.properties.region_code)) {
+            layer.setStyle({
+              weight: 3
+            });
+          }
         };
         var mouseout = function(e) {
           scope.regions_geojson.resetStyle(e.target);
+          map.closePopup(region_popup);
         };
         var mousemove = function(e) {
           region_popup.setLatLng(e.latlng);
           map.openPopup(region_popup);
         };
         var click = function(e) {
+          // Change current_region so resetStyle will remove the previous selection's styling.
           scope.current_region = e.target.feature.properties;
+          if (current_region_layer) {
+            // Changing selected region - reseting styling on previous region.
+            console.log('Resetting style on previous selected region:', current_region_layer);
+            scope.regions_geojson.resetStyle(current_region_layer);
+          }
+          // Save the current region layer now.
+          current_region_layer = e.target;
+          e.target.setStyle({
+            weight: 5
+          });
           console.log('clicked. current_region now:', scope.current_region);
+
           stopwatch.reset('Fetching region weather..');
           // TODO(jetpack): break out into own function. merge response data into shared map.
           $http.get(region_weather_url(country_code, e.target.feature.properties.region_code))

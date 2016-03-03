@@ -32,7 +32,6 @@
 
   .error {
     color: red;
-    font-size: 2.5em;
   }
   .debug {
     z-index: 1;
@@ -41,6 +40,7 @@
     background: rgba(0, 0, 0, 0.6);
     position: absolute;
     right: 3em;
+    width: 20em;
   }
 
   .custom-popup .leaflet-popup-tip-container {
@@ -64,8 +64,8 @@
   <div class="info-panel region-info" ng-show="current_region">
     <div class="region-name">{{current_region.name}}</div>
     <div class="region-pop">Pop. ~population~</div>
-    <div class="region-area">Area: {{current_region.geo_area_sqkm}} km<sup>2</sup></div>
-    <div class="region-weather">Weather: {{current_region.temp}}</div>
+    <div class="region-area">Area: {{current_region.geo_area_sqkm | number:0}} km<sup>2</sup></div>
+    <div class="region-weather">Weather: {{current_region.temp | number:1}}°C</div>
     <div class="region-prevalence">Mosquito prevalence: ~prevalence~</div>
   </div>
   <!-- TODO(jetpack): Make this nice. -->
@@ -93,9 +93,9 @@
   date: {{current_date}}<br>
   num_loading: {{num_loading}}<br>
   region_code: {{current_region.region_code}}<br>
-  <div ng-repeat="date_temp_pair in current_region_temps">
-    {{date_temp_pair[0]}} {{date_temp_pair[1]}}°C;
-  </div>
+  <span ng-repeat="date_temp_pair in current_region_temps">
+    {{date_temp_pair[0] | limitTo:-5}}:{{date_temp_pair[1] | number:0}} /
+  </span>
 </div>
 
 {{redraw_notify()}}
