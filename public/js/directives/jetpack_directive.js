@@ -45,8 +45,9 @@ app.directive('jetpack', function($http) {
       // Leaflet GeoJSON object for all regions.
       scope.region_geojson = null;
       // Map coloring options.
-      scope.coloring_options = ['temperature', 'mosquito prevalence',
-                                'mosquito oviposition'];
+      scope.coloring_options = ['mosquito prevalence',
+                                'oviposition rate',
+                                'population density'];
       scope.current_coloring = scope.coloring_options[0];
 
       // Selected region.
@@ -56,6 +57,12 @@ app.directive('jetpack', function($http) {
 
       scope.change_coloring = function() {
         console.log('Coloring changed to:', scope.current_coloring);
+        scope.class_prevalence = scope.current_coloring === 'mosquito prevalence'
+          ? 'coloring-selected' : 'coloring-nonselected';
+        scope.class_oviposition = scope.current_coloring === 'oviposition rate'
+          ? 'coloring-selected' : 'coloring-nonselected';
+        scope.class_population = scope.current_coloring === 'population density'
+          ? 'coloring-selected' : 'coloring-nonselected';
         scope.region_geojson.setStyle(get_region_style);
       };
 
@@ -98,6 +105,7 @@ app.directive('jetpack', function($http) {
                     var geo_feature = region.geo_feature;
                     _.set(geo_feature, ['properties', 'name'], region.name);
                     geo_feature.properties.region_code = region.region_code;
+                    geo_feature.properties.geo_area_sqkm = region.geo_area_sqkm;
                     if (region_weather_current_date) {
                       geo_feature.properties.temp =
                         region_weather_current_date[region.region_code].temp_mean;
@@ -135,16 +143,14 @@ app.directive('jetpack', function($http) {
         };
         // TODO(jetpack): Use real science and stuff.
         switch (scope.current_coloring) {
-          case 'temperature':
-            style.fillOpacity = log_rescale(feature.properties.temp, 25, 5000);
-            break;
           case 'mosquito prevalence':
-            style.fillOpacity =
-              log_rescale(feature.properties.temp * 5, 25, 5000);
+            style.fillOpacity = log_rescale(feature.properties.temp, 1, 100);
             break;
-          case 'mosquito oviposition':
-            style.fillOpacity =
-            log_rescale(Math.max(feature.properties.temp / 2, 25), 25, 5000);
+          case 'oviposition rate':
+          style.fillOpacity = log_rescale(feature.properties.temp * 0.5, 1, 100);
+            break;
+          case 'population density':
+            style.fillOpacity = log_rescale(feature.properties.geo_area_sqkm / 100000, 0, 5000);
             break;
           default:
             console.error('Unknown coloring type:', scope.current_coloring);
@@ -206,7 +212,6 @@ app.directive('jetpack', function($http) {
               scope.current_region_temps = _.keys(weather_history).map(function(date) {
                 return [iso_to_yyyymmdd(date), weather_history[date].temp_mean];
               });
-              console.log('Region weather series: ', scope.current_region_temps);
             }).catch(function(err) {
               console.error('Error with region weather data:', err);
               scope.error_message = 'Error getting region weather!';
