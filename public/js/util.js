@@ -51,6 +51,7 @@ function log_rescale(x, min, max) {
  * @return{string} YYYY-MM-DD date string.
  */
 function iso_to_yyyymmdd(iso_string) {
+  if (!iso_string) { return ''; }  // Mysteriously getting called from template w/ null...
   if (iso_string instanceof Date) {
     iso_string = iso_string.toISOString();
   }

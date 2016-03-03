@@ -19,6 +19,7 @@ app.directive('jetpack', function($http) {
       // When zoomed out more, the polygons look really messed up. This zoom
       // level already shows all of Brazil.
       var min_map_zoom = 5;
+      var max_map_zoom = 12;
       var map_region_layer = L.layerGroup();
       var map = initialize_map();
 
@@ -43,16 +44,17 @@ app.directive('jetpack', function($http) {
 
       // How many things are loading. If > 0, view will display a spinner.
       scope.num_loading = 0;
+      // TODO(jetpack): Do something with toasts instead! setTimeout to remove itself, etc.
       scope.error_message = null;
       // Date of current data.
       scope.current_date = null;
       scope.iso_to_yyyymmdd = iso_to_yyyymmdd;  // Expose util function.
       // Leaflet GeoJSON object for all regions.
-      scope.region_geojson = null;
+      // TODO(jetpack): shouldn't need to be in `scope` anymore.
+      scope.regions_geojson = null;
       // Map coloring options.
-      scope.coloring_function_options = ['mosquito prevalence',
-                                         'oviposition rate',
-                                         'population density'];
+      scope.coloring_function_options =
+        ['mosquito prevalence', 'oviposition rate', 'population density'];
       scope.coloring_function = scope.coloring_function_options[0];
 
       // Selected region.
@@ -60,6 +62,7 @@ app.directive('jetpack', function($http) {
       // Array of [YYYY-MM-DD string, mean temp] pairs.
       scope.current_region_temps = [];
 
+      // User chose a different coloring function.
       scope.change_coloring = function() {
         console.log('Coloring changed to:', scope.coloring_function);
         scope.class_prevalence = scope.coloring_function === 'mosquito prevalence' ?
@@ -69,69 +72,114 @@ app.directive('jetpack', function($http) {
         scope.class_population = scope.coloring_function === 'population density' ?
           'coloring-selected' : 'coloring-nonselected';
         // Recolor based on new coloring_function.
-        scope.region_geojson.setStyle(get_region_style);
+        recolor_regions();
       };
 
+      // TODO(jetpack): not working...
+      // eslint-disable-next-line require-jsdoc
+      function weather_debug() {
+        var result = '';
+        _.keys(weather_by_date_and_region).forEach(function(date) {
+          var date_result = iso_to_yyyymmdd(date) + ': ';
+          _.keys(weather_by_date_and_region[date]).forEach(function(region_code) {
+            date_result += region_code + ',';
+          });
+          result += date_result + '<br>';
+        });
+        console.log('weather_debug:', result);
+        return result;
+      }
+
+      // TODO(jetpack):
+      // - Don't fetch if we already have data for the date already.
+      // - Add next_date.
+
+      // User chose a different date.
+      scope.prev_date = function() {
+        if (scope.num_loading > 0) {
+          return console.error('Already loading something!', scope.num_loading);
+        }
+        ++scope.num_loading;
+        var prev_date = new Date(scope.current_date);
+        prev_date.setDate(prev_date.getDate() - 1);
+        console.log('Requesting country weather for previous date:', prev_date);
+        fetch_country_weather_and_update_date(country_code, prev_date).then(function() {
+          console.log('And now current_date is:', scope.current_date);
+          store_current_weather_in_geofeatures();
+          recolor_regions();
+          --scope.num_loading;
+          weather_debug();
+        });
+      };
+
+      // TODO(jetpack): http service returns object with "success". use that instead?
+
       /**
-       * Downloads region data (including GeoJSON features) and weather data.
+       * Downloads region data (including GeoJSON features) and saves it in
+       * `geofeature_by_region`.
+       *
+       * @param{string} country_code - Country.
+       * @return{Promise} Fulfilled once the request completes.
+       */
+      function fetch_country_regions(country_code) {
+        return $http.get('/api/regions/' + country_code)
+          .then(function(response) {
+            stopwatch.click('Fetching regions complete: ' + response.status);
+            if (response.data.length === 0) {
+              throw new Error('Got empty regions, weird!');
+            }
+            var result = {};
+            response.data.forEach(function(region) {
+              // Augment regios's geo_feature's properties with region data.
+              var geo_feature = region.geo_feature;
+              geo_feature.properties = geo_feature.properties || {};
+              _.assign(geo_feature.properties,
+                       _.pick(region, ['name', 'region_code', 'geo_area_sqkm']));
+              result[region.region_code] = geo_feature;
+            });
+            geofeature_by_region = result;
+            stopwatch.click('Stored regions as geofeatures.');
+          });
+      }
+
+      /**
+       * Downloads weather data for all regions for the specified date and saves
+       * it in `weather_by_date_and_region`. Also updates
+       * `weather_by_region_for_current_date` and `scope.current_date`.
        *
        * @param{string} country_code - The country.
-       * @return{Promise} Fulfilled once the requests are complete.
+       * @param{Date} date - Date to fetch data for (default: today).
+       * @return{Promise} Fulfilled once the request completes.
        */
-      function fetch_regions_and_weather(country_code) {
-        ++scope.num_loading;
-        stopwatch.click('Fetching regions and weather..');
-        // TODO(jetpack): http service returns object with "success". use that
-        // instead?
-        // TODO(jetpack): factor these two...
-        var weather_fetch = $http.get('/api/country_weather/' + country_code)
-            .then(function(response) {
-              stopwatch.click('Fetching weather complete: ' + response.status);
-              // Relying on the `catch` below for error handling.
-              weather_by_date_and_region = response.data;
-              // There should only be 1 date key in the response map: the latest
-              // date for which we have data.
-              var current_date_key = _.keys(weather_by_date_and_region)[0];
-              weather_by_region_for_current_date = weather_by_date_and_region[current_date_key];
-              scope.current_date = new Date(current_date_key);
-            }).catch(function(err) {
-              console.error('Error with weather data:', err);
-              scope.error_message = 'Error getting weather!';
-            });
-        var region_fetch = $http.get('/api/regions/' + country_code)
-            .then(function(response) {
-              stopwatch.click('Fetching regions complete: ' + response.status);
-              if (response.data.length === 0) {
-                throw new Error('Got empty regions, weird!');
-              } else {
-                return weather_fetch.then(function() {
-                  var result = {};
-                  response.data.forEach(function(region) {
-                    // Augment region.
-                    var geo_feature = region.geo_feature;
-                    _.set(geo_feature, ['properties', 'name'], region.name);
-                    geo_feature.properties.region_code = region.region_code;
-                    geo_feature.properties.geo_area_sqkm = region.geo_area_sqkm;
-                    if (weather_by_region_for_current_date) {
-                      geo_feature.properties.temp =
-                        weather_by_region_for_current_date[region.region_code].temp_mean;
-                    }
-                    result[region.region_code] = geo_feature;
-                  });
-                  geofeature_by_region = result;
-                  stopwatch.click('Stored regions as geofeatures.');
-                });
-              }
-            })
-            .catch(function(err) {
-              console.error('Error fetching regions:', err);
-              scope.error_message = 'Error getting administrative regions!';
-            });
+      function fetch_country_weather_and_update_date(country_code, date, fetch_only) {
+        var date_str = '';
+        if (date !== undefined) {
+          console.log('fetching country weather:', date, arguments);
+          date_str = '/' + iso_to_yyyymmdd(date);
+        }
+        return $http.get('/api/country_weather/' + country_code + date_str)
+          .then(function(response) {
+            stopwatch.click('Fetching weather complete: ' + response.status, response.data);
+            _.merge(weather_by_date_and_region, response.data);
+            // Update `scope.current_date` and `weather_by_region_for_current_date`.
+            var actual_date_for_response_data = _.keys(response.data)[0];
+            weather_by_region_for_current_date = response.data[actual_date_for_response_data];
+            scope.current_date = new Date(actual_date_for_response_data);
+          });
+      }
 
-        // TODO(jetpack): view doesn't seem to notice num_loading being
-        // decremented here? Only gets right value after the next redraw..
-        return Promise.all([region_fetch, weather_fetch])
-          .then(function() { --scope.num_loading; scope.$apply(); });
+      /**
+       * Modifies geofeature_by_region by augmenting `properties` with current
+       * date's weather data.
+       */
+      function store_current_weather_in_geofeatures() {
+        if (!weather_by_region_for_current_date) {
+          console.error('No weather for current date, not adding to geofeatures!');
+        }
+        _.keys(geofeature_by_region).forEach(function(region_code) {
+          geofeature_by_region[region_code].properties.temp =
+            weather_by_region_for_current_date[region_code].temp_mean;
+        });
       }
 
       /**
@@ -165,13 +213,21 @@ app.directive('jetpack', function($http) {
       }
 
       /**
+       * Recolor region polygons (perhaps due to new weather data, or a different coloring function.
+       */
+      function recolor_regions() {
+        scope.regions_geojson.setStyle(get_region_style);
+      }
+
+      /**
        * Return URL to fetch N days worth of weather data for the region.
        *
+       * @param{string} country_code - Country.
        * @param{string} region_code - Region.
        * @param{number} n_days - Number of days. Default of 180.
        * @return{string} URL for /region_weather/ endpoint.
        */
-      function region_weather_url(region_code, n_days) {
+      function region_weather_url(country_code, region_code, n_days) {
         if (n_days === undefined) {
           n_days = 180;
         }
@@ -201,7 +257,7 @@ app.directive('jetpack', function($http) {
           });
         };
         var mouseout = function(e) {
-          scope.region_geojson.resetStyle(e.target);
+          scope.regions_geojson.resetStyle(e.target);
         };
         var mousemove = function(e) {
           region_popup.setLatLng(e.latlng);
@@ -211,7 +267,8 @@ app.directive('jetpack', function($http) {
           scope.current_region = e.target.feature.properties;
           console.log('clicked. current_region now:', scope.current_region);
           stopwatch.reset('Fetching region weather..');
-          $http.get(region_weather_url(e.target.feature.properties.region_code))
+          // TODO(jetpack): break out into own function. merge response data into shared map.
+          $http.get(region_weather_url(country_code, e.target.feature.properties.region_code))
             .then(function(response) {
               stopwatch.click('Fetching region weather complete: ' + response.status);
               var weather_history = response.data;
@@ -276,6 +333,7 @@ app.directive('jetpack', function($http) {
           center: map_center,
           zoom: map_zoom,
           minZoom: min_map_zoom,
+          maxZoom: max_map_zoom,
           fadeAnimation: false,
           layers: [basemaps.CartoDB, map_region_layer],
           zoomControl: false  // Added manually below.
@@ -290,31 +348,37 @@ app.directive('jetpack', function($http) {
         return map;
       }
 
+      // TODO(jetpack): slow... optimize!
+      // - simplify-geometry? https://www.npmjs.com/package/simplify-geometry
+      // - TopoJSON to send less data over the wire (br polygons are ~45MB!)
+      // - TileLayer/canvas? http://leafletjs.com/reference.html#tilelayer-canvas
+      // - show higher-level admin regions above a certain zoom level?
+      // - web workers, so at least we don't block?
+
       // Go! Load region polygons and latest weather data.
-      fetch_regions_and_weather(country_code).then(function() {
-        // TODO(jetpack): slow... optimize!
-        // - simplify-geometry? https://www.npmjs.com/package/simplify-geometry
-        // - TopoJSON to send less data over the wire (br polygons are ~45MB!)
-        // - cull non-visible?
-        // - TileLayer/canvas?
-        //   http://leafletjs.com/reference.html#tilelayer-canvas
-        // - show higher-level admin regions above a certain zoom level?
-        // - web workers, so at least we don't block?
-        if (!geofeature_by_region) {
-          return console.error('No regions to draw :(');
-        }
+      Promise.all([fetch_country_regions(country_code),
+                   fetch_country_weather_and_update_date(country_code)])
+        .then(store_current_weather_in_geofeatures)
+        .then(function() {
+          if (!geofeature_by_region) {
+            return console.error('No regions to draw :(');
+          }
 
-        stopwatch.click('Converting to leaflet geojson..');
-        scope.region_geojson = L.geoJson(
-          _.values(geofeature_by_region).filter(function(x, i) { return i % 1 === 0; }), {
-            onEachFeature: onEachFeature,
-            style: get_region_style
-          });
+          stopwatch.click('Converting to leaflet geojson..');
+          scope.regions_geojson = L.geoJson(
+            _.values(geofeature_by_region).filter(function(x, i) { return i % 1 === 0; }), {
+              onEachFeature: onEachFeature,
+              style: get_region_style
+            });
 
-        stopwatch.click('Adding to map layer..');
-        map_region_layer.addLayer(scope.region_geojson);
-        stopwatch.click('Added to map!');
-      });
+          stopwatch.click('Adding to map layer..');
+          map_region_layer.addLayer(scope.regions_geojson);
+          stopwatch.click('Added to map!');
+        })
+        .catch(function(err) {
+          console.error('Problem!', err);
+          scope.error_message = err;
+        });
     }
   };
 });

@@ -54,6 +54,7 @@
   }
 </style>
 
+<!-- TODO(jetpack): make these leaflet controls so e.g. double clicking doesn't zoom the map. -->
 <div class="info">
   <!-- TODO(jetpack): Add search! -->
   <div class="info-panel search">
@@ -78,7 +79,9 @@
   </div>
   <!-- TODO(jetpack): Nix this, possibly replace with cases display? -->
   <div class="info-panel current-date" ng-show="current_date">
+    <button ng-click="prev_date()">&lt;</button>
     {{iso_to_yyyymmdd(current_date)}}
+    <button ng-click="next_date()">&gt;</button>
   </div>
 
   <!-- TODO(jetpack): Replace with nicer thing. -->
