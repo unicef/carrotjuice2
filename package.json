@@ -13,6 +13,7 @@
     "compression": "^1.6.1",
     "connect-flash": "~0.1.1",
     "cookie-parser": "~1.0.0",
+    "css-loader": "^0.23.1",
     "ejs": "~0.8.5",
     "express": "^4.0.0",
     "express-password-reset": "latest",
@@ -28,6 +29,7 @@
     "passport-twitter": "~1.0.2",
     "request": "2.60.0",
     "request-json": "latest",
+    "style-loader": "^0.13.0",
     "webpack": "^1.12.14"
   },
   "devDependencies": {
