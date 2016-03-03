@@ -48,7 +48,7 @@ function setup_routes(app, passport) {
           forward_route);
 
   // Get weather data for a single regions.
-  app.get('/api/region_weather/:country_code/:start_time?/:end_time?',
+  app.get('/api/region_weather/:country_code/:region_code/:start_time?/:end_time?',
           apicache('1 day'), forward_route);
 
   // Show the home page (will also have our login links)
