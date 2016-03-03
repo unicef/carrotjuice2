@@ -10,7 +10,8 @@
     // else's after returns are _good_ style!
     "no-else-return": 0,
     // Allow single lines.
-    "brace-style": [2, "1tbs", { "allowSingleLine": true }]
+    "brace-style": [2, "1tbs", { "allowSingleLine": true }],
+    "max-len": [2, 100]
   },
   "env": {
     // Don't warn for Mocha globals.
