@@ -75,8 +75,8 @@ app.directive('jetpack', function($http) {
         recolor_regions();
       };
 
-      // TODO(jetpack): not working...
-      // eslint-disable-next-line require-jsdoc
+      /** @return{string} Debug string of weather_by_date_and_region. */
+      // eslint-disable-next-line no-unused-vars,require-jsdoc
       function weather_debug() {
         var result = '';
         _.keys(weather_by_date_and_region).forEach(function(date) {
@@ -108,7 +108,6 @@ app.directive('jetpack', function($http) {
           store_current_weather_in_geofeatures();
           recolor_regions();
           --scope.num_loading;
-          weather_debug();
         });
       };
 
@@ -151,18 +150,24 @@ app.directive('jetpack', function($http) {
        * @param{Date} date - Date to fetch data for (default: today).
        * @return{Promise} Fulfilled once the request completes.
        */
-      function fetch_country_weather_and_update_date(country_code, date, fetch_only) {
+      function fetch_country_weather_and_update_date(country_code, date) {
+        // When no date_str specified, we get the latest data available.
         var date_str = '';
-        if (date !== undefined) {
-          console.log('fetching country weather:', date, arguments);
+        if (date === undefined) {
+          console.log('No date specified - fetching latest available data..');
+        } else {
           date_str = '/' + iso_to_yyyymmdd(date);
         }
         return $http.get('/api/country_weather/' + country_code + date_str)
           .then(function(response) {
             stopwatch.click('Fetching weather complete: ' + response.status, response.data);
-            _.merge(weather_by_date_and_region, response.data);
+            weather_by_date_and_region = _.merge(weather_by_date_and_region, response.data);
             // Update `scope.current_date` and `weather_by_region_for_current_date`.
-            var actual_date_for_response_data = _.keys(response.data)[0];
+            var actual_date_for_response_data = date;
+            if (actual_date_for_response_data === undefined) {
+              actual_date_for_response_data = _.keys(response.data)[0];
+              console.log('Latest available data was:', actual_date_for_response_data);
+            }
             weather_by_region_for_current_date = response.data[actual_date_for_response_data];
             scope.current_date = new Date(actual_date_for_response_data);
           });
