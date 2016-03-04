@@ -1,5 +1,5 @@
 // TODO(jetpack): is this really the best way to specify globals? :-/
-/* global app, iso_to_yyyymmdd, log_rescale, stopwatch */
+/* global app, d3, iso_to_yyyymmdd, log_rescale, stopwatch */
 
 // TODO(jetpack): what's proper way to handle errors? currently just setting
 // scope.error_message and logging to console..
@@ -15,7 +15,7 @@ app.directive('jetpack', function($http) {
       // Brazil.
       var country_code = 'br';
       var map_center = [-23.3, -46.3];  // São Paulo.
-      var map_zoom = 9;
+      var map_zoom = 6;
       // When zoomed out more, the polygons look really messed up. This zoom
       // level already shows all of Brazil.
       var min_map_zoom = 5;
@@ -35,7 +35,7 @@ app.directive('jetpack', function($http) {
       var weather_by_date_and_region;
 
       // For debugging.
-      var display_debug_info = true;
+      var display_debug_info = false;
       scope.debug_display_value = display_debug_info ? 'block' : 'none';
       scope.redraw_notify = function() { console.log('redrawing now!'); };
 
@@ -54,10 +54,16 @@ app.directive('jetpack', function($http) {
         ['mosquito prevalence', 'oviposition rate', 'population density'];
       scope.coloring_function = scope.coloring_function_options[0];
 
-      // Selected region.
+      // Properties object of selected region.
       scope.current_region = null;
+      // Layer for selected region. Only used in mouse interaction code to reset
+      // styling on selected regions.
+      var current_region_layer = null;
       // Array of [YYYY-MM-DD string, mean temp] pairs.
       scope.current_region_temps = [];
+
+      // TODO(jetpack): terrible hacks just to get the right thing bolded.
+      scope.class_prevalence = 'coloring-selected';
 
       // User chose a different coloring function.
       scope.change_coloring = function() {
@@ -121,11 +127,15 @@ app.directive('jetpack', function($http) {
         }
         ++scope.num_loading;
         console.log('Requesting country weather for date:', date);
-        return fetch_country_weather_and_update_data(country_code, date).then(function() {
-          console.log('And now current_date is:', scope.current_date);
-          recolor_regions();
-          --scope.num_loading;
-        });
+        return fetch_country_weather_and_update_data(country_code, date)
+          .then(function() {
+            console.log('And now current_date is:', scope.current_date);
+            recolor_regions();
+            --scope.num_loading;
+          }).catch(function(err) {
+            console.error('Failed trying to change date, maybe going into the future?', err);
+            --scope.num_loading;
+          });
       }
 
       // TODO(jetpack): http service returns object with "success". use that instead?
@@ -223,21 +233,38 @@ app.directive('jetpack', function($http) {
        * @return{object} Style for the region.
        */
       function get_region_style(feature) {
+        var weight = 1;
+        if (scope.current_region &&
+            scope.current_region.region_code === feature.properties.region_code) {
+          weight = 4;
+        }
         var style = {
           fillColor: '#03F',
+          fillOpacity: 1,
           color: '#000',  // Border color.
-          weight: 2
+          opacity: 1,
+          weight: weight
         };
+
         // TODO(jetpack): Use real science and stuff.
+        var temp_to_prevalence = d3.scale.log().domain([1, 50])
+            .range(['green', 'yellow', 'red']);
+        var temp_to_oviposition = d3.scale.sqrt().domain([1, 50])
+            .range(['white', 'purple', 'red']);
+        var area_scale = d3.scale.log().domain([10, 10000])
+            .range(['blue', 'gray']);
         switch (scope.coloring_function) {
           case 'mosquito prevalence':
-            style.fillOpacity = log_rescale(feature.properties.temp, 1, 100);
+          //style.fillOpacity = log_rescale(feature.properties.temp, 1, 100);
+            style.fillColor = temp_to_prevalence(feature.properties.temp);
             break;
           case 'oviposition rate':
-            style.fillOpacity = log_rescale(feature.properties.temp * 0.5, 1, 100);
+          // style.fillOpacity = log_rescale(feature.properties.temp * 0.5, 1, 100);
+            style.fillColor = temp_to_oviposition(feature.properties.temp);
             break;
           case 'population density':
-            style.fillOpacity = log_rescale(feature.properties.geo_area_sqkm, 10, 100000);
+          //style.fillOpacity = log_rescale(feature.properties.geo_area_sqkm, 10, 100000);
+            style.fillColor = area_scale(feature.properties.geo_area_sqkm);
             break;
           default:
             console.error('Unknown coloring type:', scope.coloring_function);
@@ -284,21 +311,38 @@ app.directive('jetpack', function($http) {
 
         var mouseover = function(e) {
           var layer = e.target;
-          layer.setStyle({
-            weight: 5,
-            opacity: 1
-          });
+          // Don't set styling on a selected region: the style for selected
+          // regions uses a heavier border.
+          if (!(scope.current_region &&
+                scope.current_region.region_code === layer.feature.properties.region_code)) {
+            layer.setStyle({
+              weight: 3
+            });
+          }
         };
         var mouseout = function(e) {
           scope.regions_geojson.resetStyle(e.target);
+          map.closePopup(region_popup);
         };
         var mousemove = function(e) {
           region_popup.setLatLng(e.latlng);
           map.openPopup(region_popup);
         };
         var click = function(e) {
+          // Change current_region so resetStyle will remove the previous selection's styling.
           scope.current_region = e.target.feature.properties;
+          if (current_region_layer) {
+            // Changing selected region - reseting styling on previous region.
+            console.log('Resetting style on previous selected region:', current_region_layer);
+            scope.regions_geojson.resetStyle(current_region_layer);
+          }
+          // Save the current region layer now.
+          current_region_layer = e.target;
+          e.target.setStyle({
+            weight: 5
+          });
           console.log('clicked. current_region now:', scope.current_region);
+
           stopwatch.reset('Fetching region weather..');
           // TODO(jetpack): break out into own function. merge response data into shared map.
           $http.get(region_weather_url(country_code, e.target.feature.properties.region_code))
