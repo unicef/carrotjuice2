@@ -1,3 +1,23 @@
+/* global page style */
+
+h2 {
+    font-size: 30px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 500;
+    line-height: 1.1;
+    margin-top: 15px;
+    margin-bottom: 7px;
+}
+
+h3 {
+    font-size: 24px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 500;
+    line-height: 1.1;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
 .mainContainer {
     position: absolute;
     background-color: #906;

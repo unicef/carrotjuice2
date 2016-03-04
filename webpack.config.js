@@ -4,8 +4,8 @@ var webpack = require("webpack");
 module.exports = {
   entry: "./public/entry.js",
   output: {
-    path: __dirname,
-    filename: "./public/bundle.js"
+    path: path.join(__dirname, "public"),
+    filename: "bundle.js"
   },
   module: {
     loaders: [
@@ -16,6 +16,25 @@ module.exports = {
         query: {
           presets: ['react']
         }
+      },
+
+      // Needed for the css-loader when [bootstrap-webpack](https://github.com/bline/bootstrap-webpack)
+      // loads bootstrap's css.
+      {
+        test: /\.woff2?(\?v=\d+\.\d+\.\d+)?$/,
+        loader: "url?limit=10000&mimetype=application/font-woff"
+      },
+      {
+        test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+        loader: "url?limit=10000&mimetype=application/octet-stream"
+      },
+      {
+        test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+        loader: "file"
+      },
+      {
+        test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+        loader: "url?limit=10000&mimetype=image/svg+xml"
       }
     ]
   },
