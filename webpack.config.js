@@ -10,6 +10,7 @@ module.exports = {
   module: {
     loaders: [
       {test: /\.css$/, loader: "style!css"},
+      {test: /\.json$/, loader: "json"},
       {
         test: /\.jsx$/,
         loader: "babel-loader",
@@ -39,11 +40,7 @@ module.exports = {
     ]
   },
   resolve: {
-    root: [path.join(__dirname, "bower_components")],
-    extensions: ['', '.js', '.jsx'],
-    alias: {
-      "react$": "react/react.js"
-    }
+    extensions: ['', '.js', '.jsx']
   },
   plugins: [
     new webpack.ResolverPlugin(
