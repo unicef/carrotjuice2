@@ -1,9 +1,20 @@
 var P = require('pjs').P;
 var draw_initial_map = require('./draw-initial-map.js');
+var _ = require('lodash');
+var topojson = require('topojson');
 
 var MapController = P({
-  init: function(get_region_data_promise) {
-    this.get_region_data_promise = get_region_data_promise;
+  init: function(api_client) {
+    this.get_region_data_promise = api_client.get_region_data()
+      .then(function(data) {
+        if (data.type !== "Topology") {
+          window.alert("Bad JSON data");
+        } else {
+          return _.map(data.objects, function(datum) {
+            return topojson.feature(data, datum);
+          });
+        }
+      });
   },
 
   /**
