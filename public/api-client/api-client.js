@@ -50,7 +50,7 @@ var APIClient = P({
     } else {
       date_str = '/' + DateUtil.iso_to_yyyymmdd(date);
     }
-    return makeRequest('/api/country_weather/' + country_code + date_str);
+    return makeRequest('/api/country_weather/' + this.country_code + date_str);
   }
 });
 

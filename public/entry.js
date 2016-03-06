@@ -1,3 +1,9 @@
+// Load bootstrap. Requires JQuery be made available as
+// a global window variable.
+require('expose?$!expose?jQuery!jquery');
+require('bootstrap/dist/css/bootstrap.min.css');
+require('bootstrap/dist/js/bootstrap.js');
+
 var React = require('react');
 var ReactDOM = require('react-dom');
 

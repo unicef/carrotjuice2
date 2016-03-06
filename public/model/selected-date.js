@@ -4,12 +4,17 @@
 
 var P = require('pjs').P;
 
-var DataLayer = P({
-  init: function(onUpdate) {
+var SelectedDate = P({
+  init: function(onUpdate, weather_data_store) {
     // NOTE: use the latest key from weather/etc. data
-    this.current_day = '';
+    this.current_day = 'loading';
     this.date_bar_visible = true;
     this.onUpdate = onUpdate;  // typically, view re-rendering callback
+
+    weather_data_store.initial_load_promise.then((function() {
+      this.current_day = weather_data_store.last_date;
+      this.onUpdate();
+    }).bind(this));
   },
 
   set_date: function(date) {
@@ -23,4 +28,4 @@ var DataLayer = P({
   }
 });
 
-module.exports = DataLayer;
+module.exports = SelectedDate;

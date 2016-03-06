@@ -1,20 +1,24 @@
-// this is the main entrypoint for our single-page app
+/**
+ * this is the main entrypoint for our single-page app
+ */
 var React = require('react');
-var OverlayControlsBox = require('./overlay-controls-box.jsx');
-var LeafletMap = require('./leaflet-map.jsx');
-var LoadingStatusModel = require('../model/loading-status.js');
-var LoadingStatusView = require('./loading-status.jsx');
-var MapController = require('../map-controller/map-controller.js');
-var APIClient = require('../api-client/api-client.js');
-var DataLayer = require('../model/data-layer.js');
-var ViewUtil = require('./view-util.jsx');
-var DateSelectionBar = require('./date-selection-bar.jsx');
 
-// Load bootstrap. Requires JQuery be made available as
-// a global window variable.
-require('expose?$!expose?jQuery!jquery');
-require('bootstrap/dist/css/bootstrap.min.css');
-require('bootstrap/dist/js/bootstrap.js');
+// Views
+var DateSelectionBar = require('./date-selection-bar.jsx');
+var LeafletMap = require('./leaflet-map.jsx');
+var LoadingStatusView = require('./loading-status.jsx');
+var OverlayControlsBox = require('./overlay-controls-box.jsx');
+var ViewUtil = require('./view-util.jsx');
+
+// Models
+var DataLayer = require('../model/data-layer.js');
+var LoadingStatusModel = require('../model/loading-status.js');
+var WeatherDataStore = require('../model/weather-data-store.js');
+var SelectedDate = require('../model/selected-date.js');
+
+// Controllers & other data-managing classes
+var APIClient = require('../api-client/api-client.js');
+var MapController = require('../map-controller/map-controller.js');
 
 // module-local style
 require('./main.css');
@@ -31,7 +35,9 @@ var rerender = function() {
 var loading_status = LoadingStatusModel(rerender);
 var data_layer = DataLayer(rerender);
 var api_client = APIClient('br');
+var weather_data_store = WeatherDataStore(api_client);
 var map_controller = MapController(api_client, loading_status, data_layer);
+var selected_date = SelectedDate(rerender, weather_data_store);
 
 var AppMain = React.createClass({
   render: function() {
@@ -39,8 +45,8 @@ var AppMain = React.createClass({
     return (
       <div className="mainContainer">
         {ViewUtil.flexbox_stack([
-          <LeafletMap controller={map_controller} />,
-          <DateSelectionBar />
+          <LeafletMap key="1" controller={map_controller} />,
+          <DateSelectionBar key="2" selected_date={selected_date} />
         ])}
         <OverlayControlsBox data_layer={data_layer} />
         <LoadingStatusView model={loading_status} />
