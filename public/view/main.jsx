@@ -2,6 +2,8 @@
 var React = require('react');
 var OverlayControlsBox = require('./overlay-controls-box.jsx');
 var LeafletMap = require('./leaflet-map.jsx');
+var LoadingStatusModel = require('../model/loading-status.js');
+var LoadingStatusView = require('./loading-status.jsx');
 var MapController = require('../map-controller/map-controller.js');
 var APIClient = require('../api-client/api-client.js');
 
@@ -14,15 +16,26 @@ require('bootstrap/dist/js/bootstrap.js');
 // module-local style
 require('./main.css');
 
+// callback to re-render
+var main_instance = null;
+var rerender = function() {
+  if (main_instance !== null) {
+    main_instance.forceUpdate();
+  }
+};
+
+var loading_status = LoadingStatusModel(rerender);
 var api_client = APIClient('br');
-var map_controller = MapController(api_client);
+var map_controller = MapController(api_client, loading_status);
 
 var AppMain = React.createClass({
   render: function() {
+    main_instance = this;
     return (
       <div className="mainContainer">
         <LeafletMap controller={map_controller} />
         <OverlayControlsBox />
+        <LoadingStatusView model={loading_status} />
       </div>
     );
   }

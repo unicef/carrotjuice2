@@ -4,7 +4,8 @@ var _ = require('lodash');
 var topojson = require('topojson');
 
 var MapController = P({
-  init: function(api_client) {
+  init: function(api_client, loading_status_model) {
+    this.loading_status_model = loading_status_model;
     this.get_region_data_promise = api_client.get_region_data()
       .then(function(data) {
         if (data.type !== "Topology") {
@@ -29,39 +30,28 @@ var MapController = P({
     setTimeout(this.post_initial_load.bind(this), 200);
   },
 
+  on_each_feature: function() {
+  },
+
+  get_region_style: function() {
+    return {};
+  },
+
   /**
    * Adds polygons to map. This is done later, so that we can
    * show the initial map to the user first.
    */
   post_initial_load: function() {
     this.get_region_data_promise.then((function(region_data) {
-      var topoLayer = new L.GeoJSON();
-      topoLayer.addData(region_data);
-
-      topoLayer.eachLayer(function(layer) {
-        var f = layer.feature;
-
-        /*
-         f.properties.scaled_population =
-         log_rescale(admin_populations[admin_name_to_index[f.id]],
-         admin_population_stats.min,
-         admin_population_stats.max);
-         layer.setStyle({
-         stroke: false,
-         fillOpacity: f.properties.scaled_population
-         });
-         */
-        layer.setStyle({
-          stroke: false
-        });
-
-        if (f.properties && f.properties.admin_2_name) {
-          layer.bindPopup(f.properties.admin_2_name);
+      this.regions_layer = L.geoJson(
+        region_data,
+        {
+          onEachFeature: this.on_each_feature.bind(this),
+          style: this.get_region_style.bind(this)
         }
-      });
-
-      topoLayer.addTo(this.map);
-      console.log('Added to map!');
+      );
+      this.map.addLayer(this.regions_layer);
+      this.loading_status_model.setLoadedTopojson();
     }).bind(this));
   }
 });

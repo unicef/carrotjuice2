@@ -1,0 +1,25 @@
+.loading-status {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 400px;
+    height: 100px;
+    margin: auto;
+    background-color: #ffffff;
+    border: 1px solid #aaaaaa;
+    opacity: 0.9;
+}
+
+.loading-status .centering-container {
+    display: table-cell;
+    vertical-align: middle;
+    width: 400px;
+    height: 100px;
+}
+
+.loading-status p {
+    text-align: center;
+    margin-bottom: 0;  /* override bootstrap default */
+}
