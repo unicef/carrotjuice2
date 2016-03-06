@@ -7,6 +7,8 @@ var LoadingStatusView = require('./loading-status.jsx');
 var MapController = require('../map-controller/map-controller.js');
 var APIClient = require('../api-client/api-client.js');
 var DataLayer = require('../model/data-layer.js');
+var ViewUtil = require('./view-util.jsx');
+var DateSelectionBar = require('./date-selection-bar.jsx');
 
 // Load bootstrap. Requires JQuery be made available as
 // a global window variable.
@@ -36,7 +38,10 @@ var AppMain = React.createClass({
     main_instance = this;
     return (
       <div className="mainContainer">
-        <LeafletMap controller={map_controller} />
+        {ViewUtil.flexbox_stack([
+          <LeafletMap controller={map_controller} />,
+          <DateSelectionBar />
+        ])}
         <OverlayControlsBox data_layer={data_layer} />
         <LoadingStatusView model={loading_status} />
       </div>
