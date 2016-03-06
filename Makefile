@@ -26,4 +26,4 @@ clean:
 
 .PHONY: dev
 dev:
-	./node_modules/webpack/bin/webpack.js --watch
+	./node_modules/webpack/bin/webpack.js --watch -d
