@@ -3,6 +3,7 @@ var React = require('react');
 var DemoInputBox = require('./demo-input-box.jsx');
 var InputBoxModel = require('../model/demo-input-box-model');
 var OverlayControlsBox = require('./overlay-controls-box.jsx');
+var LeafletMap = require('./leaflet-map.jsx');
 
 // Load bootstrap. Requires JQuery be made available as
 // a global window variable.
@@ -19,8 +20,8 @@ var AppMain = React.createClass({
   render: function() {
     return (
       <div className="mainContainer">
+        <LeafletMap />
         <OverlayControlsBox />
-        Hello World from JSX!
       </div>
     );
   }
