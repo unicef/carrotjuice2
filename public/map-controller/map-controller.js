@@ -1,7 +1,11 @@
 var P = require('pjs').P;
-var basemaps = require('./basemaps.js');
+var draw_initial_map = require('./draw-initial-map.js');
 
 var MapController = P({
+  init: function(get_region_data_promise) {
+    this.get_region_data_promise = get_region_data_promise;
+  },
+
   /**
    * @param map_element DOM element to mount the map to
    */
@@ -10,35 +14,44 @@ var MapController = P({
       alert("INTERNAL ERROR: MapController getting initialized twice.");
     }
     this.map_element = map_element;
+    this.map = draw_initial_map(map_element);
+    setTimeout(this.post_initial_load.bind(this), 200);
+  },
 
-    var map_center = [-23.3, -46.3];  // São Paulo.
-    var map_zoom = 6;
-    // When zoomed out more, the polygons look really messed up. This zoom
-    // level already shows all of Brazil.
-    var min_map_zoom = 5;
-    var max_map_zoom = 12;
-    var map_region_layer = L.layerGroup();
+  /**
+   * Adds polygons to map. This is done later, so that we can
+   * show the initial map to the user first.
+   */
+  post_initial_load: function() {
+    this.get_region_data_promise.then((function(region_data) {
+      var topoLayer = new L.GeoJSON();
+      topoLayer.addData(region_data);
 
-    var overlays = {
-      'Administrative regions': map_region_layer
-    };
+      topoLayer.eachLayer(function(layer) {
+        var f = layer.feature;
 
-    var map = L.map(map_element, {
-      center: map_center,
-      zoom: map_zoom,
-      minZoom: min_map_zoom,
-      maxZoom: max_map_zoom,
-      fadeAnimation: false,
-      layers: [basemaps.CartoDB, map_region_layer],
-      zoomControl: false  // Added manually below.
-    });
-    this.map = map;
+        /*
+         f.properties.scaled_population =
+         log_rescale(admin_populations[admin_name_to_index[f.id]],
+         admin_population_stats.min,
+         admin_population_stats.max);
+         layer.setStyle({
+         stroke: false,
+         fillOpacity: f.properties.scaled_population
+         });
+         */
+        layer.setStyle({
+          stroke: false
+        });
 
-    map.attributionControl.setPrefix('Carotene');
-    L.control.layers(basemaps, overlays).addTo(map);
-    L.control.scale({position: 'bottomright'}).addTo(map);
-    // The zoom control is added manually so that it's above the scale control.
-    L.control.zoom({position: 'bottomright'}).addTo(map);
+        if (f.properties && f.properties.admin_2_name) {
+          layer.bindPopup(f.properties.admin_2_name);
+        }
+      });
+
+      topoLayer.addTo(this.map);
+      console.log('Added to map!');
+    }).bind(this));
   }
 });
 

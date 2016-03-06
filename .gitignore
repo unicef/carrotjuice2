@@ -24,3 +24,4 @@ public/*.woff2
 public/*.svg
 public/*.ttf
 public/*.eot
+*.swp

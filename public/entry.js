@@ -1,4 +1,3 @@
-var d3 = require('../bower_components/d3/d3.js');
 var React = require('react');
 var ReactDOM = require('react-dom');
 

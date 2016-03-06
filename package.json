@@ -39,6 +39,7 @@
     "request": "2.60.0",
     "request-json": "latest",
     "style-loader": "^0.13.0",
+    "topojson": "^1.6.24",
     "url-loader": "^0.5.7",
     "webpack": "^1.12.14"
   },
