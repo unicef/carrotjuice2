@@ -1,7 +1,5 @@
 // this is the main entrypoint for our single-page app
 var React = require('react');
-var DemoInputBox = require('./demo-input-box.jsx');
-var InputBoxModel = require('../model/demo-input-box-model');
 var OverlayControlsBox = require('./overlay-controls-box.jsx');
 var LeafletMap = require('./leaflet-map.jsx');
 
@@ -13,8 +11,6 @@ require('bootstrap/dist/js/bootstrap.js');
 
 // module-local style
 require('./main.css');
-
-var myModel = new InputBoxModel();
 
 var AppMain = React.createClass({
   render: function() {
