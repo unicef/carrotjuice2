@@ -6,6 +6,7 @@ var LoadingStatusModel = require('../model/loading-status.js');
 var LoadingStatusView = require('./loading-status.jsx');
 var MapController = require('../map-controller/map-controller.js');
 var APIClient = require('../api-client/api-client.js');
+var DataLayer = require('../model/data-layer.js');
 
 // Load bootstrap. Requires JQuery be made available as
 // a global window variable.
@@ -25,8 +26,9 @@ var rerender = function() {
 };
 
 var loading_status = LoadingStatusModel(rerender);
+var data_layer = DataLayer(rerender);
 var api_client = APIClient('br');
-var map_controller = MapController(api_client, loading_status);
+var map_controller = MapController(api_client, loading_status, data_layer);
 
 var AppMain = React.createClass({
   render: function() {
@@ -34,7 +36,7 @@ var AppMain = React.createClass({
     return (
       <div className="mainContainer">
         <LeafletMap controller={map_controller} />
-        <OverlayControlsBox />
+        <OverlayControlsBox data_layer={data_layer} />
         <LoadingStatusView model={loading_status} />
       </div>
     );

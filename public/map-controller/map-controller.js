@@ -4,8 +4,9 @@ var _ = require('lodash');
 var topojson = require('topojson');
 
 var MapController = P({
-  init: function(api_client, loading_status_model) {
+  init: function(api_client, loading_status_model, data_layer_model) {
     this.loading_status_model = loading_status_model;
+    this.data_layer_model = data_layer_model;
     this.get_region_data_promise = api_client.get_region_data()
       .then(function(data) {
         if (data.type !== "Topology") {
