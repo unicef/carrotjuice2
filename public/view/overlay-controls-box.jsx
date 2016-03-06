@@ -30,11 +30,6 @@ var DataSourceSelector = React.createClass({
 });
 
 var OverlayControlsBox = React.createClass({
-  // TODO(zora): Move this to a dispatcher pattern
-  onSelect: function(selection) {
-    console.log("Selected " + selection);
-  },
-
   render: function() {
     return <div className="overlay-controls-box">
       <h3>tbd control panel title</h3>

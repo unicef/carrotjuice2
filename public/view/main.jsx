@@ -17,7 +17,8 @@ require('bootstrap/dist/js/bootstrap.js');
 // module-local style
 require('./main.css');
 
-// callback to re-render
+// callback to re-render the main view. we need a little bit of
+// ugliness here because AppMain hasn't yet been instantiated.
 var main_instance = null;
 var rerender = function() {
   if (main_instance !== null) {
