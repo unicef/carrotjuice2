@@ -40,6 +40,9 @@ var rerender_and_redraw = function() {
   }
 };
 
+// NOTE: we could model resize state formally, but this'll do for now
+window.addEventListener('resize', rerender);
+
 var loading_status = LoadingStatusModel(rerender);
 var api_client = APIClient('br');
 var weather_data_store = WeatherDataStore(api_client);
