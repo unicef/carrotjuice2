@@ -1,0 +1,11 @@
+div.overlay-controls-box {
+    /* relative */
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 300px;
+    padding: 0 15px 5px 15px;
+    box-shadow: 2px 2px 1px grey;
+    background-color: #ffffff;
+    opacity: 0.9;
+}

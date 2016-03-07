@@ -18,3 +18,6 @@ node_modules
 
 config/database.js
 .idea/
+*.swp
+public/bundle.js.map
+build/*

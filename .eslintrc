@@ -11,13 +11,16 @@
     "no-else-return": 0,
     // Allow single lines.
     "brace-style": [2, "1tbs", { "allowSingleLine": true }],
-    "max-len": [2, 100]
+    "max-len": [2, 100],
+    "no-negated-condition": 0
   },
   "env": {
     // Don't warn for Mocha globals.
-    "mocha": true
+    "mocha": true,
+    "browser": true
   },
   "globals": {
+    "P": false,  // pjs
     "L": false,  // leaflet
     "_": false,  // lodash
     "math": false,  // mathjs

@@ -1,45 +1,83 @@
-
-## CarrotJuice
+CarrotJuice
+===========
 
 ### Dependencies
-- Zika branch of [Resources / MagicBox](https://github.com/mikefab/resources/tree/zika) must be running
-- If you don' have token: NODE_ENV=development nodemon server.js 8002
 
-### Setup 
-- npm install
-- bower install
-- Change config-example.js to config.js
-- Add your email address to whitelist array
-- nodemon server.js
-- Sign up with email address
+-   [MagicBox](<https://github.com/mikefab/majicbox>) must be running (and run
+    its setup)
 
-# Developer API
+-   If you don' have token: `NODE_ENV=development nodemon server.js`
+
+### Setup
+
+-   `npm install`. Use Node 5.6.0; we suggest following NVM instructions for any
+    OS.
+
+-   Copy `config-example.js` to `config.js`. It should be good out-of-the-box,
+    but take a look to see if you need to edit anything.
+
+-   [deprecated] Add your email address to whitelist array
+
+-   Concurrently run both `nodemon server.js` and `make dev`. The former is the
+    actual server, and the latter watches for changes and rebuilds front-end
+    files.
+
+-   [deprecated] Sign up with email address
+
+New code path notes (React)
+---------------------------
+
+The new code path uses React. See the diagram in `icon/`. The design principles
+here are:
+
+-   Stateless views: A huge tip for keeping front-end design clean is to **keep
+    state out of views** (or controllers). Jason Merrill at Desmos mentioned
+    that one could aim to model all view state, even animation, to reduce bugs.
+
+-   Separation of views and models: All models are instantiated at root-level
+    and passed down to views through props. If this ever becomes unwieldy, we
+    should just make meta-models (models that contain other models). This
+    obviously goes with the former, but also makes it effortless to shift around
+    view structure. Different views require the same state, e.g. the date-picker
+    references the currently-selected date, and also have the map reference the
+    currently-selected date.
+
+Developer API
+-------------
 
 ### Dictionary
-- divis_kind: division kind - Any polygon that can be drawn on a map. Kinds inlcude: admin, cell. 
-- country_iso: ISO 3166-1 alpha-2 – two-letter country codes
+
+-   divis\_kind: division kind - Any polygon that can be drawn on a map. Kinds
+    inlcude: admin, cell.
+
+-   country\_iso: ISO 3166-1 alpha-2 – two-letter country codes
 
 ### Routes
 
-- /api/diagonal/:divis_kind/:country_iso
- 
+-   /api/diagonal/:divis\_kind/:country\_iso
+
 Called from function: `fetch_matrix_then_draw`
- 
-Fetches diagonal of the mobility matrix. i.e. the number of people who've made two calls from the same tower. We think this is a measure of population density. It's a dynamic estimate. It changes from day.
+
+Fetches diagonal of the mobility matrix. i.e. the number of people who've made
+two calls from the same tower. We think this is a measure of population density.
+It's a dynamic estimate. It changes from day.
 
 Currently fetches matrix for one single day
 
-The max value of the Diagonal of matrix is used to normalize all diagonal values. These values are used in the opacity of polygon colors to represent population density.
+The max value of the Diagonal of matrix is used to normalize all diagonal
+values. These values are used in the opacity of polygon colors to represent
+population density.
 
-
-- /api/division/:divis_kind/:country_iso
+-   /api/division/:divis\_kind/:country\_iso
 
 Called from function: `fetch_geojson_for_divisions`
 
-Fetches geojson for either admin 2 polygons or voranoi cells to be displayed on map.
+Fetches geojson for either admin 2 polygons or voranoi cells to be displayed on
+map.
 
 TODO(mikefab): Change 'division' to 'geojson'
 
-## Notes
+Notes
+-----
 
-- Clicking is not enabled (coming soon)
+-   Clicking is not enabled (coming soon)

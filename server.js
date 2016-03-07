@@ -21,7 +21,7 @@ require('./config/passport')(passport); // pass passport for configuration
 
 app.use(compress());  // gzip
 // Set the static files location /public/img will be /img for users.
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'build')));
 app.use('/bower_components',
         express.static(path.join(__dirname, 'bower_components')));
 app.use(morgan('dev')); // log every request to the console

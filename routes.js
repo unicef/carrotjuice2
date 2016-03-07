@@ -42,6 +42,7 @@ function setup_routes(app, passport) {
 
   // Get regions (including polygons) from backend.
   app.get('/api/regions/:country_code', apicache('1 day'), forward_route);
+  app.get('/api/admin_polygons_topojson/:country_code', apicache('1 day'), forward_route);
 
   // Get recent weather data for all regions.
   app.get('/api/country_weather/:country_code/:time?', apicache('1 day'),
@@ -50,6 +51,11 @@ function setup_routes(app, passport) {
   // Get weather data for a single regions.
   app.get('/api/region_weather/:country_code/:region_code/:start_time?/:end_time?',
           apicache('1 day'), forward_route);
+
+  /*
+  We're replacing these with Webpack/React/Flux.
+
+  Login & Logout will become API methods.
 
   // Show the home page (will also have our login links)
   app.get('/', function(req, res) {
@@ -67,6 +73,7 @@ function setup_routes(app, passport) {
       res.redirect('/'); // Inside a callback… bulletproof!
     });
   });
+  */
 
   // send to google to do the authentication
   // profile gets us their basic information including their name
