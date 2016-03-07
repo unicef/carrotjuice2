@@ -66,7 +66,7 @@ var AppMain = React.createClass({
           <LeafletMap key="1" controller={map_controller} />,
           <DateSelectionBar key="2" selected_date={selected_date} />
         ])}
-        <OverlayControlsBox data_layer={data_layer} />
+        <OverlayControlsBox data_layer={data_layer} selected_regions={selected_regions} />
         <LoadingStatusView model={loading_status} />
       </div>
     );
