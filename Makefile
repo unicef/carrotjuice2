@@ -27,3 +27,7 @@ clean:
 .PHONY: dev
 dev:
 	./node_modules/webpack/bin/webpack.js --watch -d
+
+.PHONY: build-opt
+build-opt:
+	./node_modules/webpack/bin/webpack.js --optimize-minimize

@@ -18,11 +18,6 @@ node_modules
 
 config/database.js
 .idea/
-public/bundle.js
-public/*.woff
-public/*.woff2
-public/*.svg
-public/*.ttf
-public/*.eot
 *.swp
 public/bundle.js.map
+build/*
