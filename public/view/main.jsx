@@ -16,6 +16,7 @@ var LoadingStatusModel = require('../model/loading-status.js');
 var WeatherDataStore = require('../model/weather-data-store.js');
 var SelectedDate = require('../model/selected-date.js');
 var SelectedRegions = require('../model/selected-regions.js');
+var RegionDetails = require('../model/region-details.js');
 var MapColoring = require('../model/map-coloring.js');
 
 // Controllers & other data-managing classes
@@ -50,12 +51,13 @@ var weather_data_store = WeatherDataStore(api_client);
 var data_layer = DataLayer(rerender_and_redraw);
 var selected_date = SelectedDate(rerender_and_redraw, weather_data_store);
 var selected_regions = SelectedRegions(rerender);
+var region_details = RegionDetails(rerender, api_client, selected_regions, weather_data_store);
 var map_coloring = MapColoring({
   data_layer: data_layer,
   selected_date: selected_date,
   weather_data_store: weather_data_store
 });
-map_controller = MapController(api_client, loading_status, selected_regions, map_coloring);
+map_controller = MapController(loading_status, region_details, map_coloring);
 
 var AppMain = React.createClass({
   render: function() {
@@ -66,7 +68,7 @@ var AppMain = React.createClass({
           <LeafletMap key="1" controller={map_controller} />,
           <DateSelectionBar key="2" selected_date={selected_date} />
         ])}
-        <OverlayControlsBox data_layer={data_layer} selected_regions={selected_regions} />
+        <OverlayControlsBox data_layer={data_layer} region_details={region_details} />
         <LoadingStatusView model={loading_status} />
       </div>
     );

@@ -2,7 +2,6 @@ var P = require('pjs').P;
 var Q = require('q');
 var draw_initial_map = require('./draw-initial-map.js');
 var _ = require('lodash');
-var topojson = require('topojson');
 
 // NOTE: this function WILL NOT work when latitude wraps around (the -180 / 180 zone)
 var make_distance_from_viewport_center = function(bounds) {
@@ -35,22 +34,11 @@ var make_distance_from_viewport_center = function(bounds) {
 };
 
 var MapController = P({
-  init: function(api_client, loading_status_model, selected_regions, map_coloring) {
+  init: function(loading_status_model, region_details, map_coloring) {
     this.loading_status_model = loading_status_model;
+    this.region_details = region_details;
     this.map_coloring = map_coloring;
     this.regions_layers = [];
-    this.selected_regions = selected_regions;
-    this.get_region_data_promise = api_client.get_region_data()
-      .then((function(data) {
-        if (data.type !== 'Topology') {
-          window.alert('Bad JSON data');
-        } else {
-          this.region_data = topojson.feature(data, data.objects.collection);
-          window.region_data = this.region_data;  // for debugging
-        }
-      }).bind(this)).fail(function(err) {
-        console.error(err);
-      });
   },
 
   /**
@@ -65,7 +53,7 @@ var MapController = P({
     window._leaflet_map = this.map;  // save a reference for easier debugging
     Q.all([
       this.map_coloring.load_promise,
-      this.get_region_data_promise
+      this.region_details.load_promise
     ])
       .then(this.post_initial_load.bind(this))
       .fail(function(error) {
@@ -75,7 +63,7 @@ var MapController = P({
 
   on_each_feature: function(feature, layer) {
     var map = this.map;
-    var selected_regions = this.selected_regions;
+    var region_details = this.region_details;
 
     var region_popup = L.popup({
       autoPan: false,
@@ -103,11 +91,11 @@ var MapController = P({
       map.closePopup(region_popup);
       e.target.setStyle({weight: 1});
     };
-    // Add region to `selected_regions` (updates region panel).
+    // Add region to `region_details` (updates region panel).
     var click = function(_e) {
       // TODO(jetpack): maybe a single click should make region the only
       // selected region, and only shift+click does the toggle? consult w/ UX.
-      selected_regions.toggle_region(feature.properties.region_code);
+      region_details.toggle_region(feature.properties.region_code);
     };
     layer.on({
       mousemove: mousemove,
@@ -141,16 +129,15 @@ var MapController = P({
    * Loads a chunk of polygon features. This makes it so we don't tie up the UI threads.
    */
   load_feature_chunk: function(features) {
-    var region_data = {type: 'FeatureCollection', features: features};
-    var map = this.map;
+    var feature_collection = {type: 'FeatureCollection', features: features};
     var regions_layer = L.geoJson(
-      region_data,
+      feature_collection,
       {
         onEachFeature: this.on_each_feature.bind(this),
         style: this.get_region_style_fcn()
       }
     );
-    map.addLayer(regions_layer);
+    this.map.addLayer(regions_layer);
     this.regions_layers.push(regions_layer);
   },
 
@@ -160,7 +147,7 @@ var MapController = P({
    */
   post_initial_load: function() {
     var distance_fcn = make_distance_from_viewport_center(this.map.getBounds());
-    var features_by_distance = _.sortBy(this.region_data.features, distance_fcn);
+    var features_by_distance = _.sortBy(this.region_details.get_geojson_features(), distance_fcn);
 
     var sequence = Q(null).then(
       this.load_feature_chunk.bind(this, _.take(features_by_distance, 500))

@@ -10,7 +10,7 @@ var OverlayControlsBox = React.createClass({
       <div style={{paddingTop: "5px"}}>
         <strong>Data source</strong>:
         <SelectedRegionsInfo
-          selected_regions={this.props.selected_regions}
+          region_details={this.props.region_details}
         />
         <DataSourceSelector
           data_layer={this.props.data_layer}
