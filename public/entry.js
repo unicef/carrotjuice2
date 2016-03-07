@@ -4,6 +4,9 @@ require('expose?$!expose?jQuery!jquery');
 require('bootstrap/dist/css/bootstrap.min.css');
 require('bootstrap/dist/js/bootstrap.js');
 
+// pull in global leaflet styling
+require('leaflet/dist/leaflet.css');
+
 var React = require('react');
 var ReactDOM = require('react-dom');
 

@@ -1,12 +1,5 @@
-var L = require('leaflet');
 var React = require('react');
 require('./leaflet-map.css');
-
-// pull in global leaflet styling
-require('leaflet/dist/leaflet.css');
-
-// set in the didMount call
-var leaflet_map_element = null;
 
 var LeafletMap = React.createClass({
   render: function() {

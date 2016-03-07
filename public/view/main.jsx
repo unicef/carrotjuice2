@@ -15,6 +15,7 @@ var DataLayer = require('../model/data-layer.js');
 var LoadingStatusModel = require('../model/loading-status.js');
 var WeatherDataStore = require('../model/weather-data-store.js');
 var SelectedDate = require('../model/selected-date.js');
+var MapColoring = require('../model/map-coloring.js');
 
 // Controllers & other data-managing classes
 var APIClient = require('../api-client/api-client.js');
@@ -33,11 +34,16 @@ var rerender = function() {
 };
 
 var loading_status = LoadingStatusModel(rerender);
-var data_layer = DataLayer(rerender);
 var api_client = APIClient('br');
 var weather_data_store = WeatherDataStore(api_client);
-var map_controller = MapController(api_client, loading_status, data_layer);
+var data_layer = DataLayer(rerender);
 var selected_date = SelectedDate(rerender, weather_data_store);
+var map_coloring = MapColoring({
+  data_layer: data_layer,
+  selected_date: selected_date,
+  weather_data_store: weather_data_store
+});
+var map_controller = MapController(api_client, loading_status, map_coloring);
 
 var AppMain = React.createClass({
   render: function() {

@@ -32,11 +32,13 @@ var DataSourceSelector = React.createClass({
 var OverlayControlsBox = React.createClass({
   render: function() {
     return <div className="overlay-controls-box">
-      <h3>tbd control panel title</h3>
-      <strong>Data source</strong>:
-      <DataSourceSelector
-        data_layer={this.props.data_layer}
-      />
+      <h3>Zika Risk Mapping</h3>
+      <div style={{paddingTop: "5px"}}>
+        <strong>Data source</strong>:
+        <DataSourceSelector
+          data_layer={this.props.data_layer}
+        />
+      </div>
     </div>;
   }
 });

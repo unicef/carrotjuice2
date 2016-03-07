@@ -1,21 +1,53 @@
 var P = require('pjs').P;
+var Q = require('q');
 var draw_initial_map = require('./draw-initial-map.js');
 var _ = require('lodash');
 var topojson = require('topojson');
 
+// NOTE: this function WILL NOT work when latitude wraps around (the -180 / 180 zone)
+var make_distance_from_viewport_center = function(bounds) {
+  var viewport_lat = (bounds._southWest.lat + bounds._northEast.lat) / 2;
+  var viewport_lng = (bounds._southWest.lng + bounds._northEast.lng) / 2;
+
+  var rough_distance = function(coordinate) {
+    var lng = coordinate[0];
+    var lat = coordinate[1];
+    var d_lat = (lat - viewport_lat);
+    var d_lng = (lng - viewport_lng);
+    return d_lat * d_lat + d_lng * d_lng;
+  };
+
+  return function(polygon) {
+    if (polygon.type == "Feature") {
+      polygon = polygon.geometry;
+    }
+    if (polygon.type == "Polygon") {
+      // See documentation: The first [0] gets the outer permiter line (series of points),
+      // and the second [0] gets the first point of that line.
+      return rough_distance(polygon.coordinates[0][0]);
+    } else if (polygon.type == "MultiPolygon") {
+      return rough_distance(polygon.coordinates[0][0][0]);
+    } else {
+      console.error("Unknown shape type", polygon);
+      return false;
+    }
+  };
+};
+
 var MapController = P({
-  init: function(api_client, loading_status_model, data_layer_model) {
+  init: function(api_client, loading_status_model, map_coloring) {
     this.loading_status_model = loading_status_model;
-    this.data_layer_model = data_layer_model;
+    this.map_coloring = map_coloring;
     this.get_region_data_promise = api_client.get_region_data()
-      .then(function(data) {
+      .then((function(data) {
         if (data.type !== "Topology") {
           window.alert("Bad JSON data");
         } else {
-          return _.map(data.objects, function(datum) {
-            return topojson.feature(data, datum);
-          });
+          this.region_data = topojson.feature(data, data.objects['collection']);
+          window.region_data = this.region_data;  // for debugging
         }
+      }).bind(this)).fail(function(err) {
+        console.error(err);
       });
   },
 
@@ -28,14 +60,48 @@ var MapController = P({
     }
     this.map_element = map_element;
     this.map = draw_initial_map(map_element);
-    setTimeout(this.post_initial_load.bind(this), 200);
+    window._leaflet_map = this.map;  // save a reference for easier debugging
+    Q.all([
+        this.map_coloring.load_promise,
+        this.get_region_data_promise
+      ])
+      .then(this.post_initial_load.bind(this))
+      .fail(function(error) {
+        console.error(error);
+      });
   },
 
   on_each_feature: function() {
   },
 
-  get_region_style: function() {
-    return {};
+  get_region_style_fcn: function() {
+    var weight = 1;
+    var active_data = this.map_coloring.active_data();
+    return function(feature) {
+      return {
+        fillColor: active_data[feature.properties.region_code],
+        fillOpacity: 1,
+        color: '#000',  // Border color.
+        opacity: 1,
+        weight: weight
+      };
+    };
+  },
+
+  /**
+   * Loads a chunk of polygon features. This makes it so we don't tie up the UI threads.
+   */
+  load_feature_chunk: function(features) {
+    var region_data = {type: "FeatureCollection", features: features};
+    var map = this.map;
+    var regions_layer = L.geoJson(
+      region_data,
+      {
+        onEachFeature: this.on_each_feature.bind(this),
+        style: this.get_region_style_fcn()
+      }
+    );
+    map.addLayer(regions_layer);
   },
 
   /**
@@ -43,17 +109,22 @@ var MapController = P({
    * show the initial map to the user first.
    */
   post_initial_load: function() {
-    this.get_region_data_promise.then((function(region_data) {
-      this.regions_layer = L.geoJson(
-        region_data,
-        {
-          onEachFeature: this.on_each_feature.bind(this),
-          style: this.get_region_style.bind(this)
-        }
-      );
-      this.map.addLayer(this.regions_layer);
+    var distance_fcn = make_distance_from_viewport_center(this.map.getBounds());
+    var features_by_distance = _.sortBy(this.region_data.features, distance_fcn);
+
+    var sequence = Q(null).then(
+      this.load_feature_chunk.bind(this, _.take(features_by_distance, 500))
+    ).then(function() {
       this.loading_status_model.setLoadedTopojson();
+    }.bind(this));
+
+    _.forEach(_.chunk(_.drop(features_by_distance, 500), 2500), (function(feature) {
+      sequence = sequence.delay(10).then(this.load_feature_chunk.bind(this, feature));
     }).bind(this));
+
+    sequence.fail(function(err) {
+      console.error(err);
+    });
   }
 });
 

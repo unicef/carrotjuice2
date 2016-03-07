@@ -4,6 +4,7 @@
 
 var _ = require('lodash');
 var P = require('pjs').P;
+var d3 = require('d3');
 
 var subtract_days = function(date, num_days) {
   var result = new Date(date);
@@ -30,6 +31,19 @@ var WeatherDataStore = P({
         _.assign(this.data_by_date, data);
       }).bind(this));
     }).bind(this));
+  },
+
+  data_for_date: function(date_string) {
+    // TODO(jetpack): Use real science and stuff.
+    var temp_to_prevalence = d3.scale.log().domain([1, 50])
+      .range(['green', 'yellow', 'red']);
+
+    return _.mapValues(
+      this.data_by_date[date_string],
+      function(data_obj) {
+        return temp_to_prevalence(data_obj.temp_mean);
+      }
+    );
   }
 });
 

@@ -35,12 +35,7 @@ var APIClient = P({
     this.country_code = country_code;
   },
   get_region_data: function() {
-    // NOTE: this is a bit manually-optimized, using a separate resource
-    // file for regions polygons. Consider switching to more standard
-    // webpack-based approach.
-    //
-    // return makeRequest("/api/regions/" + this.country_code);
-    return makeRequest("/admin_polygons_" + this.country_code + ".topo.json");
+    return makeRequest("/api/admin_polygons_topojson/" + this.country_code);
   },
   get_weather_data: function(date) {
     // When no date_str specified, we get the latest data available.
