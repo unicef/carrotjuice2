@@ -75,7 +75,6 @@ var MapController = P({
 
   on_each_feature: function(feature, layer) {
     var map = this.map;
-    var regions_layers = this.regions_layers;
     var selected_regions = this.selected_regions;
 
     var region_popup = L.popup({
@@ -94,9 +93,7 @@ var MapController = P({
     };
     // Bolder border stroke when mouse enters.
     var mouseover = function(e) {
-      e.target.setStyle({
-        weight: 3
-      });
+      e.target.setStyle({weight: 3});
     };
     // Restore original style when mouse leaves.
     var mouseout = function(e) {
@@ -104,11 +101,9 @@ var MapController = P({
       // still call `closePopup` on mouseout for when the mouse moves from an
       // region to a non-region (e.g., the sea, or outside the country).
       map.closePopup(region_popup);
-      _.forEach(regions_layers, function(layer) {
-        layer.resetStyle(e.target);
-      });
+      e.target.setStyle({weight: 1});
     };
-    var click = function(e) {
+    var click = function(_e) {
       selected_regions.toggle_region(feature.properties.region_code);
     };
     layer.on({
@@ -120,7 +115,6 @@ var MapController = P({
   },
 
   get_region_style_fcn: function() {
-    var weight = 1;
     var active_data = this.map_coloring.active_data();
     return function(feature) {
       return {
@@ -128,7 +122,7 @@ var MapController = P({
         fillOpacity: 1,
         color: '#000',  // Border color.
         opacity: 1,
-        weight: weight
+        weight: 1
       };
     };
   },
