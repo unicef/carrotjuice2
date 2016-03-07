@@ -18,17 +18,17 @@ var make_distance_from_viewport_center = function(bounds) {
   };
 
   return function(polygon) {
-    if (polygon.type == "Feature") {
+    if (polygon.type === 'Feature') {
       polygon = polygon.geometry;
     }
-    if (polygon.type == "Polygon") {
+    if (polygon.type === 'Polygon') {
       // See documentation: The first [0] gets the outer permiter line (series of points),
       // and the second [0] gets the first point of that line.
       return rough_distance(polygon.coordinates[0][0]);
-    } else if (polygon.type == "MultiPolygon") {
+    } else if (polygon.type === 'MultiPolygon') {
       return rough_distance(polygon.coordinates[0][0][0]);
     } else {
-      console.error("Unknown shape type", polygon);
+      console.error('Unknown shape type', polygon);
       return false;
     }
   };
@@ -41,10 +41,10 @@ var MapController = P({
     this.regions_layers = [];
     this.get_region_data_promise = api_client.get_region_data()
       .then((function(data) {
-        if (data.type !== "Topology") {
-          window.alert("Bad JSON data");
+        if (data.type !== 'Topology') {
+          window.alert('Bad JSON data');
         } else {
-          this.region_data = topojson.feature(data, data.objects['collection']);
+          this.region_data = topojson.feature(data, data.objects.collection);
           window.region_data = this.region_data;  // for debugging
         }
       }).bind(this)).fail(function(err) {
@@ -57,15 +57,15 @@ var MapController = P({
    */
   initialize: function(map_element) {
     if (this.map_element) {
-      alert("INTERNAL ERROR: MapController getting initialized twice.");
+      alert('INTERNAL ERROR: MapController getting initialized twice.');
     }
     this.map_element = map_element;
     this.map = draw_initial_map(map_element);
     window._leaflet_map = this.map;  // save a reference for easier debugging
     Q.all([
-        this.map_coloring.load_promise,
-        this.get_region_data_promise
-      ])
+      this.map_coloring.load_promise,
+      this.get_region_data_promise
+    ])
       .then(this.post_initial_load.bind(this))
       .fail(function(error) {
         console.error(error);
@@ -92,7 +92,7 @@ var MapController = P({
   redraw: function() {
     var style_fcn = this.get_region_style_fcn();
     _.forEach(this.regions_layers, function(layer) {
-      layer.setStyle(style_fcn)
+      layer.setStyle(style_fcn);
     });
   },
 
@@ -100,7 +100,7 @@ var MapController = P({
    * Loads a chunk of polygon features. This makes it so we don't tie up the UI threads.
    */
   load_feature_chunk: function(features) {
-    var region_data = {type: "FeatureCollection", features: features};
+    var region_data = {type: 'FeatureCollection', features: features};
     var map = this.map;
     var regions_layer = L.geoJson(
       region_data,
