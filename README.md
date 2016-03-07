@@ -27,8 +27,12 @@ CarrotJuice
 New code path notes (React)
 ---------------------------
 
-The new code path uses React. See the diagram in `icon/`. The design principles
-here are:
+The new code path uses React, and P.js-based models (simple object-oriented classes).
+The relationship between views and models is like,
+
+![model](https://github.com/mikefab/carrotjuice2/raw/master/icon/readme-figure.png)
+
+The design principles here are:
 
 -   Stateless views: A huge tip for keeping front-end design clean is to **keep
     state out of views** (or controllers). Jason Merrill at Desmos mentioned
