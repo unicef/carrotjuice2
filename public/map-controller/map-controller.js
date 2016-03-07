@@ -72,7 +72,45 @@ var MapController = P({
       });
   },
 
-  on_each_feature: function() {
+  on_each_feature: function(feature, layer) {
+    var map = this.map;
+    var regions_layers = this.regions_layers;
+
+    var region_popup = L.popup({
+      autoPan: false,
+      closeButton: false,
+      offset: L.point(0, -10),
+      // Note: style for this popup is in leaflet-map.css.
+      className: 'region-popup'
+    }, layer);
+    region_popup.setContent('<b>' + feature.properties.name + '</b>');
+
+    // Draw popup that tracks mouse movement.
+    var mousemove = function(e) {
+      region_popup.setLatLng(e.latlng);
+      map.openPopup(region_popup);
+    };
+    // Bolder border stroke when mouse enters.
+    var mouseover = function(e) {
+      e.target.setStyle({
+        weight: 3
+      });
+    };
+    // Restore original style when mouse leaves.
+    var mouseout = function(e) {
+      // Note: `map.openPopup` ensures only 1 popup is open at a time, but we
+      // still call `closePopup` on mouseout for when the mouse moves from an
+      // region to a non-region (e.g., the sea, or outside the country).
+      map.closePopup(region_popup);
+      _.forEach(regions_layers, function(layer) {
+        layer.resetStyle(e.target);
+      });
+    };
+    layer.on({
+      mousemove: mousemove,
+      mouseover: mouseover,
+      mouseout: mouseout
+    });
   },
 
   get_region_style_fcn: function() {
