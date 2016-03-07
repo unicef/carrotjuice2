@@ -33,6 +33,8 @@ var FakeOvipositionDataStore = P({
 
 var WeatherDataStore = P({
   init: function(api_client) {
+    // `data_by_date` format is ISO date string -> region code -> weather data.
+    // Currently weather data is just has a single field, `temp_mean`.
     this.data_by_date = {};
     this.last_date = null;
     this.api_client = api_client;
