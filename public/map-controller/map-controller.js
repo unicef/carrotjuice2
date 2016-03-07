@@ -38,6 +38,7 @@ var MapController = P({
   init: function(api_client, loading_status_model, map_coloring) {
     this.loading_status_model = loading_status_model;
     this.map_coloring = map_coloring;
+    this.regions_layers = [];
     this.get_region_data_promise = api_client.get_region_data()
       .then((function(data) {
         if (data.type !== "Topology") {
@@ -88,6 +89,13 @@ var MapController = P({
     };
   },
 
+  redraw: function() {
+    var style_fcn = this.get_region_style_fcn();
+    _.forEach(this.regions_layers, function(layer) {
+      layer.setStyle(style_fcn)
+    });
+  },
+
   /**
    * Loads a chunk of polygon features. This makes it so we don't tie up the UI threads.
    */
@@ -102,6 +110,7 @@ var MapController = P({
       }
     );
     map.addLayer(regions_layer);
+    this.regions_layers.push(regions_layer);
   },
 
   /**

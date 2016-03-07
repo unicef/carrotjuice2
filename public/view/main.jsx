@@ -27,23 +27,30 @@ require('./main.css');
 // callback to re-render the main view. we need a little bit of
 // ugliness here because AppMain hasn't yet been instantiated.
 var main_instance = null;
+var map_controller = null;
 var rerender = function() {
   if (main_instance !== null) {
     main_instance.forceUpdate();
+  }
+};
+var rerender_and_redraw = function() {
+  rerender();
+  if (map_controller !== null) {
+    map_controller.redraw();
   }
 };
 
 var loading_status = LoadingStatusModel(rerender);
 var api_client = APIClient('br');
 var weather_data_store = WeatherDataStore(api_client);
-var data_layer = DataLayer(rerender);
-var selected_date = SelectedDate(rerender, weather_data_store);
+var data_layer = DataLayer(rerender_and_redraw);
+var selected_date = SelectedDate(rerender_and_redraw, weather_data_store);
 var map_coloring = MapColoring({
   data_layer: data_layer,
   selected_date: selected_date,
   weather_data_store: weather_data_store
 });
-var map_controller = MapController(api_client, loading_status, map_coloring);
+map_controller = MapController(api_client, loading_status, map_coloring);
 
 var AppMain = React.createClass({
   render: function() {

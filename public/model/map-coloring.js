@@ -10,7 +10,8 @@ var MapColoring = P({
     this.data_layer = init_dict.data_layer;
     this.selected_date = init_dict.selected_date;
     this.data_stores = {
-      weather: init_dict.weather_data_store
+      weather: init_dict.weather_data_store,
+      oviposition: init_dict.weather_data_store.fake_oviposition_model()
     };
     this.load_promise = Q.all([init_dict.weather_data_store.initial_load_promise]);
   },

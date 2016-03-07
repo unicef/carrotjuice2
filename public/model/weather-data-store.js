@@ -12,6 +12,25 @@ var subtract_days = function(date, num_days) {
   return result;
 };
 
+var FakeOvipositionDataStore = P({
+  init: function(weather_data_store) {
+    this.weather_data_store = weather_data_store;
+  },
+
+  data_for_date: function(date_string) {
+    // TODO(jetpack): Use real science and stuff.
+    var temp_to_oviposition = d3.scale.sqrt().domain([1, 50])
+      .range(['white', 'purple', 'red']);
+
+    return _.mapValues(
+      this.weather_data_store.data_by_date[date_string],
+      function(data_obj) {
+        return temp_to_oviposition(data_obj.temp_mean);
+      }
+    );
+  }
+});
+
 var WeatherDataStore = P({
   init: function(api_client) {
     this.data_by_date = {};
@@ -44,6 +63,10 @@ var WeatherDataStore = P({
         return temp_to_prevalence(data_obj.temp_mean);
       }
     );
+  },
+
+  fake_oviposition_model: function() {
+    return FakeOvipositionDataStore(this);
   }
 });
 
