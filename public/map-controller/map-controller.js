@@ -35,10 +35,11 @@ var make_distance_from_viewport_center = function(bounds) {
 };
 
 var MapController = P({
-  init: function(api_client, loading_status_model, map_coloring) {
+  init: function(api_client, loading_status_model, selected_regions, map_coloring) {
     this.loading_status_model = loading_status_model;
     this.map_coloring = map_coloring;
     this.regions_layers = [];
+    this.selected_regions = selected_regions;
     this.get_region_data_promise = api_client.get_region_data()
       .then((function(data) {
         if (data.type !== 'Topology') {
@@ -75,6 +76,7 @@ var MapController = P({
   on_each_feature: function(feature, layer) {
     var map = this.map;
     var regions_layers = this.regions_layers;
+    var selected_regions = this.selected_regions;
 
     var region_popup = L.popup({
       autoPan: false,
@@ -106,10 +108,14 @@ var MapController = P({
         layer.resetStyle(e.target);
       });
     };
+    var click = function(e) {
+      selected_regions.toggle_region(feature.properties.region_code);
+    };
     layer.on({
       mousemove: mousemove,
       mouseover: mouseover,
-      mouseout: mouseout
+      mouseout: mouseout,
+      click: click
     });
   },
 
