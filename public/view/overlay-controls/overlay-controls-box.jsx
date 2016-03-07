@@ -5,13 +5,14 @@ require('./overlay-controls-box.css');
 
 var OverlayControlsBox = React.createClass({
   render: function() {
-    return <div className="overlay-controls-box">
-      <h3>Zika Risk Mapping</h3>
-      <div style={{paddingTop: "5px"}}>
-        <strong>Data source</strong>:
+    return <div className="overlay-controls">
+      <div className="overlay-controls-section">
         <SelectedRegionsInfo
-          region_details={this.props.region_details}
+            region_details={this.props.region_details}
         />
+      </div>
+      <div className="overlay-controls-section">
+        <strong>Data source</strong>:
         <DataSourceSelector
           data_layer={this.props.data_layer}
         />

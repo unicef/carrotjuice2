@@ -12,9 +12,17 @@ var SelectedRegionsInfo = React.createClass({
 
   render: function() {
     var selected_regions_data = this.props.region_details.get_selected_regions_data();
-    return <div className="selected-regions-info">
-      {selected_regions_data.map(this.create_region_panel)}
-    </div>;
+    if (selected_regions_data.length) {
+      return <div className="selected-regions-info">
+        {selected_regions_data.map(this.create_region_panel)}
+      </div>;
+    } else {
+      return <div className="selected-regions-info">
+        <p className="selected-regions-help">
+          Click an administrative region for more data.
+        </p>
+      </div>;
+    }
   }
 });
 
