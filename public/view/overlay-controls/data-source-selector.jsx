@@ -1,5 +1,5 @@
 var React = require('react');
-require('./overlay-controls-box.css');
+require('./data-source-selector.css');
 
 var DataSourceSelector = React.createClass({
   display_name: function(name) {
@@ -29,18 +29,4 @@ var DataSourceSelector = React.createClass({
   }
 });
 
-var OverlayControlsBox = React.createClass({
-  render: function() {
-    return <div className="overlay-controls-box">
-      <h3>Zika Risk Mapping</h3>
-      <div style={{paddingTop: "5px"}}>
-        <strong>Data source</strong>:
-        <DataSourceSelector
-          data_layer={this.props.data_layer}
-        />
-      </div>
-    </div>;
-  }
-});
-
-module.exports = OverlayControlsBox;
+module.exports = DataSourceSelector;

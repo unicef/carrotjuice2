@@ -9,12 +9,3 @@ div.overlay-controls-box {
     background-color: #ffffff;
     opacity: 0.9;
 }
-
-div.data-source-selector {
-    display: inline-block;
-}
-
-div.data-source-selector .btn {
-    padding: 3px 6px;
-    margin: 0 4px 0 4px;
-}

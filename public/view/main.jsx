@@ -7,7 +7,7 @@ var React = require('react');
 var DateSelectionBar = require('./date-selection-bar.jsx');
 var LeafletMap = require('./leaflet-map.jsx');
 var LoadingStatusView = require('./loading-status.jsx');
-var OverlayControlsBox = require('./overlay-controls-box.jsx');
+var OverlayControlsBox = require('./overlay-controls/overlay-controls-box.jsx');
 var ViewUtil = require('./view-util.jsx');
 
 // Models
