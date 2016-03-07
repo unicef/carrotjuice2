@@ -32,20 +32,15 @@ var RegionDetails = P({
       this.region_feature_collection = topojson.feature(data, data.objects.collection);
       var region_data_by_code = this.region_data_by_code;
       data.objects.collection.geometries.forEach(function(obj) {
-        // FWIW, `properties` also has `country_code`.
+        // FWIW, `properties` also has `country_code` .
         region_data_by_code[obj.properties.region_code] =
-          _.pick(obj.properties, ['name', 'region_code', 'geo_area_sqkm']);
+          _.pick(obj.properties, ['name', 'geo_area_sqkm']);
       });
     }
   },
 
   get_geojson_features: function() {
     return this.region_feature_collection.features;
-  },
-
-  toggle_region: function(region_code) {
-    // TODO(jetpack): if toggling *on*, fetch weather data
-    this.selected_regions.toggle_region(region_code);
   },
 
   get_selected_regions_data: function() {

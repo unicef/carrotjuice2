@@ -34,9 +34,10 @@ var make_distance_from_viewport_center = function(bounds) {
 };
 
 var MapController = P({
-  init: function(loading_status_model, region_details, map_coloring) {
+  init: function(loading_status_model, region_details, selected_regions, map_coloring) {
     this.loading_status_model = loading_status_model;
     this.region_details = region_details;
+    this.selected_regions = selected_regions;
     this.map_coloring = map_coloring;
     this.regions_layers = [];
   },
@@ -63,7 +64,7 @@ var MapController = P({
 
   on_each_feature: function(feature, layer) {
     var map = this.map;
-    var region_details = this.region_details;
+    var selected_regions = this.selected_regions;
 
     var region_popup = L.popup({
       autoPan: false,
@@ -91,11 +92,11 @@ var MapController = P({
       map.closePopup(region_popup);
       e.target.setStyle({weight: 1});
     };
-    // Add region to `region_details` (updates region panel).
+    // Add selected region (updates region panel).
     var click = function(_e) {
       // TODO(jetpack): maybe a single click should make region the only
       // selected region, and only shift+click does the toggle? consult w/ UX.
-      region_details.toggle_region(feature.properties.region_code);
+      selected_regions.toggle_region(feature.properties.region_code);
     };
     layer.on({
       mousemove: mousemove,
