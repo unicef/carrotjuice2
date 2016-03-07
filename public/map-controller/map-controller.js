@@ -103,7 +103,10 @@ var MapController = P({
       map.closePopup(region_popup);
       e.target.setStyle({weight: 1});
     };
+    // Add region to `selected_regions` (updates region panel).
     var click = function(_e) {
+      // TODO(jetpack): maybe a single click should make region the only
+      // selected region, and only shift+click does the toggle? consult w/ UX.
       selected_regions.toggle_region(feature.properties.region_code);
     };
     layer.on({
