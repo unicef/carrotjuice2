@@ -85,6 +85,7 @@ var MapController = P({
     var mouseover = function(e) {
       if (!selected_regions.is_region_selected(region_code)) {
         e.target.setStyle({weight: 3});
+        layer.bringToFront();
       }
     };
     // Restore original style when mouse leaves.
@@ -100,6 +101,7 @@ var MapController = P({
     // Change selected region (updates region panel).
     var click = function(e) {
       e.target.setStyle({weight: 5});
+      layer.bringToFront();
       var on_unselect = function() { e.target.setStyle({weight: 1}); };
       selected_regions.select_region(region_code, on_unselect);
     };
