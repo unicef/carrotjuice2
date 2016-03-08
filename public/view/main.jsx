@@ -47,7 +47,7 @@ window.addEventListener('resize', rerender);
 
 var loading_status = LoadingStatusModel(rerender);
 var api_client = APIClient('br');
-var weather_data_store = WeatherDataStore(api_client);
+var weather_data_store = WeatherDataStore(rerender, api_client);
 var data_layer = DataLayer(rerender_and_redraw);
 var selected_date = SelectedDate(rerender_and_redraw, weather_data_store);
 var selected_regions = SelectedRegions(function() {
@@ -69,7 +69,10 @@ var AppMain = React.createClass({
       <div className="mainContainer">
         {ViewUtil.flexbox_stack([
           <LeafletMap key="1" controller={map_controller} />,
-          <DateSelectionBar key="2" selected_date={selected_date} />
+          <DateSelectionBar key="2"
+                            selected_date={selected_date}
+                            selected_regions={selected_regions}
+                            weather_data_store={weather_data_store} />
         ])}
         <OverlayControlsBox data_layer={data_layer} region_details={region_details} />
         <LoadingStatusView model={loading_status} />

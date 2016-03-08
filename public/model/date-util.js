@@ -25,6 +25,20 @@ var iso_to_yyyymmdd = function(iso_string) {
   }
 };
 
+/**
+ * Return a date some number of days earlier.
+ *
+ * @param{Date} date - Starting point.
+ * @param{number} num_days - Number of days to subtract.
+ * @return{Date} The earlier date.
+ */
+var subtract_days = function(date, num_days) {
+  var result = new Date(date);
+  result.setDate(result.getDate() - num_days);
+  return result;
+};
+
 module.exports = {
-  iso_to_yyyymmdd: iso_to_yyyymmdd
+  iso_to_yyyymmdd: iso_to_yyyymmdd,
+  subtract_days: subtract_days
 };
