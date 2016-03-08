@@ -22,16 +22,12 @@ require('./config/passport')(passport); // pass passport for configuration
 app.use(compress());  // gzip
 // Set the static files location /public/img will be /img for users.
 app.use(express.static(path.join(__dirname, 'build')));
-app.use('/bower_components',
-        express.static(path.join(__dirname, 'bower_components')));
 app.use(morgan('dev')); // log every request to the console
 app.use(cookieParser()); // read cookies (needed for auth)
 app.use(bodyParser.json()); // get information from html forms
 // parse application/vnd.api+json as json
 app.use(bodyParser.json({type: 'application/vnd.api+json'}));
 app.use(bodyParser.urlencoded({extended: true}));
-
-app.set('view engine', 'ejs'); // set up ejs for templating
 
 // required for passport
 app.use(session({secret: 'some_secret'})); // session secret
