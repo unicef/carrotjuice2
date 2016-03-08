@@ -50,7 +50,10 @@ var api_client = APIClient('br');
 var weather_data_store = WeatherDataStore(api_client);
 var data_layer = DataLayer(rerender_and_redraw);
 var selected_date = SelectedDate(rerender_and_redraw, weather_data_store);
-var selected_regions = SelectedRegions(rerender);
+var selected_regions = SelectedRegions(function() {
+  rerender();
+  weather_data_store.on_region_select(selected_regions.get_region_codes());
+});
 var region_details = RegionDetails(rerender, api_client, selected_regions, weather_data_store);
 var map_coloring = MapColoring({
   data_layer: data_layer,

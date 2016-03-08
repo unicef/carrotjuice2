@@ -65,6 +65,7 @@ var MapController = P({
   on_each_feature: function(feature, layer) {
     var map = this.map;
     var selected_regions = this.selected_regions;
+    var region_code = feature.properties.region_code;
 
     var region_popup = L.popup({
       autoPan: false,
@@ -82,7 +83,10 @@ var MapController = P({
     };
     // Bolder border stroke when mouse enters.
     var mouseover = function(e) {
-      e.target.setStyle({weight: 3});
+      if (!selected_regions.is_region_selected(region_code)) {
+        e.target.setStyle({weight: 3});
+        layer.bringToFront();
+      }
     };
     // Restore original style when mouse leaves.
     var mouseout = function(e) {
@@ -90,13 +94,16 @@ var MapController = P({
       // still call `closePopup` on mouseout for when the mouse moves from an
       // region to a non-region (e.g., the sea, or outside the country).
       map.closePopup(region_popup);
-      e.target.setStyle({weight: 1});
+      if (!selected_regions.is_region_selected(region_code)) {
+        e.target.setStyle({weight: 1});
+      }
     };
-    // Add selected region (updates region panel).
-    var click = function(_e) {
-      // TODO(jetpack): maybe a single click should make region the only
-      // selected region, and only shift+click does the toggle? consult w/ UX.
-      selected_regions.toggle_region(feature.properties.region_code);
+    // Change selected region (updates region panel).
+    var click = function(e) {
+      e.target.setStyle({weight: 5});
+      layer.bringToFront();
+      var on_unselect = function() { e.target.setStyle({weight: 1}); };
+      selected_regions.select_region(region_code, on_unselect);
     };
     layer.on({
       mousemove: mousemove,

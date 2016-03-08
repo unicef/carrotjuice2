@@ -15,10 +15,8 @@ config.js
 bower_components
 npm-debug.log
 node_modules
-
-config/database.js
-.idea/
-*.swp
-public/bundle.js.map
 build/*
 !build/*.html
+
+.idea/
+*.swp
