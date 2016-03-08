@@ -26,12 +26,13 @@ var FakeOvipositionDataStore = P({
 });
 
 var WeatherDataStore = P({
-  init: function(api_client) {
+  init: function(on_update, api_client) {
+    this.api_client = api_client;
+    this.on_update = on_update;
     // `data_by_date` format is ISO date string -> region code -> weather data.
     // Currently weather data is just has a single field, `temp_mean`.
     this.data_by_date = {};
     this.last_date = null;
-    this.api_client = api_client;
     this.initial_load_promise = api_client.fetch_weather_data()
       .then((function(data) {
         this.last_date = new Date(_.keys(data)[0]);
@@ -39,12 +40,21 @@ var WeatherDataStore = P({
       }).bind(this));
   },
 
+  // TODO(jetpack): when re-clicking a region, we re-fetch this data. it's
+  // cached on the backend, so it's not slow, but still.
   fetch_historical_data: function(region_code, n_days) {
     console.log('Fetching weather for region', region_code, 'for', n_days, 'days..');
     this.api_client.fetch_region_weather_data(region_code, n_days).then((function(data) {
       console.log('..Got', _.size(data), 'days of data for region', region_code);
       this.data_by_date = _.merge(this.data_by_date, data);
+      this.on_update();
     }).bind(this));
+  },
+
+  weather_data_for_region: function(region_code) {
+    return _.mapValues(this.data_by_date, function(region_data) {
+      return region_data[region_code];
+    });
   },
 
   region_color_for_date: function(date_string) {
