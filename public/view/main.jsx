@@ -45,25 +45,25 @@ var rerender_and_redraw = function() {
 // NOTE: we could model resize state formally, but this'll do for now
 window.addEventListener('resize', rerender);
 
-var loading_status = LoadingStatusModel(rerender);
-var api_client = APIClient('br');
-var weather_data_store = WeatherDataStore(rerender, api_client);
-var data_layer = DataLayer(rerender_and_redraw);
-var selected_date = SelectedDate(rerender_and_redraw, weather_data_store);
-var selected_regions = SelectedRegions(function() {
+var loading_status = new LoadingStatusModel(rerender);
+var api_client = new APIClient('br');
+var weather_data_store = new WeatherDataStore(rerender, api_client);
+var data_layer = new DataLayer(rerender_and_redraw);
+var selected_date = new SelectedDate(rerender_and_redraw, weather_data_store);
+var selected_regions = new SelectedRegions(function() {
   rerender();
   weather_data_store.on_region_select(selected_regions.get_region_codes());
 });
-var region_details = RegionDetails(rerender, api_client, selected_regions, weather_data_store);
-var map_coloring = MapColoring({
+var region_details = new RegionDetails(rerender, api_client, selected_regions, weather_data_store);
+var map_coloring = new MapColoring({
   data_layer: data_layer,
   selected_date: selected_date,
   weather_data_store: weather_data_store
 });
-map_controller = MapController(loading_status, region_details, selected_regions, map_coloring);
+map_controller = new MapController(loading_status, region_details, selected_regions, map_coloring);
 
 var AppMain = React.createClass({
-  render: function() {
+ render: function() {
     main_instance = this;
     return (
       <div className="mainContainer">
