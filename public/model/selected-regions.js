@@ -19,6 +19,12 @@ var SelectedRegions = P({
     this.onUpdate();
   },
 
+  select_region: function(region_code) {
+    this.region_codes = {};
+    this.region_codes[region_code] = true;
+    this.onUpdate();
+  },
+
   get_region_codes: function() {
     return _.keys(this.region_codes);
   }
