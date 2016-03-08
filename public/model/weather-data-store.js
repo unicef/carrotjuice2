@@ -42,15 +42,13 @@ var WeatherDataStore = P({
       .then((function(data) {
         this.last_date = new Date(_.keys(data)[0]);
         _.assign(this.data_by_date, data);
-      }).bind(this)).then(this.get_historical_data.bind(this));
+      }).bind(this));
   },
 
-  get_historical_data: function() {
-    _.range(1, 3).map((function(i) {
-      var previous = subtract_days(this.last_date, i);
-      this.api_client.get_weather_data(previous).then((function(data) {
-        _.assign(this.data_by_date, data);
-      }).bind(this));
+  get_historical_data: function(region_code, n_days) {
+    console.log('Fetching weather for region', region_code, 'for', n_days, 'days.');
+    this.api_client.get_region_weather_data(region_code, n_days).then((function(data) {
+      this.data_by_date = _.merge(this.data_by_date, data);
     }).bind(this));
   },
 
@@ -69,6 +67,12 @@ var WeatherDataStore = P({
 
   fake_oviposition_model: function() {
     return FakeOvipositionDataStore(this);
+  },
+
+  on_region_select: function(region_codes) {
+    region_codes.forEach((function(region_code) {
+      this.get_historical_data(region_code);
+    }).bind(this));
   }
 });
 
