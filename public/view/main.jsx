@@ -47,9 +47,14 @@ window.addEventListener('resize', rerender);
 
 var loading_status = new LoadingStatusModel(rerender);
 var api_client = new APIClient('br');
-var weather_data_store = new WeatherDataStore(rerender, api_client);
+var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client);
 var data_layer = new DataLayer(rerender_and_redraw);
-var selected_date = new SelectedDate(rerender_and_redraw, weather_data_store);
+var selected_date = new SelectedDate(function() {
+  // TODO(jetpack): if we call redraw here, the map goes black until the new
+  // weather data is fetched. should we show a spinner or something?
+  rerender();
+  weather_data_store.on_date_select(selected_date.current_day);
+}, weather_data_store);
 var selected_regions = new SelectedRegions(function() {
   rerender();
   weather_data_store.on_region_select(selected_regions.get_region_codes());

@@ -3,6 +3,7 @@
  */
 var React = require('react');
 var d3 = require('d3');
+var $ = require('jquery');
 
 var DateUtil = require('../model/date-util.js');
 
@@ -81,6 +82,23 @@ var DateSelectionBar = React.createClass({
     }
   },
 
+  // TODO(jetpack): this is crappy. replace.
+  crappy_date_input: function() {
+    var input_string = $('#date-input').val();
+    var date = new Date(input_string);
+    date.setUTCHours(0, 0, 0);
+    console.log('crappy date input, converted date:', input_string, date);
+    this.props.selected_date.set_date(date);
+  },
+
+  get_current_date: function() {
+    if (this.props.selected_date.current_day) {
+      return this.props.selected_date.current_day.toISOString();
+    } else {
+      return 'loading...';
+    }
+  },
+
   render: function() {
     // TODO(jetpack): what extent should we show? all available data? selected
     // date +/- N days? currently just current date - N days.
@@ -98,7 +116,12 @@ var DateSelectionBar = React.createClass({
         />
       </svg>
       <div className="floating-header">
+        Current date: {this.get_current_date()}
+        <br/>
         Select a date:
+        <form onSubmit={this.crappy_date_input}>
+          <input id="date-input" type="text"/>
+        </form>
       </div>
     </div>;
   }

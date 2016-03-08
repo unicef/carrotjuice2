@@ -34,6 +34,8 @@ var WeatherDataStore = P({
     // `temp_mean`.
     this.data_by_date_and_region = {};
     this.last_date = null;
+    // TODO(jetpack): change this to call fetch_country_data. one difference is
+    // that here, we update `last_date`.
     this.initial_load_promise = api_client.fetch_weather_data()
       .then((function(data) {
         this.last_date = new Date(_.keys(data)[0]);
@@ -43,11 +45,19 @@ var WeatherDataStore = P({
 
   // TODO(jetpack): when re-clicking a region, we re-fetch this data. it's
   // cached on the backend, so it's not slow, but still.
-  fetch_historical_data: function(region_code, n_days) {
+  fetch_region_data: function(region_code, n_days) {
     console.log('Fetching weather for region', region_code, 'for', n_days, 'days..');
     this.api_client.fetch_region_weather_data(region_code, n_days).then((function(data) {
       console.log('..Got', _.size(data), 'days of data for region', region_code);
       this.data_by_date_and_region = _.merge(this.data_by_date_and_region, data);
+      this.on_update();
+    }).bind(this));
+  },
+
+  fetch_country_data: function(date) {
+    console.log('Fetching weather for all regions for date', date);
+    this.api_client.fetch_weather_data(date).then((function(data) {
+      _.assign(this.data_by_date_and_region, data);
       this.on_update();
     }).bind(this));
   },
@@ -79,9 +89,14 @@ var WeatherDataStore = P({
 
   on_region_select: function(region_codes) {
     region_codes.forEach((function(region_code) {
-      this.fetch_historical_data(region_code);
+      this.fetch_region_data(region_code);
     }).bind(this));
+  },
+
+  on_date_select: function(date) {
+    this.fetch_country_data(date);
   }
+
 });
 
 module.exports = WeatherDataStore;
