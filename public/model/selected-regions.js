@@ -6,21 +6,21 @@ var P = require('pjs').P;
 
 var SelectedRegions = P({
   init: function(onUpdate) {
-    this.regions = {};
+    this.region_codes = {};
     this.onUpdate = onUpdate;  // typically, view re-rendering callback
   },
 
   toggle_region: function(region_code) {
-    if (this.regions[region_code] === undefined) {
-      this.regions[region_code] = true;
+    if (this.region_codes[region_code] === undefined) {
+      this.region_codes[region_code] = true;
     } else {
-      delete this.regions[region_code];
+      delete this.region_codes[region_code];
     }
     this.onUpdate();
   },
 
-  get_selected_regions: function() {
-    return _.keys(this.regions);
+  get_region_codes: function() {
+    return _.keys(this.region_codes);
   }
 
 });
