@@ -50,6 +50,7 @@
     "eslint-config-google": "^0.4.0",
     "eslint-config-xo": "^0.11.0",
     "mocha": "^2.4.5",
-    "mocha-phantomjs": "^4.0.2"
+    "mocha-phantomjs": "^4.0.2",
+    "script-loader": "^0.6.1"
   }
 }

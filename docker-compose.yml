@@ -32,4 +32,7 @@ itest:
 phantomjs-tests:
     build: .
     dockerfile: Dockerfile.phantomjs
-    command: node server.js
+    environment:
+        - "MONGOHQ_URL=mongodb://mongo:27017/mydb"
+    links:
+        - "mongo"
