@@ -24,13 +24,21 @@ CarrotJuice
 
 -   [deprecated] Sign up with email address
 
+### Running tests
+
+**Mocha frontend tests** use Mocha (to organize test suites and such) within the
+browser, to test components as they modify the DOM. You can either run these by
+simply going to `localhost:8080/test.html`, or running `make phantomjs-tests`
+(which uses Docker, suitable for running tests automatically via the command
+line).
+
 New code path notes (React)
 ---------------------------
 
-The new code path uses React, and P.js-based models (simple object-oriented classes).
-The relationship between views and models is like,
+The new code path uses React, and P.js-based models (simple object-oriented
+classes). The relationship between views and models is like,
 
-![model](https://github.com/mikefab/carrotjuice2/raw/master/icon/readme-figure.png)
+![model](<https://github.com/mikefab/carrotjuice2/raw/master/icon/readme-figure.png>)
 
 The design principles here are:
 

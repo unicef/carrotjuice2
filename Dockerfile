@@ -5,7 +5,7 @@ FROM node:4.3.1
 # to re-download node modules if package.json doesn't change.
 WORKDIR /code
 COPY ./package.json /code/package.json
-RUN npm install && npm install --dev
+RUN npm install
 
 COPY . /code
 CMD node server.js
