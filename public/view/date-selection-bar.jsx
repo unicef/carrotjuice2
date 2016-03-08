@@ -47,7 +47,7 @@ var DateSelectionBar = React.createClass({
     // TODO(jetpack): hack: just using first region.
     var selected_region_code = this.props.selected_regions.get_region_codes()[0];
     if (selected_region_code) {
-      var weather_data = this.props.weather_data_store.weather_data_for_region(
+      var weather_data = this.props.weather_data_store.weather_data_by_date_for_region(
         selected_region_code);
       var points_data = [];
       _.forEach(weather_data, function(weather_data, date_string) {
