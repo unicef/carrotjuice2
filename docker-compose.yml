@@ -28,3 +28,8 @@ itest:
   command: ./node_modules/mocha/bin/mocha itest
   links:
       - "itest-frontend"
+
+phantomjs-tests:
+    build: .
+    dockerfile: Dockerfile.phantomjs
+    command: node server.js

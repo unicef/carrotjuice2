@@ -31,3 +31,7 @@ dev:
 .PHONY: build-opt
 build-opt:
 	./node_modules/webpack/bin/webpack.js --optimize-minimize
+
+.PHONY: phantomjs-tests
+phantomjs-tests:
+	docker-compose build phantomjs-tests && docker-compose run --rm phantomjs-tests
