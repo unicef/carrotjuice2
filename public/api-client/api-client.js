@@ -34,10 +34,10 @@ var APIClient = P({
     }
     this.country_code = country_code;
   },
-  get_region_data: function() {
+  fetch_region_data: function() {
     return makeRequest("/api/admin_polygons_topojson/" + this.country_code);
   },
-  get_weather_data: function(date) {
+  fetch_weather_data: function(date) {
     // When no date_str specified, we get the latest data available.
     var date_str = '';
     if (date === undefined) {
@@ -47,7 +47,7 @@ var APIClient = P({
     }
     return makeRequest('/api/country_weather/' + this.country_code + date_str);
   },
-  get_region_weather_data: function(region_code, num_days) {
+  fetch_region_weather_data: function(region_code, num_days) {
     if (num_days === undefined) {
       num_days = 180;
     }

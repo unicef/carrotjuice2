@@ -18,11 +18,11 @@ var RegionDetails = P({
     // GeoJSON FeatureCollection. The features' properties include the region
     // data fields.
     this.region_feature_collection = {};
-    var get_region_data_promise = api_client.get_region_data()
+    var fetch_region_data_promise = api_client.fetch_region_data()
         .then(this.process_region_data.bind(this))
         .fail(function(err) { console.error(err); });
     this.load_promise = Q.all([weather_data_store.initial_load_promise,
-                               get_region_data_promise]);
+                               fetch_region_data_promise]);
   },
 
   process_region_data: function(data) {
