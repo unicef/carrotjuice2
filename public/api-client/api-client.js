@@ -47,13 +47,12 @@ var APIClient = P({
     }
     return makeRequest('/api/country_weather/' + this.country_code + date_str);
   },
-  get_region_weather_data: function(region_code, n_days) {
-    if (n_days === undefined) {
-      n_days = 180;
+  get_region_weather_data: function(region_code, num_days) {
+    if (num_days === undefined) {
+      num_days = 180;
     }
     var today = new Date();
-    var start_date = new Date();
-    start_date.setDate(start_date.getDate() - n_days);
+    var start_date = DateUtil.subtract_days(today, num_days);
     return makeRequest('/api/region_weather/' + this.country_code + '/' + region_code + '/' +
                        DateUtil.iso_to_yyyymmdd(start_date) + '/' +
                        DateUtil.iso_to_yyyymmdd(today));

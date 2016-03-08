@@ -6,12 +6,6 @@ var _ = require('lodash');
 var P = require('pjs').P;
 var d3 = require('d3');
 
-var subtract_days = function(date, num_days) {
-  var result = new Date(date);
-  result.setDate(result.getDate() - num_days);
-  return result;
-};
-
 var FakeOvipositionDataStore = P({
   init: function(weather_data_store) {
     this.weather_data_store = weather_data_store;
@@ -46,8 +40,9 @@ var WeatherDataStore = P({
   },
 
   get_historical_data: function(region_code, n_days) {
-    console.log('Fetching weather for region', region_code, 'for', n_days, 'days.');
+    console.log('Fetching weather for region', region_code, 'for', n_days, 'days..');
     this.api_client.get_region_weather_data(region_code, n_days).then((function(data) {
+      console.log('..Got', _.size(data), 'days of data for region', region_code);
       this.data_by_date = _.merge(this.data_by_date, data);
     }).bind(this));
   },
