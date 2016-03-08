@@ -21,7 +21,8 @@ var MapColoring = P({
   },
 
   active_data: function() {
-    return this.active_data_store().data_for_date(this.selected_date.current_day.toISOString());
+    return this.active_data_store().region_color_for_date(
+      this.selected_date.current_day.toISOString());
   }
 });
 

@@ -11,7 +11,7 @@ var FakeOvipositionDataStore = P({
     this.weather_data_store = weather_data_store;
   },
 
-  data_for_date: function(date_string) {
+  region_color_for_date: function(date_string) {
     // TODO(jetpack): Use real science and stuff.
     var temp_to_oviposition = d3.scale.sqrt().domain([1, 50])
       .range(['white', 'purple', 'red']);
@@ -47,7 +47,7 @@ var WeatherDataStore = P({
     }).bind(this));
   },
 
-  data_for_date: function(date_string) {
+  region_color_for_date: function(date_string) {
     // TODO(jetpack): Use real science and stuff.
     var temp_to_prevalence = d3.scale.log().domain([1, 50])
       .range(['green', 'yellow', 'red']);
