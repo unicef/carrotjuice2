@@ -1,12 +1,20 @@
 /**
- * Codez for the bottom date selector widget. Will soon use D3 and
- * stuff ...
+ * Codez for the bottom date selector widget. Also displays weather data.
  */
 var React = require('react');
 var d3 = require('d3');
+
+var DateUtil = require('../model/date-util.js');
+
 require('./date-selection-bar.css');
 
 var DateSelectionBar = React.createClass({
+  // The range for `x_time_scale` is determined by the document width, which is
+  // set via `componentDidUpdate`.
+  getInitialState: function() {
+    return {x_time_scale: d3.time.scale.utc()};
+  },
+
   /**
    * Uses d3.svg.area() to generate a polygon, representing the space between
    * two sets of 'y' coordinates. The bottom line (y0) is uncomplicated because
@@ -18,9 +26,7 @@ var DateSelectionBar = React.createClass({
    */
   get_area_points: function() {
     var height = 130;  // constant via css
-    var width = document.body.offsetWidth;
-    var x_scale = d3.scale.linear().domain([0, 1])
-      .range([30, width - 60]);
+    var x_scale = this.state.x_time_scale;
     var y_scale = d3.scale.linear().domain([0, 1])
       .range([height - 30, 20]);
 
@@ -32,24 +38,26 @@ var DateSelectionBar = React.createClass({
       .y1(function(d) {
         return y_scale(d.y);
       });
+
     return make_area_graph([
-      {x: 0, y: 0.1},
-      {x: 0.1, y: 0.3},
-      {x: 0.2, y: 0.4},
-      {x: 0.3, y: 0.3},
-      {x: 0.4, y: 0.1}
+      {x: new Date(Date.UTC(2016, 2, 8)), y: 1},
+      {x: new Date(Date.UTC(2016, 2, 7)), y: 0.8},
+      {x: new Date(Date.UTC(2016, 2, 6)), y: 0.5},
+      {x: new Date(Date.UTC(2016, 2, 5)), y: 0.1},
+      {x: new Date(Date.UTC(2016, 2, 4)), y: 0.1},
+      {x: new Date(Date.UTC(2016, 2, 3)), y: 0.5},
+      {x: new Date(Date.UTC(2016, 2, 2)), y: 0.8},
+      {x: new Date(Date.UTC(2016, 2, 1)), y: 1}
     ]);
   },
 
   initialize_x_axis: function(elt) {
     this.reset_x_axis = function() {
-      var width = document.body.offsetWidth - 60;
-      var x_scale = d3.time.scale()
-        .domain([new Date(2016, 2, 30), new Date()])
-        .range([0, width]);
+      this.state.x_time_scale.range([0, document.body.offsetWidth - 100]);
       var xAxis = d3.svg.axis()
-        .ticks(d3.time.days, Math.min(10, Math.ceil(1700 / width)))
-        .scale(x_scale)
+        .ticks(d3.time.week.utc)
+        .tickFormat(d3.time.format.utc("%b %d"))  // e.g. 'Mar 31'
+        .scale(this.state.x_time_scale)
         .orient("bottom");
       xAxis(d3.select(elt));
     };
@@ -64,6 +72,11 @@ var DateSelectionBar = React.createClass({
   },
 
   render: function() {
+    // TODO(jetpack): what extent should we show? all available data? selected
+    // date +/- N days? currently just current date - N days.
+    var num_days = 60;
+    var today = new Date();
+    this.state.x_time_scale.domain([DateUtil.subtract_days(today, num_days), today]);
     return <div className="date-selection-bar" id="date-selection-bar">
       <svg>
         <path id="time-series" d={this.get_area_points()}/>
