@@ -16,6 +16,7 @@ bower_components
 npm-debug.log
 node_modules
 build/*
+!build/*.html
 
 .idea/
 *.swp

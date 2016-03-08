@@ -2,10 +2,13 @@ var path = require("path");
 var webpack = require("webpack");
 
 module.exports = {
-  entry: "./public/entry.js",
+  entry: {
+    "main": "./public/entry.js",
+    "test": "./public/phantomjs-tests/entry.js"
+  },
   output: {
     path: path.join(__dirname, "build"),
-    filename: "bundle.js"
+    filename: "[name]-bundle.js"
   },
   module: {
     loaders: [

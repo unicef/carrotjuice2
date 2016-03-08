@@ -28,3 +28,11 @@ itest:
   command: ./node_modules/mocha/bin/mocha itest
   links:
       - "itest-frontend"
+
+phantomjs-tests:
+    build: .
+    dockerfile: Dockerfile.phantomjs
+    environment:
+        - "MONGOHQ_URL=mongodb://mongo:27017/mydb"
+    links:
+        - "mongo"
