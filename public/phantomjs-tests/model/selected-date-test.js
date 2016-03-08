@@ -10,21 +10,21 @@ describe('model/selected-date', function() {
     };
 
     var deferred = Q.defer();
-    var model = SelectedDate(onUpdate, {
+    var model = new SelectedDate(onUpdate, {
       initial_load_promise: deferred.promise,
       last_date: 'test last date'
     });
 
     // before resolution, should be uninitialized
-    assert.equal(update_call_count, 0);
-    assert.equal(model.current_day, 'loading');
+    assert.strictEqual(update_call_count, 0);
+    assert.strictEqual(model.current_day, 'loading');
 
     // after resolution, as expected. use a delay so that we're
     // sure the promise is resolved.
     deferred.resolve();
     return Q.delay(1).then(function() {
-      assert.equal(update_call_count, 1);
-      assert.equal(model.current_day, 'test last date');
+      assert.strictEqual(update_call_count, 1);
+      assert.strictEqual(model.current_day, 'test last date');
     });
   });
 });

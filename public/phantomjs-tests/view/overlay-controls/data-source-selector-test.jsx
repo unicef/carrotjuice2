@@ -24,7 +24,7 @@ describe('view/overlay-controls/data-source-selector', function() {
       );
     }).delay(1).then(function() {
       var button_text = $('button span:first').text();
-      assert.equal(button_text, 'test display name');
+      assert.strictEqual(button_text, 'test display name');
     });
   });
 });

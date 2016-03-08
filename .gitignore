@@ -21,3 +21,4 @@ config/database.js
 *.swp
 public/bundle.js.map
 build/*
+!build/*.html
