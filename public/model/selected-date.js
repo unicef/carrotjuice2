@@ -6,18 +6,18 @@ var P = require('pjs').P;
 
 var SelectedDate = P({
   init: function(onUpdate, weather_data_store) {
-    // NOTE: use the latest key from weather/etc. data
-    this.current_day = 'loading';
+    // `current_day` is a Date.
+    this.current_day = null;
     this.date_bar_visible = true;
     this.onUpdate = onUpdate;  // typically, view re-rendering callback
 
     weather_data_store.initial_load_promise.then((function() {
-      this.current_day = weather_data_store.last_date;
-      this.onUpdate();
+      this.set_date(weather_data_store.last_date);
     }).bind(this));
   },
 
   set_date: function(date) {
+    console.log('Setting date to', date);
     this.current_day = date;
     this.onUpdate();
   },
