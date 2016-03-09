@@ -12,7 +12,6 @@ var OverlayControlsBox = React.createClass({
         />
       </div>
       <div className="overlay-controls-section">
-        <strong>Data source</strong>:
         <DataSourceSelector
           data_layer={this.props.data_layer}
         />

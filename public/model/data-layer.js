@@ -7,6 +7,7 @@
  *   mobility or epidemiological data).
  */
 
+var _ = require('lodash');
 var P = require('pjs').P;
 
 var DataLayer = P({
@@ -33,6 +34,10 @@ var DataLayer = P({
 
   get_available_base_layers: function() {
     return ['weather', 'oviposition', 'population_density'];
+  },
+
+  get_available_overlay_layers: function() {
+    return _.keys(this.overlay_layers_status);
   },
 
   // TODO(jetpack): unit test that all valid layers return a name.
