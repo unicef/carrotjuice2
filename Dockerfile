@@ -8,4 +8,6 @@ COPY ./package.json /code/package.json
 RUN npm install
 
 COPY . /code
+RUN ./node_modules/webpack/bin/webpack.js --optimize-minimize && cp config-example.js config.js
+EXPOSE 8000
 CMD node server.js
