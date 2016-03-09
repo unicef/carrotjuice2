@@ -68,7 +68,7 @@ var map_coloring = new MapColoring({
 map_controller = new MapController(loading_status, region_details, selected_regions, map_coloring);
 
 var AppMain = React.createClass({
- render: function() {
+  render: function() {
     main_instance = this;
     return (
       <div className="mainContainer">
