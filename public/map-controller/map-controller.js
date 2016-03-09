@@ -81,29 +81,27 @@ var MapController = P({
       region_popup.setLatLng(e.latlng);
       map.openPopup(region_popup);
     };
-    // Bolder border stroke when mouse enters.
     var mouseover = function(e) {
-      if (!selected_regions.is_region_selected(region_code)) {
-        e.target.setStyle({weight: 3});
-        layer.bringToFront();
-      }
+      selected_regions.set_region_hovered(region_code);
+      e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
+      layer.bringToFront();
     };
-    // Restore original style when mouse leaves.
     var mouseout = function(e) {
       // Note: `map.openPopup` ensures only 1 popup is open at a time, but we
       // still call `closePopup` on mouseout for when the mouse moves from an
       // region to a non-region (e.g., the sea, or outside the country).
       map.closePopup(region_popup);
-      if (!selected_regions.is_region_selected(region_code)) {
-        e.target.setStyle({weight: 1});
-      }
+      selected_regions.unset_region_hovered(region_code);
+      e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
     };
     // Change selected region (updates region panel).
     var click = function(e) {
-      e.target.setStyle({weight: 5});
-      layer.bringToFront();
-      var on_unselect = function() { e.target.setStyle({weight: 1}); };
+      var on_unselect = function() {
+        e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
+      };
       selected_regions.select_region(region_code, on_unselect);
+      e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
+      layer.bringToFront();
     };
     layer.on({
       mousemove: mousemove,
@@ -114,14 +112,16 @@ var MapController = P({
   },
 
   get_region_style_fcn: function() {
-    var active_data = this.map_coloring.active_data();
+    var region_to_color = this.map_coloring.active_data();
+    var selected_regions = this.selected_regions;
     return function(feature) {
+      var region_code = feature.properties.region_code;
       return {
-        fillColor: active_data[feature.properties.region_code],
+        fillColor: region_to_color[region_code],
         fillOpacity: 1,
         color: '#000',  // Border color.
         opacity: 1,
-        weight: 1
+        weight: selected_regions.get_border_weight(region_code)
       };
     };
   },
