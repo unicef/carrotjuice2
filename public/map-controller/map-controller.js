@@ -34,11 +34,11 @@ var make_distance_from_viewport_center = function(bounds) {
 };
 
 var MapController = P({
-  init: function(loading_status_model, region_details, selected_regions, map_coloring) {
-    this.loading_status_model = loading_status_model;
-    this.region_details = region_details;
-    this.selected_regions = selected_regions;
-    this.map_coloring = map_coloring;
+  init: function(init_dict) {
+    this.loading_status = init_dict.loading_status;
+    this.region_details = init_dict.region_details;
+    this.selected_regions = init_dict.selected_regions;
+    this.map_coloring = init_dict.map_coloring;
     this.regions_layers = [];
   },
 
@@ -159,7 +159,7 @@ var MapController = P({
     var sequence = Q(null).then(
       this.load_feature_chunk.bind(this, _.take(features_by_distance, 500))
     ).then(function() {
-      this.loading_status_model.setLoadedTopojson();
+      this.loading_status.setLoadedTopojson();
     }.bind(this));
 
     _.forEach(_.chunk(_.drop(features_by_distance, 500), 2500), (function(feature) {

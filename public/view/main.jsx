@@ -65,7 +65,12 @@ var map_coloring = new MapColoring({
   selected_date: selected_date,
   weather_data_store: weather_data_store
 });
-map_controller = new MapController(loading_status, region_details, selected_regions, map_coloring);
+map_controller = new MapController({
+  loading_status: loading_status,
+  region_details: region_details,
+  selected_regions: selected_regions,
+  map_coloring: map_coloring
+});
 
 var AppMain = React.createClass({
   render: function() {
