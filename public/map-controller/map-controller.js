@@ -84,7 +84,6 @@ var MapController = P({
     var mouseover = function(e) {
       selected_regions.set_region_hovered(region_code);
       e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
-      layer.bringToFront();
     };
     var mouseout = function(e) {
       // Note: `map.openPopup` ensures only 1 popup is open at a time, but we
@@ -101,7 +100,7 @@ var MapController = P({
       };
       selected_regions.select_region(region_code, on_unselect);
       e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
-      layer.bringToFront();
+      layer.bringToFront();  // Ensures border is fully visible.
     };
     layer.on({
       mousemove: mousemove,
