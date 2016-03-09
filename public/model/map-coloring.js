@@ -17,7 +17,7 @@ var MapColoring = P({
   },
 
   active_data_store: function() {
-    return this.data_stores[this.data_layer.data_layer];
+    return this.data_stores[this.data_layer.base_layer];
   },
 
   active_data: function() {
