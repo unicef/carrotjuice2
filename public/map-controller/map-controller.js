@@ -130,6 +130,23 @@ var MapController = P({
     };
   },
 
+  build_epi_overlay_layer: function(epi_data_by_region_code) {
+    var region_code_to_latlng = this.region_code_to_latlng;
+    var map_coloring = this.map_coloring;
+    var layer_group = L.layerGroup();
+    _.forEach(epi_data_by_region_code, function(epi_data, region_code) {
+      var latlng = region_code_to_latlng[region_code];
+      // TODO(jetpack): scale by relative admin size for the country, or something?
+      var radius_meters = 20000 * map_coloring.epi_data_to_severity(epi_data);
+      var circle = L.circle(latlng, radius_meters, {
+        stroke: false,
+        fillOpacity: 0.8
+      });
+      layer_group.addLayer(circle);
+    });
+    return layer_group;
+  },
+
   redraw: function() {
     var style_fcn = this.get_region_style_fcn();
     _.forEach(this.regions_layers, function(layer) {
@@ -137,33 +154,26 @@ var MapController = P({
     });
 
     // Clear previous overlays.
-    var that = this;
-    _.forEach(this.overlay_layers, function(overlay_map_layer) {
+    _.forEach(this.overlay_layers, (function(overlay_map_layer) {
       overlay_map_layer.clearLayers();
-      that.map.removeLayer(overlay_map_layer);
-    });
+      this.map.removeLayer(overlay_map_layer);
+    }).bind(this));
     this.overlay_layers = [];
 
     // Draw currently active overlays.
-    _.forEach(this.map_coloring.active_overlay_data(), function(data, overlay_name) {
-      console.log('overlay data:', overlay_name, data);
-      var overlay_layer = L.layerGroup();
+    _.forEach(this.map_coloring.active_overlay_data(), (function(overlay_data, overlay_name) {
+      console.log('overlay data:', overlay_name, overlay_data);
+      var overlay_layer;
       switch (overlay_name) {
         case 'epi':
-          _.forEach(data.data, function(epi_data, region_code) {
-            var latlng = that.region_code_to_latlng[region_code];
-            // TODO(jetpack): scale by relative admin size for the country, or something?
-            var radius_meters = 10000 * that.map_coloring.epi_data_to_severity(epi_data);
-            var circle = L.circle(latlng, radius_meters, {stroke: false, fillOpacity: 0.7});
-            overlay_layer.addLayer(circle);
-          });
+          overlay_layer = this.build_epi_overlay_layer(overlay_data.data);
           break;
         default:
           console.error('BUG! MapController does not support overlay type:', overlay_name);
       }
-      overlay_layer.addTo(that.map);
-      that.overlay_layers.push(overlay_layer);
-    });
+      overlay_layer.addTo(this.map);
+      this.overlay_layers.push(overlay_layer);
+    }).bind(this));
   },
 
   /**
