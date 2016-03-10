@@ -40,6 +40,10 @@ var MapController = P({
     this.selected_regions = init_dict.selected_regions;
     this.map_coloring = init_dict.map_coloring;
     this.regions_layers = [];
+    // TODO(jetpack): the latlng stored is just the center of the bounding box,
+    // which can be very terrible. instead, we should compute the centroid in
+    // the backend: https://github.com/mikefab/majicbox/issues/6
+    this.region_code_to_latlng = {};
   },
 
   /**
@@ -76,7 +80,10 @@ var MapController = P({
     }, layer);
     region_popup.setContent('<b>' + feature.properties.name + '</b>');
 
-    // Draw popup that tracks mouse movement.
+    // Store geo center for each region.
+    this.region_code_to_latlng[region_code] = layer.getBounds().getCenter();
+
+    // Set up handlers.
     var mousemove = function(e) {
       region_popup.setLatLng(e.latlng);
       map.openPopup(region_popup);
@@ -93,7 +100,6 @@ var MapController = P({
       selected_regions.unset_region_hovered(region_code);
       e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
     };
-    // Change selected region (updates region panel).
     var click = function(e) {
       var on_unselect = function() {
         e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
