@@ -17,4 +17,5 @@ window.mocha.setup('bdd');
 require('./global-hooks.js');
 require('./model/selected-date-test.js');
 require('./view/overlay-controls/data-source-selector-test.jsx');
+require('./api-client/api-client-mock-test.js');
 window.mocha.run();

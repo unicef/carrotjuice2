@@ -17,7 +17,7 @@ describe('model/selected-date', function() {
 
     // before resolution, should be uninitialized
     assert.strictEqual(update_call_count, 0);
-    assert.strictEqual(model.current_day, 'loading');
+    assert.strictEqual(model.current_day, null);
 
     // after resolution, as expected. use a delay so that we're
     // sure the promise is resolved.
