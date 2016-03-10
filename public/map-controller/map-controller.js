@@ -40,6 +40,7 @@ var MapController = P({
     this.selected_regions = init_dict.selected_regions;
     this.map_coloring = init_dict.map_coloring;
     this.regions_layers = [];
+    this.overlay_layers = [];
     // TODO(jetpack): the latlng stored is just the center of the bounding box,
     // which can be very terrible. instead, we should compute the centroid in
     // the backend: https://github.com/mikefab/majicbox/issues/6
@@ -135,26 +136,33 @@ var MapController = P({
       layer.setStyle(style_fcn);
     });
 
-    // TODO(jetpack): HACKSSSSSSSSSSSSSSSSSSSSSSSS
-    var active_overlay_data = this.map_coloring.active_overlay_data();
+    // Clear previous overlays.
     var that = this;
-    _.forEach(active_overlay_data, function(data, overlay_name) {
+    _.forEach(this.overlay_layers, function(overlay_map_layer) {
+      overlay_map_layer.clearLayers();
+      that.map.removeLayer(overlay_map_layer);
+    });
+    this.overlay_layers = [];
+
+    // Draw currently active overlays.
+    _.forEach(this.map_coloring.active_overlay_data(), function(data, overlay_name) {
       console.log('overlay data:', overlay_name, data);
+      var overlay_layer = L.layerGroup();
       switch (overlay_name) {
         case 'epi':
           _.forEach(data.data, function(epi_data, region_code) {
             var latlng = that.region_code_to_latlng[region_code];
             // TODO(jetpack): scale by relative admin size for the country, or something?
             var radius_meters = 10000 * that.map_coloring.epi_data_to_severity(epi_data);
-            L.circle(latlng, radius_meters, {
-              stroke: false,
-              fillOpacity: 0.7
-            }).addTo(that.map);
+            var circle = L.circle(latlng, radius_meters, {stroke: false, fillOpacity: 0.7});
+            overlay_layer.addLayer(circle);
           });
           break;
         default:
           console.error('BUG! MapController does not support overlay type:', overlay_name);
       }
+      overlay_layer.addTo(that.map);
+      that.overlay_layers.push(overlay_layer);
     });
   },
 
