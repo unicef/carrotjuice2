@@ -115,7 +115,7 @@ var MapController = P({
   },
 
   get_region_style_fcn: function() {
-    var region_to_color = this.map_coloring.active_data();
+    var region_to_color = this.map_coloring.active_base_layer_coloring_data();
     var selected_regions = this.selected_regions;
     return function(feature) {
       var region_code = feature.properties.region_code;
@@ -133,6 +133,28 @@ var MapController = P({
     var style_fcn = this.get_region_style_fcn();
     _.forEach(this.regions_layers, function(layer) {
       layer.setStyle(style_fcn);
+    });
+
+    // TODO(jetpack): HACKSSSSSSSSSSSSSSSSSSSSSSSS
+    var active_overlay_data = this.map_coloring.active_overlay_data();
+    var that = this;
+    _.forEach(active_overlay_data, function(data, overlay_name) {
+      console.log('overlay data:', overlay_name, data);
+      switch (overlay_name) {
+        case 'epi':
+          _.forEach(data.data, function(epi_data, region_code) {
+            var latlng = that.region_code_to_latlng[region_code];
+            // TODO(jetpack): scale by relative admin size for the country, or something?
+            var radius_meters = 10000 * that.map_coloring.epi_data_to_severity(epi_data);
+            L.circle(latlng, radius_meters, {
+              stroke: false,
+              fillOpacity: 0.7
+            }).addTo(that.map);
+          });
+          break;
+        default:
+          console.error('BUG! MapController does not support overlay type:', overlay_name);
+      }
     });
   },
 

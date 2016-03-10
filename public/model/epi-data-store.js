@@ -45,18 +45,18 @@ var EpiDataStore = P({
         {start_time: utc_date(2016, 2, 1), end_time: utc_date(2016, 2, 8),
          data: {4589: {fake_dengue: 111},
                 4611: {fake_dengue: 121, fake_zika: 122},
-                4877: {fake_dengue: 131, fake_zika: 132}}
+                4877: {fake_dengue: 1131, fake_zika: 1132}}
         },
         // Feb 8 - Feb 15: Missing dengue data for 4611. Also, 4877 has chikungunya data.
         {start_time: utc_date(2016, 2, 8), end_time: utc_date(2016, 2, 15),
          data: {4589: {fake_dengue: 211, fake_zika: 212},
                 4611: {fake_zika: 222},
-                4877: {fake_dengue: 231, fake_zika: 232, fake_chikungunya: 233}}
+                4877: {fake_dengue: 1231, fake_zika: 1232, fake_chikungunya: 1233}}
         },
         // Feb 15 - Mar 8: Missing data completely for 4611. Also, 22-day time interval.
         {start_time: utc_date(2016, 2, 15), end_time: utc_date(2016, 3, 8),
          data: {4589: {fake_dengue: 311, fake_zika: 312},
-                4877: {fake_dengue: 331, fake_zika: 332}}
+                4877: {fake_dengue: 1331, fake_zika: 1332}}
         },
         // Feb 15 - Feb 29: Some of the missing data for 4611, but only 2 weeks instead of 22 days!
         {start_time: utc_date(2016, 2, 15), end_time: utc_date(2016, 2, 29),
@@ -85,6 +85,17 @@ var EpiDataStore = P({
       console.log('best recent record:', best_recent_record);
       return best_recent_record;
     }
+  },
+
+  // Returns value from [0, 1], representing relative badness.
+  epi_data_to_severity: function(epi_data) {
+    var case_sum = _.reduce(epi_data, function(case_sum, cases) {
+      return case_sum + cases;
+    }, 1);
+    // TODO(jetpack): consult with UX + research on what makes sense here.
+    var severity = Math.min(1, Math.log(case_sum) / 10);
+    console.log('case sum & severity for epi data:', epi_data, case_sum, severity);
+    return severity;
   }
 
 });

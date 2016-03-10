@@ -40,6 +40,14 @@ var DataLayer = P({
     return _.keys(this.overlay_layers_status);
   },
 
+  get_active_overlay_layers: function() {
+    var active_layers = [];
+    _.forEach(this.overlay_layers_status, function(is_active, layer_name) {
+      if (is_active) { active_layers.push(layer_name); }
+    });
+    return active_layers;
+  },
+
   // TODO(jetpack): unit test that all valid layers return a name.
   display_name: function(layer_name) {
     return {

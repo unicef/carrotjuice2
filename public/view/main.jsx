@@ -13,6 +13,7 @@ var ViewUtil = require('./view-util.jsx');
 // Models
 var DataLayer = require('../model/data-layer.js');
 var LoadingStatusModel = require('../model/loading-status.js');
+var EpiDataStore = require('../model/epi-data-store.js');
 var WeatherDataStore = require('../model/weather-data-store.js');
 var SelectedDate = require('../model/selected-date.js');
 var SelectedRegions = require('../model/selected-regions.js');
@@ -47,6 +48,7 @@ window.addEventListener('resize', rerender);
 
 var loading_status = new LoadingStatusModel(rerender);
 var api_client = new APIClient('br');
+var epi_data_store = new EpiDataStore(rerender_and_redraw);
 var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client);
 var data_layer = new DataLayer(rerender_and_redraw);
 var selected_date = new SelectedDate(function() {
@@ -54,10 +56,12 @@ var selected_date = new SelectedDate(function() {
   // weather data is fetched. should we show a spinner or something?
   rerender();
   weather_data_store.on_date_select(selected_date.current_day);
+  // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
 }, weather_data_store);
 var selected_regions = new SelectedRegions(function() {
   rerender();
   weather_data_store.on_region_select(selected_regions.get_region_codes());
+  // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
 });
 var region_details = new RegionDetails({
   on_update: rerender,
@@ -68,7 +72,8 @@ var region_details = new RegionDetails({
 var map_coloring = new MapColoring({
   data_layer: data_layer,
   selected_date: selected_date,
-  weather_data_store: weather_data_store
+  weather_data_store: weather_data_store,
+  epi_data_store: epi_data_store
 });
 map_controller = new MapController({
   loading_status: loading_status,
