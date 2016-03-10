@@ -45,7 +45,6 @@ var MapColoring = P({
           console.error('BUG! Unknown overlay: ' + overlay_name);
       }
     });
-    console.log('Active overlay data:', layer_name_to_data);
     return layer_name_to_data;
   },
 

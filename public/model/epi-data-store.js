@@ -72,7 +72,6 @@ var EpiDataStore = P({
     if (this.most_recent_start_time) {
       var recent_data = _.filter(this.data_by_date_interval_and_region,
                                  ['start_time', this.most_recent_start_time]);
-      console.log('recent data:', this.most_recent_start_time, recent_data);
       // There may be multiple epi data records with the same `start_time`
       // value. For now, we just choose the one that mentions the most regions.
       var best_recent_record = _.reduce(recent_data, function(best_recent_record, recent_record) {
@@ -82,7 +81,6 @@ var EpiDataStore = P({
           return best_recent_record;
         }
       });
-      console.log('best recent record:', best_recent_record);
       return best_recent_record;
     }
   },
