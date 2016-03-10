@@ -17,7 +17,8 @@ var MapColoring = P({
       oviposition: init_dict.weather_data_store.fake_oviposition_model()
     };
     this.epi_data_store = init_dict.epi_data_store;
-    this.initial_load_promise = Q.all([init_dict.weather_data_store.initial_load_promise]);
+    this.initial_load_promise = Q.all([init_dict.weather_data_store.initial_load_promise,
+                                       this.epi_data_store.initial_load_promise]);
   },
 
   active_base_layer_data_store: function() {
@@ -51,7 +52,7 @@ var MapColoring = P({
   epi_data_to_severity: function(epi_data) {
     return this.epi_data_store.epi_data_to_severity(epi_data);
   },
-  
+
   epi_data_to_html_string: function(epi_data) {
     return this.epi_data_store.epi_data_to_html_string(epi_data);
   }
