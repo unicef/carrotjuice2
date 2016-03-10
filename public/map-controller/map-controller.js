@@ -131,19 +131,21 @@ var MapController = P({
     };
   },
 
-  build_epi_overlay_layer: function(epi_data_by_region_code) {
+  build_epi_overlay_layer: function(epi_data) {
     var layer_group = L.layerGroup();
-    _.forEach(epi_data_by_region_code, (function(epi_data, region_code) {
+    _.forEach(epi_data.region_case_data, (function(case_data, region_code) {
       var latlng = this.region_code_to_latlng[region_code];
       // TODO(jetpack): scale by relative admin size for the country, or something?
-      var radius_meters = 20000 * this.map_coloring.epi_data_to_severity(epi_data);
-      var circle = L.circle(latlng, radius_meters, {stroke: false, fillOpacity: 0.8});
+      var radius_meters = 20000 * this.map_coloring.case_data_to_severity(case_data);
+      var circle = L.circle(latlng, radius_meters, {opacity: 0.9, fillOpacity: 0.7});
 
       var circle_popup = L.popup(this.popup_options);
       var region_name = this.region_details.get_region_properties(region_code).name;
       circle_popup.setContent('<b>' + region_name + '</b><br/>' +
-                              this.map_coloring.epi_data_to_html_string(epi_data));
+                              this.map_coloring.case_data_to_html_string(case_data));
       var map = this.map;
+      // TODO(jetpack): clicks on the circle should behave the same as clicks on
+      // the region.
       circle.on({
         mousemove: function(e) {
           circle_popup.setLatLng(e.latlng);
@@ -176,7 +178,7 @@ var MapController = P({
       var overlay_layer;
       switch (overlay_name) {
         case 'epi':
-          overlay_layer = this.build_epi_overlay_layer(overlay_data.region_epi_data);
+          overlay_layer = this.build_epi_overlay_layer(overlay_data);
           break;
         default:
           console.error('BUG! MapController does not support overlay type:', overlay_name);

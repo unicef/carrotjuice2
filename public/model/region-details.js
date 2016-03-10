@@ -57,13 +57,10 @@ var RegionDetails = P({
   },
 
   get_epi_data_display_string: function(date, region_code) {
-    // TODO(jetpack): get date-specific info!
-    var epi_data_for_date = this.epi_data_store.latest_epi_data_by_region(region_code);
-    if (epi_data_for_date) {
-      var epi_data_for_region = epi_data_for_date.region_epi_data[region_code];
-      if (epi_data_for_region) {
-        return this.epi_data_store.epi_data_to_html_string(epi_data_for_region);
-      }
+    var epi_data = this.epi_data_store.get_recent_epi_data_for_region(date, region_code);
+    if (epi_data) {
+      return this.epi_data_store.case_data_to_html_string(
+        epi_data.region_case_data[region_code], epi_data.start_time, epi_data.end_time);
     }
   }
 

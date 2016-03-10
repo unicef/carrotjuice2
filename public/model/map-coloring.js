@@ -33,11 +33,11 @@ var MapColoring = P({
   active_overlay_data: function() {
     var layer_name_to_data = {};
     var epi_data_store = this.epi_data_store;
+    var selected_date = this.selected_date.current_day;
     this.data_layer.get_active_overlay_layers().forEach(function(overlay_name) {
       switch (overlay_name) {
         case 'epi':
-          // TODO(jetpack): get data relevant for `selected_date` instead of latest data.
-          layer_name_to_data.epi = epi_data_store.latest_epi_data_by_region();
+          layer_name_to_data.epi = epi_data_store.get_best_recent_epi_data(selected_date);
           break;
         case 'mobility':
           console.error('Mobility overlay not yet supported!');
@@ -49,12 +49,12 @@ var MapColoring = P({
     return layer_name_to_data;
   },
 
-  epi_data_to_severity: function(epi_data) {
-    return this.epi_data_store.epi_data_to_severity(epi_data);
+  case_data_to_severity: function(case_data) {
+    return this.epi_data_store.case_data_to_severity(case_data);
   },
 
-  epi_data_to_html_string: function(epi_data) {
-    return this.epi_data_store.epi_data_to_html_string(epi_data);
+  case_data_to_html_string: function(case_data) {
+    return this.epi_data_store.case_data_to_html_string(case_data);
   }
 });
 
