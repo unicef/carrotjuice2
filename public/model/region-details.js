@@ -21,8 +21,8 @@ var RegionDetails = P({
     var fetch_region_data_promise = init_dict.api_client.fetch_region_data()
         .then(this.process_region_data.bind(this))
         .fail(function(err) { console.error(err); });
-    this.load_promise = Q.all([this.weather_data_store.initial_load_promise,
-                               fetch_region_data_promise]);
+    this.initial_load_promise = Q.all([this.weather_data_store.initial_load_promise,
+                                       fetch_region_data_promise]);
   },
 
   process_region_data: function(data) {

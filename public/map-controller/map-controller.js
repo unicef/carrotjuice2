@@ -56,10 +56,8 @@ var MapController = P({
     this.map_element = map_element;
     this.map = draw_initial_map(map_element);
     window._leaflet_map = this.map;  // save a reference for easier debugging
-    Q.all([
-      this.map_coloring.load_promise,
-      this.region_details.load_promise
-    ])
+    Q.all([this.map_coloring.initial_load_promise,
+           this.region_details.initial_load_promise])
       .then(this.post_initial_load.bind(this))
       .fail(function(error) {
         console.error(error);
