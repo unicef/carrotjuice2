@@ -7,10 +7,10 @@ var Q = require('q');
 var topojson = require('topojson');
 
 var RegionDetails = P({
-  init: function(onUpdate, api_client, selected_regions, weather_data_store) {
-    this.onUpdate = onUpdate;
-    this.selected_regions = selected_regions;
-    this.weather_data_store = weather_data_store;
+  init: function(init_dict) {
+    this.on_update = init_dict.on_update;
+    this.selected_regions = init_dict.selected_regions;
+    this.weather_data_store = init_dict.weather_data_store;
     // TODO(jetpack): maybe this should be a separate class, like weather_data_store.
     // `region_data_by_code` is a map from region code to region data. Region
     // data has fields `name`, `region_code`, and `geo_area_sqkm`.
@@ -18,10 +18,10 @@ var RegionDetails = P({
     // GeoJSON FeatureCollection. The features' properties include the region
     // data fields.
     this.region_feature_collection = {};
-    var fetch_region_data_promise = api_client.fetch_region_data()
+    var fetch_region_data_promise = init_dict.api_client.fetch_region_data()
         .then(this.process_region_data.bind(this))
         .fail(function(err) { console.error(err); });
-    this.load_promise = Q.all([weather_data_store.initial_load_promise,
+    this.load_promise = Q.all([this.weather_data_store.initial_load_promise,
                                fetch_region_data_promise]);
   },
 

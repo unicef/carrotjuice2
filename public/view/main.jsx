@@ -59,7 +59,12 @@ var selected_regions = new SelectedRegions(function() {
   rerender();
   weather_data_store.on_region_select(selected_regions.get_region_codes());
 });
-var region_details = new RegionDetails(rerender, api_client, selected_regions, weather_data_store);
+var region_details = new RegionDetails({
+  on_update: rerender,
+  api_client: api_client,
+  selected_regions: selected_regions,
+  weather_data_store: weather_data_store
+});
 var map_coloring = new MapColoring({
   data_layer: data_layer,
   selected_date: selected_date,
