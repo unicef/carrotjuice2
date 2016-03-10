@@ -9,14 +9,14 @@ var process_env_or = function(names, default_value) {
 };
 
 module.exports = {
-  port: process_env_or('PORT', 8000),
+  port: process_env_or('PORT', 8080),
   database: process_env_or(['PROD_DB', 'MONGOHQ_URL'],
                            'mongodb://localhost/carrotjuice'),
   testdb: process_env_or('TEST_DB', 'mongodb://localhost/carrotjuice-test'),
   whitelist: ['user1@gmail.com', 'user2@example.org'],
   client_id: 'xxxxxxxx.apps.googleusercontent.com',
   client_secret: 'secret',
-  base_url: process_env_or('MAJICBOX_BASE_URL', 'http://localhost:8002/api/'),
+  base_url: process_env_or('MAJICBOX_BASE_URL', 'http://localhost:8000/api/'),
   callbackURL: 'http://localhost:8080/auth/google/callback',
   token: 'jsonwebtoken-asdf...'
 };
