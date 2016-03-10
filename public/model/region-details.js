@@ -43,6 +43,10 @@ var RegionDetails = P({
     return this.region_feature_collection.features;
   },
 
+  get_region_properties: function(region_code) {
+    return this.region_data_by_code[region_code];
+  },
+
   get_selected_regions_data: function() {
     var region_data_by_code = this.region_data_by_code;
     return this.selected_regions.get_region_codes().map(function(region_code) {

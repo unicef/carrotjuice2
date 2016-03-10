@@ -65,18 +65,19 @@ var MapController = P({
       });
   },
 
+  popup_options: {
+    autoPan: false,
+    closeButton: false,
+    offset: L.point(0, -10),
+    // Note: style for this popup is in leaflet-map.css.
+    className: 'carotene-popup'
+  },
+
   on_each_feature: function(feature, layer) {
     var map = this.map;
     var selected_regions = this.selected_regions;
     var region_code = feature.properties.region_code;
-
-    var region_popup = L.popup({
-      autoPan: false,
-      closeButton: false,
-      offset: L.point(0, -10),
-      // Note: style for this popup is in leaflet-map.css.
-      className: 'region-popup'
-    }, layer);
+    var region_popup = L.popup(this.popup_options, layer);
     region_popup.setContent('<b>' + feature.properties.name + '</b>');
 
     // Store geo center for each region.
@@ -131,19 +132,28 @@ var MapController = P({
   },
 
   build_epi_overlay_layer: function(epi_data_by_region_code) {
-    var region_code_to_latlng = this.region_code_to_latlng;
-    var map_coloring = this.map_coloring;
     var layer_group = L.layerGroup();
-    _.forEach(epi_data_by_region_code, function(epi_data, region_code) {
-      var latlng = region_code_to_latlng[region_code];
+    _.forEach(epi_data_by_region_code, (function(epi_data, region_code) {
+      var latlng = this.region_code_to_latlng[region_code];
       // TODO(jetpack): scale by relative admin size for the country, or something?
-      var radius_meters = 20000 * map_coloring.epi_data_to_severity(epi_data);
-      var circle = L.circle(latlng, radius_meters, {
-        stroke: false,
-        fillOpacity: 0.8
+      var radius_meters = 20000 * this.map_coloring.epi_data_to_severity(epi_data);
+      var circle = L.circle(latlng, radius_meters, {stroke: false, fillOpacity: 0.8});
+
+      var circle_popup = L.popup(this.popup_options);
+      var region_name = this.region_details.get_region_properties(region_code).name;
+      circle_popup.setContent('<b>' + region_name + '</b><br/>' +
+                              this.map_coloring.epi_data_to_html_string(epi_data));
+      var map = this.map;
+      circle.on({
+        mousemove: function(e) {
+          circle_popup.setLatLng(e.latlng);
+          map.openPopup(circle_popup);
+        },
+        mouseout: function() { map.closePopup(circle_popup); }
       });
+
       layer_group.addLayer(circle);
-    });
+    }).bind(this));
     return layer_group;
   },
 

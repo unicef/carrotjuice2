@@ -50,6 +50,10 @@ var MapColoring = P({
 
   epi_data_to_severity: function(epi_data) {
     return this.epi_data_store.epi_data_to_severity(epi_data);
+  },
+  
+  epi_data_to_html_string: function(epi_data) {
+    return this.epi_data_store.epi_data_to_html_string(epi_data);
   }
 });
 

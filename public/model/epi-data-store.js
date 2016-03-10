@@ -94,6 +94,14 @@ var EpiDataStore = P({
     var severity = Math.min(1, Math.log(case_sum) / 10);
     console.log('case sum & severity for epi data:', epi_data, case_sum, severity);
     return severity;
+  },
+
+  epi_data_to_html_string: function(epi_data) {
+    var lines = [];
+    _.forEach(epi_data, function(cases, condition) {
+      lines.push(condition + ' cases: ' + String(cases));
+    });
+    return lines.join('<br/>');
   }
 
 });
