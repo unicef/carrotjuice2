@@ -176,7 +176,7 @@ var MapController = P({
       var overlay_layer;
       switch (overlay_name) {
         case 'epi':
-          overlay_layer = this.build_epi_overlay_layer(overlay_data.data);
+          overlay_layer = this.build_epi_overlay_layer(overlay_data.region_epi_data);
           break;
         default:
           console.error('BUG! MapController does not support overlay type:', overlay_name);

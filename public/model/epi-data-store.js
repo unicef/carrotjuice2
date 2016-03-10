@@ -23,7 +23,7 @@ var EpiDataStore = P({
 
     // `data_by_date_interval_and_region` format is an array of objects that looks
     // like this:
-    // {start_time: <Date>, end_time: <Date>, data: <region epi data>}
+    // {start_time: <Date>, end_time: <Date>, region_epi_data: <region epi data>}
     //
     // The array is sorted by `start_time`. The times are all at midnight UTC.
     // The time interval is half-open: [start_time, end_time). So, with
@@ -43,24 +43,24 @@ var EpiDataStore = P({
       this.data_by_date_interval_and_region = [
         // Feb 1 - Feb 8: Missing malaria data for 4589.
         {start_time: utc_date(2016, 2, 1), end_time: utc_date(2016, 2, 8),
-         data: {4589: {fake_dengue: 111},
-                4611: {fake_dengue: 121, fake_zika: 122},
-                4877: {fake_dengue: 1131, fake_zika: 1132}}
+         region_epi_data: {4589: {fake_dengue: 111},
+                           4611: {fake_dengue: 121, fake_zika: 122},
+                           4877: {fake_dengue: 1131, fake_zika: 1132}}
         },
         // Feb 8 - Feb 15: Missing dengue data for 4611. Also, 4877 has chikungunya data.
         {start_time: utc_date(2016, 2, 8), end_time: utc_date(2016, 2, 15),
-         data: {4589: {fake_dengue: 211, fake_zika: 212},
-                4611: {fake_zika: 222},
-                4877: {fake_dengue: 1231, fake_zika: 1232, fake_chikungunya: 1233}}
+         region_epi_data: {4589: {fake_dengue: 211, fake_zika: 212},
+                           4611: {fake_zika: 222},
+                           4877: {fake_dengue: 1231, fake_zika: 1232, fake_chikungunya: 1233}}
         },
         // Feb 15 - Mar 8: Missing data completely for 4611. Also, 22-day time interval.
         {start_time: utc_date(2016, 2, 15), end_time: utc_date(2016, 3, 8),
-         data: {4589: {fake_dengue: 311, fake_zika: 312},
-                4877: {fake_dengue: 1331, fake_zika: 1332}}
+         region_epi_data: {4589: {fake_dengue: 311, fake_zika: 312},
+                           4877: {fake_dengue: 1331, fake_zika: 1332}}
         },
         // Feb 15 - Feb 29: Some of the missing data for 4611, but only 2 weeks instead of 22 days!
         {start_time: utc_date(2016, 2, 15), end_time: utc_date(2016, 2, 29),
-         data: {4611: {fake_dengue: 321, fake_zika: 322}}
+         region_epi_data: {4611: {fake_dengue: 321, fake_zika: 322}}
         }
 
       ];
@@ -75,7 +75,7 @@ var EpiDataStore = P({
       // There may be multiple epi data records with the same `start_time`
       // value. For now, we just choose the one that mentions the most regions.
       var best_recent_record = _.reduce(recent_data, function(best_recent_record, recent_record) {
-        if (_.size(recent_record.data) > _.size(best_recent_record.data)) {
+        if (_.size(recent_record.region_epi_data) > _.size(best_recent_record.region_epi_data)) {
           return recent_record;
         } else {
           return best_recent_record;
