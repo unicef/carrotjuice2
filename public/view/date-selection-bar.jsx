@@ -2,8 +2,9 @@
  * Codez for the bottom date selector widget. Also displays weather data.
  */
 var React = require('react');
+var DatePicker = require('react-datepicker');
 var d3 = require('d3');
-var $ = require('jquery');
+var moment = require('moment');
 
 var DateUtil = require('../model/date-util.js');
 
@@ -76,38 +77,20 @@ var DateSelectionBar = React.createClass({
     this.reset_x_axis();
   },
 
+  // Note: DatePicker works with moment objects, but we use plain old Dates in
+  // `selected_date`. So we convert from moment to Date here, and from Date to
+  // moment in `render`.
+  on_date_change: function(moment) {
+    var date = new Date(moment._d);
+    date.setUTCHours(0, 0, 0);
+    console.log('date input and converted date:', moment._d, date);
+    this.props.selected_date.set_date(date);
+  },
+
   /** Update on resize events */
   componentDidUpdate: function() {
     if (this.reset_x_axis !== undefined) {
       this.reset_x_axis();
-    }
-  },
-
-  // TODO(jetpack): this is crappy. replace.
-  crappy_date_input: function() {
-    var input_string = $('#date-input').val();
-    var date = new Date(input_string);
-    date.setUTCHours(0, 0, 0);
-    console.log('crappy date input, converted date:', input_string, date);
-    this.props.selected_date.set_date(date);
-  },
-
-  handleChange: function(date) {
-    // this.setState({
-    //   startDate: date
-    // });
-    var input_string = date._d;
-    var date = new Date(input_string);
-    date.setUTCHours(0, 0, 0);
-    console.log('crappy date input, converted date:', input_string, date);
-    this.props.selected_date.set_date(date);
-  },
-
-  get_current_date: function() {
-    if (this.props.selected_date.current_day) {
-      return this.props.selected_date.current_day.toISOString();
-    } else {
-      return 'loading...';
     }
   },
 
@@ -128,10 +111,9 @@ var DateSelectionBar = React.createClass({
         />
       </svg>
       <div className="floating-header">
-        Current date: {this.get_current_date()}
-        <br/>
         Select a date:
-        <DatePicker selected={this.state.date} onChange={this.handleChange} />
+        <DatePicker selected={moment(this.props.selected_date.current_day)}
+                    onChange={this.on_date_change} />
       </div>
     </div>;
   }
