@@ -6,14 +6,20 @@ var d3 = require('d3');
 var $ = require('jquery');
 
 var DateUtil = require('../model/date-util.js');
+var DatePicker = require('react-datepicker');
+var moment = require('moment');
 
+require('react-datepicker/dist/react-datepicker.css');
 require('./date-selection-bar.css');
 
 var DateSelectionBar = React.createClass({
   // The range for `x_time_scale` is determined by the document width, which is
   // set via `componentDidUpdate`.
   getInitialState: function() {
-    return {x_time_scale: d3.time.scale.utc()};
+    return {
+      startDate: moment(),
+      x_time_scale: d3.time.scale.utc()
+    };
   },
 
   /**
@@ -91,6 +97,19 @@ var DateSelectionBar = React.createClass({
     this.props.selected_date.set_date(date);
   },
 
+  handleChange: function(date) {
+    // this.setState({
+    //   startDate: date
+    // });
+    var input_string = date._d;
+    var date = new Date(input_string);
+    date.setUTCHours(0, 0, 0);
+    console.log('crappy date input, converted date:', input_string, date);
+    this.props.selected_date.set_date(date);
+
+
+  },
+
   get_current_date: function() {
     if (this.props.selected_date.current_day) {
       return this.props.selected_date.current_day.toISOString();
@@ -116,12 +135,10 @@ var DateSelectionBar = React.createClass({
         />
       </svg>
       <div className="floating-header">
-        Current date: {this.get_current_date()}
+        Current date: {this.state.date}
         <br/>
         Select a date:
-        <form onSubmit={this.crappy_date_input}>
-          <input id="date-input" type="text"/>
-        </form>
+        <DatePicker selected={this.state.date} onChange={this.handleChange} />
       </div>
     </div>;
   }
