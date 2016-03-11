@@ -16,10 +16,7 @@ var DateSelectionBar = React.createClass({
   // The range for `x_time_scale` is determined by the document width, which is
   // set via `componentDidUpdate`.
   getInitialState: function() {
-    return {
-      startDate: moment(),
-      x_time_scale: d3.time.scale.utc()
-    };
+    return {x_time_scale: d3.time.scale.utc()};
   },
 
   /**
@@ -135,7 +132,7 @@ var DateSelectionBar = React.createClass({
         />
       </svg>
       <div className="floating-header">
-        Current date: {this.state.date}
+        Current date: {this.get_current_date()}
         <br/>
         Select a date:
         <DatePicker selected={this.state.date} onChange={this.handleChange} />
