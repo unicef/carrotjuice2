@@ -87,6 +87,18 @@ var DateSelectionBar = React.createClass({
     this.props.selected_date.set_date(date);
   },
 
+  get_date_picker: function() {
+    if (this.props.selected_date.current_day) {
+      return <DatePicker selected={moment(this.props.selected_date.current_day)}
+                         onChange={this.on_date_change}
+                         dateFormat="YYYY-MM-DD" />;
+    } else {
+      return <DatePicker placeholderText="loading.."
+                         onChange={this.on_date_change}
+                         dateFormat="YYYY-MM-DD" />;
+    }
+  },
+
   /** Update on resize events */
   componentDidUpdate: function() {
     if (this.reset_x_axis !== undefined) {
@@ -111,9 +123,8 @@ var DateSelectionBar = React.createClass({
         />
       </svg>
       <div className="floating-header">
-        Select a date:
-        <DatePicker selected={moment(this.props.selected_date.current_day)}
-                    onChange={this.on_date_change} />
+        Select date:
+        {this.get_date_picker()}
       </div>
     </div>;
   }
