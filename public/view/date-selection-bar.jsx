@@ -6,8 +6,6 @@ var d3 = require('d3');
 var $ = require('jquery');
 
 var DateUtil = require('../model/date-util.js');
-var DatePicker = require('react-datepicker');
-var moment = require('moment');
 
 require('react-datepicker/dist/react-datepicker.css');
 require('./date-selection-bar.css');
@@ -103,8 +101,6 @@ var DateSelectionBar = React.createClass({
     date.setUTCHours(0, 0, 0);
     console.log('crappy date input, converted date:', input_string, date);
     this.props.selected_date.set_date(date);
-
-
   },
 
   get_current_date: function() {
