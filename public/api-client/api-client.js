@@ -8,8 +8,6 @@ var Q = require('q');
 var jQuery = require('jquery');
 var DateUtil = require('../model/date-util.js');
 
-var SUPPORTED_COUNTRIES = ['br'];
-
 var makeRequest = function(url) {
   var deferred = Q.defer();
 
@@ -28,32 +26,25 @@ var makeRequest = function(url) {
 };
 
 var APIClient = P({
-  init: function(country_code) {
-    if (!SUPPORTED_COUNTRIES.includes(country_code)) {
-      alert("INTERNAL ERROR: country '" + country_code + "' not supported");
-    }
-    this.country_code = country_code;
+  fetch_admin_data: function(country_code) {
+    return makeRequest("/api/admin_polygons_topojson/" + country_code);
   },
-  fetch_region_data: function() {
-    return makeRequest("/api/admin_polygons_topojson/" + this.country_code);
-  },
-  fetch_weather_data: function(date) {
-    // When no date_str specified, we get the latest data available.
+  fetch_country_weather_data: function(country_code, date) {
     var date_str = '';
-    if (date === undefined) {
-      console.log('No date specified - fetching latest available data..');
-    } else {
+    if (date) {
       date_str = '/' + DateUtil.iso_to_yyyymmdd(date);
+    } else {
+      console.log('No date specified - fetching latest available data..');
     }
-    return makeRequest('/api/country_weather/' + this.country_code + date_str);
+    return makeRequest('/api/country_weather/' + country_code + date_str);
   },
-  fetch_region_weather_data: function(region_code, num_days) {
+  fetch_admin_weather_data: function(admin_code, num_days) {
     if (num_days === undefined) {
       num_days = 180;
     }
     var today = new Date();
     var start_date = DateUtil.subtract_days(today, num_days);
-    return makeRequest('/api/region_weather/' + this.country_code + '/' + region_code + '/' +
+    return makeRequest('/api/admin_weather/' + admin_code + '/' +
                        DateUtil.iso_to_yyyymmdd(start_date) + '/' +
                        DateUtil.iso_to_yyyymmdd(today));
   }

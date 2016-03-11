@@ -34,9 +34,9 @@ var EpiDataStore = P({
     //
     // Region case data is a mapping from region code -> condition ->
     // culmulative case count. For example:
-    // {br1: {dengue: 120, malaria: 110, zika: 100},
-    //  br2: {dengue: 220, malaria: 210},
-    //  br3: {malaria: 310, zika: 300}}
+    // {br-1: {dengue: 120, malaria: 110, zika: 100},
+    //  br-2: {dengue: 220, malaria: 210},
+    //  br-3: {malaria: 310, zika: 300}}
     this.data_by_date_interval_and_region = [];
     this.most_recent_start_time = null;
 
@@ -45,25 +45,25 @@ var EpiDataStore = P({
       this.data_by_date_interval_and_region = [
         // Feb 1 - Feb 8: Missing malaria data for 4589.
         {start_time: utc_date(2016, 2, 1), end_time: utc_date(2016, 2, 8),
-         region_case_data: {4589: {fake_dengue: 111},
-                            4611: {fake_dengue: 121, fake_zika: 122},
-                            4877: {fake_dengue: 1131, fake_zika: 1132}}
+         region_case_data: {'br-4589': {fake_dengue: 111},
+                            'br-4611': {fake_dengue: 121, fake_zika: 122},
+                            'br-4877': {fake_dengue: 1131, fake_zika: 1132}}
         },
         // Feb 8 - Feb 15: Missing dengue data for 4611. Also, 4877 has chikungunya data.
         {start_time: utc_date(2016, 2, 8), end_time: utc_date(2016, 2, 15),
-         region_case_data: {4589: {fake_dengue: 211, fake_zika: 212},
-                            4611: {fake_zika: 222},
-                            4877: {fake_dengue: 1231, fake_zika: 1232, fake_chikungunya: 1233}}
+         region_case_data: {'br-4589': {fake_dengue: 211, fake_zika: 212},
+                            'br-4611': {fake_zika: 222},
+                            'br-4877': {fake_dengue: 1231, fake_zika: 1232, fake_chikungunya: 1233}}
         },
         // Feb 15 - Feb 29: Only has data for 4611. 2 weeks.
         {start_time: utc_date(2016, 2, 15), end_time: utc_date(2016, 2, 29),
-         region_case_data: {4611: {fake_dengue: 321, fake_zika: 322}}
+         region_case_data: {'br-4611': {fake_dengue: 321, fake_zika: 322}}
         },
         // Feb 15 - Mar 8: Only has data fro 4589 and 4877. Overlaps with previous time span,
         // but longer.
         {start_time: utc_date(2016, 2, 15), end_time: utc_date(2016, 3, 8),
-         region_case_data: {4589: {fake_dengue: 311, fake_zika: 312},
-                            4877: {fake_dengue: 1331, fake_zika: 1332}}
+         region_case_data: {'br-4589': {fake_dengue: 311, fake_zika: 312},
+                            'br-4877': {fake_dengue: 1331, fake_zika: 1332}}
         }
       ];
       this.most_recent_start_time = _.last(this.data_by_date_interval_and_region).start_time;

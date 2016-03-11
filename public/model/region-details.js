@@ -16,33 +16,44 @@ var RegionDetails = P({
     // `region_data_by_code` is a map from region code to region data. Region
     // data has fields `name`, `region_code`, and `geo_area_sqkm`.
     this.region_data_by_code = {};
-    // GeoJSON FeatureCollection. The features' properties include the region
-    // data fields.
-    this.region_feature_collection = {};
-    var fetch_region_data_promise = init_dict.api_client.fetch_region_data()
-        .then(this.process_region_data.bind(this))
-        .fail(function(err) { console.error(err); });
+    // Map from country code to GeoJSON FeatureCollection. The features' properties include the
+    // region data fields.
+    this.region_feature_collection_by_country = {};
+    var fetch_region_data_promise = Promise.all(
+      init_dict.initial_countries_to_load.map((function(country_code) {
+        console.log('Fetching admins for', country_code);
+        return init_dict.api_client.fetch_admin_data(country_code)
+          .then((function(data) {
+            this.process_region_data(country_code, data);
+          }.bind(this)));
+      }).bind(this)))
+        .catch(function(err) { console.error(err); });
     this.initial_load_promise = Q.all([this.epi_data_store.initial_load_promise,
                                        this.weather_data_store.initial_load_promise,
                                        fetch_region_data_promise]);
   },
 
-  process_region_data: function(data) {
+  process_region_data: function(country_code, data) {
     if (data.type !== 'Topology') {
       throw new Error('Bad JSON data');
     } else {
-      this.region_feature_collection = topojson.feature(data, data.objects.collection);
+      this.region_feature_collection_by_country[country_code] =
+        topojson.feature(data, data.objects.collection);
       var region_data_by_code = this.region_data_by_code;
       data.objects.collection.geometries.forEach(function(obj) {
         // FWIW, `properties` also has `country_code` .
-        region_data_by_code[obj.properties.region_code] =
-          _.pick(obj.properties, ['name', 'region_code', 'geo_area_sqkm']);
+        region_data_by_code[obj.properties.admin_code] =
+          _.pick(obj.properties, ['name', 'admin_code', 'geo_area_sqkm']);
       });
     }
   },
 
+  // TODO(jetpack): globalhack: this should be per country.
   get_geojson_features: function() {
-    return this.region_feature_collection.features;
+    return _.reduce(
+      this.region_feature_collection_by_country, function(result, feature_collection) {
+        return _.concat(result, feature_collection.features);
+      }, []);
   },
 
   get_region_properties: function(region_code) {

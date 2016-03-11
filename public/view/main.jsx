@@ -27,6 +27,8 @@ var MapController = require('../map-controller/map-controller.js');
 // module-local style
 require('./main.css');
 
+const SUPPORTED_COUNTRIES = ['br', 'co', 'pa'];
+
 // callback to re-render the main view. we need a little bit of
 // ugliness here because AppMain hasn't yet been instantiated.
 var main_instance = null;
@@ -47,16 +49,18 @@ var rerender_and_redraw = function() {
 window.addEventListener('resize', rerender);
 
 var loading_status = new LoadingStatusModel(rerender);
-var api_client = new APIClient('br');
+var api_client = new APIClient();
 var epi_data_store = new EpiDataStore(rerender_and_redraw);
-var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client);
+// TODO(jetpack): globalhack: pass in a SelectedCountries model instead.
+var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client, SUPPORTED_COUNTRIES);
 var data_layer = new DataLayer(rerender_and_redraw);
 var selected_date = new SelectedDate(function() {
   // TODO(jetpack): if we call redraw here, the map goes black until the new
   // weather data is fetched. should we show a spinner or something?
   rerender();
-  weather_data_store.on_date_select(selected_date.current_day);
   // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
+  // TODO(jetpack): globalhack: pass in a SelectedCountries model instead.
+  weather_data_store.on_date_select(SUPPORTED_COUNTRIES, selected_date.current_day);
 }, weather_data_store);
 var selected_regions = new SelectedRegions(function() {
   rerender();
@@ -68,7 +72,8 @@ var region_details = new RegionDetails({
   api_client: api_client,
   selected_regions: selected_regions,
   epi_data_store: epi_data_store,
-  weather_data_store: weather_data_store
+  weather_data_store: weather_data_store,
+  initial_countries_to_load: SUPPORTED_COUNTRIES
 });
 var map_coloring = new MapColoring({
   data_layer: data_layer,

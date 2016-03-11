@@ -3,10 +3,8 @@ var basemaps = require('./basemaps.js');
 
 module.exports = function(map_element) {
   var map_center = [-23.3, -46.3];  // São Paulo.
-  var map_zoom = 6;
-  // When zoomed out more, the polygons look really messed up. This zoom
-  // level already shows all of Brazil.
-  var min_map_zoom = 5;
+  var map_zoom = 5;
+  var min_map_zoom = 4;
   var max_map_zoom = 12;
   var map_region_layer = L.layerGroup();
 

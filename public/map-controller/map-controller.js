@@ -76,7 +76,7 @@ var MapController = P({
   on_each_feature: function(feature, layer) {
     var map = this.map;
     var selected_regions = this.selected_regions;
-    var region_code = feature.properties.region_code;
+    var region_code = feature.properties.admin_code;
     var region_popup = L.popup(this.popup_options, layer);
     region_popup.setContent('<b>' + feature.properties.name + '</b>');
 
@@ -120,7 +120,7 @@ var MapController = P({
     var region_to_color = this.map_coloring.active_base_layer_coloring_data();
     var selected_regions = this.selected_regions;
     return function(feature) {
-      var region_code = feature.properties.region_code;
+      var region_code = feature.properties.admin_code;
       return {
         fillColor: region_to_color[region_code],
         fillOpacity: 1,
