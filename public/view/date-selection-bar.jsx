@@ -89,7 +89,7 @@ var DateSelectionBar = React.createClass({
 
   get_date_picker: function() {
     if (this.props.selected_date.current_day) {
-      return <DatePicker selected={moment(this.props.selected_date.current_day)}
+      return <DatePicker selected={moment(this.props.selected_date.current_day).utcOffset(0)}
                          onChange={this.on_date_change}
                          dateFormat="YYYY-MM-DD" />;
     } else {
