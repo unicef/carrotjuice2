@@ -3,8 +3,8 @@ var webpack = require("webpack");
 
 module.exports = {
   entry: {
-    "main": "./public/entry.js",
-    "test": "./public/phantomjs-tests/entry.js"
+    main: "./public/entry.js",
+    test: "./public/phantomjs-tests/entry.js"
   },
   output: {
     path: path.join(__dirname, "build"),
@@ -22,8 +22,7 @@ module.exports = {
         }
       },
 
-      // Needed for the css-loader when [bootstrap-webpack](https://github.com/bline/bootstrap-webpack)
-      // loads bootstrap's css.
+      // Needed for the css-loader for bootstrap's css.
       {
         test: /\.woff2?(\?v=\d+\.\d+\.\d+)?$/,
         loader: "url?limit=10000&mimetype=application/font-woff"

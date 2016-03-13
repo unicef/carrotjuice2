@@ -87,7 +87,7 @@ var WeatherDataStore = P({
   },
 
   fake_oviposition_model: function() {
-    return FakeOvipositionDataStore(this);
+    return new FakeOvipositionDataStore(this);
   },
 
   on_region_select: function(region_codes) {

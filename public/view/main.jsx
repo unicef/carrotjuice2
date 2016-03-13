@@ -5,6 +5,7 @@ var React = require('react');
 
 // Views
 var DateSelectionBar = require('./date-selection-bar.jsx');
+var ErrorPopup = require('./error-popup.jsx');
 var LeafletMap = require('./leaflet-map.jsx');
 var LoadingStatusView = require('./loading-status.jsx');
 var OverlayControlsBox = require('./overlay-controls/overlay-controls-box.jsx');
@@ -13,6 +14,7 @@ var ViewUtil = require('./view-util.jsx');
 // Models
 var DataLayer = require('../model/data-layer.js');
 var LoadingStatusModel = require('../model/loading-status.js');
+var ErrorHandler = require('../model/error-handler.js');
 var EpiDataStore = require('../model/epi-data-store.js');
 var WeatherDataStore = require('../model/weather-data-store.js');
 var SelectedDate = require('../model/selected-date.js');
@@ -46,9 +48,10 @@ var rerender_and_redraw = function() {
 // NOTE: we could model resize state formally, but this'll do for now
 window.addEventListener('resize', rerender);
 
+var error_handler = new ErrorHandler(rerender);
 var loading_status = new LoadingStatusModel(rerender);
 var api_client = new APIClient('br');
-var epi_data_store = new EpiDataStore(rerender_and_redraw);
+var epi_data_store = new EpiDataStore(rerender_and_redraw, error_handler);
 var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client);
 var data_layer = new DataLayer(rerender_and_redraw);
 var selected_date = new SelectedDate(function() {
@@ -99,6 +102,7 @@ var AppMain = React.createClass({
                             selected_date={selected_date}
                             region_details={region_details} />
         <LoadingStatusView model={loading_status} />
+        <ErrorPopup error_handler={error_handler} />
       </div>
     );
   }

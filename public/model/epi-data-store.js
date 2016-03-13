@@ -20,8 +20,9 @@ var utc_date = function(year, month, day) {
 // TODO(jetpack): screaming for unit tests.
 
 var EpiDataStore = P({
-  init: function(on_update) {
+  init: function(on_update, error_handler) {
     this.on_update = on_update;
+    this.error_handler = error_handler;
 
     // `data_by_date_interval_and_region` format is an array of objects that looks
     // like this:
