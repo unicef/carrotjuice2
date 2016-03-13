@@ -3,12 +3,12 @@ div#leaflet-map {
     min-width: 200px;
     min-height: 200px;
 }
-.region-popup .leaflet-popup-tip-container {
+.carotene-popup .leaflet-popup-tip-container {
     display: none;  /* Kill popup stem/tip thingy. */
 }
-.region-popup .leaflet-popup-content {
+.carotene-popup .leaflet-popup-content {
     margin: .1em .1em;  /* Smaller margins. */
 }
-.region-popup .leaflet-popup-content-wrapper {
+.carotene-popup .leaflet-popup-content-wrapper {
     border-radius: .3em;  /* Smaller radius. */
 }

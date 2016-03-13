@@ -34,12 +34,17 @@ var make_distance_from_viewport_center = function(bounds) {
 };
 
 var MapController = P({
-  init: function(loading_status_model, region_details, selected_regions, map_coloring) {
-    this.loading_status_model = loading_status_model;
-    this.region_details = region_details;
-    this.selected_regions = selected_regions;
-    this.map_coloring = map_coloring;
+  init: function(init_dict) {
+    this.loading_status = init_dict.loading_status;
+    this.region_details = init_dict.region_details;
+    this.selected_regions = init_dict.selected_regions;
+    this.map_coloring = init_dict.map_coloring;
     this.regions_layers = [];
+    this.overlay_layers = [];
+    // TODO(jetpack): the latlng stored is just the center of the bounding box,
+    // which can be very terrible. instead, we should compute the centroid in
+    // the backend: https://github.com/mikefab/majicbox/issues/6
+    this.region_code_to_latlng = {};
   },
 
   /**
@@ -52,31 +57,33 @@ var MapController = P({
     this.map_element = map_element;
     this.map = draw_initial_map(map_element);
     window._leaflet_map = this.map;  // save a reference for easier debugging
-    Q.all([
-      this.map_coloring.load_promise,
-      this.region_details.load_promise
-    ])
+    Q.all([this.map_coloring.initial_load_promise,
+           this.region_details.initial_load_promise])
       .then(this.post_initial_load.bind(this))
       .fail(function(error) {
         console.error(error);
       });
   },
 
+  popup_options: {
+    autoPan: false,
+    closeButton: false,
+    offset: L.point(0, -10),
+    // Note: style for this popup is in leaflet-map.css.
+    className: 'carotene-popup'
+  },
+
   on_each_feature: function(feature, layer) {
     var map = this.map;
     var selected_regions = this.selected_regions;
     var region_code = feature.properties.region_code;
-
-    var region_popup = L.popup({
-      autoPan: false,
-      closeButton: false,
-      offset: L.point(0, -10),
-      // Note: style for this popup is in leaflet-map.css.
-      className: 'region-popup'
-    }, layer);
+    var region_popup = L.popup(this.popup_options, layer);
     region_popup.setContent('<b>' + feature.properties.name + '</b>');
 
-    // Draw popup that tracks mouse movement.
+    // Store geo center for each region.
+    this.region_code_to_latlng[region_code] = layer.getBounds().getCenter();
+
+    // Set up handlers.
     var mousemove = function(e) {
       region_popup.setLatLng(e.latlng);
       map.openPopup(region_popup);
@@ -93,7 +100,6 @@ var MapController = P({
       selected_regions.unset_region_hovered(region_code);
       e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
     };
-    // Change selected region (updates region panel).
     var click = function(e) {
       var on_unselect = function() {
         e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
@@ -111,7 +117,7 @@ var MapController = P({
   },
 
   get_region_style_fcn: function() {
-    var region_to_color = this.map_coloring.active_data();
+    var region_to_color = this.map_coloring.active_base_layer_coloring_data();
     var selected_regions = this.selected_regions;
     return function(feature) {
       var region_code = feature.properties.region_code;
@@ -125,11 +131,64 @@ var MapController = P({
     };
   },
 
+  build_epi_overlay_layer: function(epi_data) {
+    var max_epi_marker_size_meters = 20000;
+    var layer_group = L.layerGroup();
+    _.forEach(epi_data.region_case_data, (function(case_data, region_code) {
+      var latlng = this.region_code_to_latlng[region_code];
+      // TODO(jetpack): scale by relative admin size for the country, or something?
+      var radius_meters = max_epi_marker_size_meters *
+          this.map_coloring.case_data_to_severity(case_data);
+      var circle = L.circle(latlng, radius_meters, {opacity: 0.9, fillOpacity: 0.7});
+
+      var circle_popup = L.popup(this.popup_options);
+      var region_name = this.region_details.get_region_properties(region_code).name;
+      circle_popup.setContent(
+        '<b>' + region_name + '</b><br/>' +
+          this.map_coloring.case_data_to_display_strings(case_data).join('<br/>'));
+      var map = this.map;
+      // TODO(jetpack): clicks on the circle should behave the same as clicks on
+      // the region.
+      circle.on({
+        mousemove: function(e) {
+          circle_popup.setLatLng(e.latlng);
+          map.openPopup(circle_popup);
+        },
+        mouseout: function() { map.closePopup(circle_popup); }
+      });
+
+      layer_group.addLayer(circle);
+    }).bind(this));
+    return layer_group;
+  },
+
   redraw: function() {
     var style_fcn = this.get_region_style_fcn();
     _.forEach(this.regions_layers, function(layer) {
       layer.setStyle(style_fcn);
     });
+
+    // Clear previous overlays.
+    _.forEach(this.overlay_layers, (function(overlay_map_layer) {
+      overlay_map_layer.clearLayers();
+      this.map.removeLayer(overlay_map_layer);
+    }).bind(this));
+    this.overlay_layers = [];
+
+    // Draw currently active overlays.
+    _.forEach(this.map_coloring.active_overlay_data(), (function(overlay_data, overlay_name) {
+      console.log('overlay data:', overlay_name, overlay_data);
+      var overlay_layer;
+      switch (overlay_name) {
+        case 'epi':
+          overlay_layer = this.build_epi_overlay_layer(overlay_data);
+          break;
+        default:
+          console.error('BUG! MapController does not support overlay type:', overlay_name);
+      }
+      overlay_layer.addTo(this.map);
+      this.overlay_layers.push(overlay_layer);
+    }).bind(this));
   },
 
   /**
@@ -159,7 +218,7 @@ var MapController = P({
     var sequence = Q(null).then(
       this.load_feature_chunk.bind(this, _.take(features_by_distance, 500))
     ).then(function() {
-      this.loading_status_model.setLoadedTopojson();
+      this.loading_status.setLoadedTopojson();
     }.bind(this));
 
     _.forEach(_.chunk(_.drop(features_by_distance, 500), 2500), (function(feature) {
