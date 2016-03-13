@@ -23,50 +23,50 @@ var EpiDataStore = P({
   init: function(on_update) {
     this.on_update = on_update;
 
-    // `data_by_date_interval_and_region` format is an array of objects that looks
+    // `data_by_date_interval_and_admin` format is an array of objects that looks
     // like this:
-    // {start_time: <Date>, end_time: <Date>, region_case_data: <region case data>}
+    // {start_time: <Date>, end_time: <Date>, admin_case_data: <admin case data>}
     //
     // The array is sorted by `start_time`. The times are all at midnight UTC.
     // The time interval is half-open: [start_time, end_time). So, with
     // start_time = 2016-01-01 and end_time = 2016-01-08, the interval contains
     // data for 2016-01-01 up to and including 2016-01-07.
     //
-    // Region case data is a mapping from region code -> condition ->
+    // Admin case data is a mapping from admin code -> condition ->
     // culmulative case count. For example:
     // {br-1: {dengue: 120, malaria: 110, zika: 100},
     //  br-2: {dengue: 220, malaria: 210},
     //  br-3: {malaria: 310, zika: 300}}
-    this.data_by_date_interval_and_region = [];
+    this.data_by_date_interval_and_admin = [];
     this.most_recent_start_time = null;
 
     this.initial_load_promise = Q.delay(10).then((function() {
       // 4589 is Iguape, 4611 is Itanhaém, and 4877 is São Paulo.
-      this.data_by_date_interval_and_region = [
+      this.data_by_date_interval_and_admin = [
         // Feb 1 - Feb 8: Missing malaria data for 4589.
         {start_time: utc_date(2016, 2, 1), end_time: utc_date(2016, 2, 8),
-         region_case_data: {'br-4589': {fake_dengue: 111},
-                            'br-4611': {fake_dengue: 121, fake_zika: 122},
-                            'br-4877': {fake_dengue: 1131, fake_zika: 1132}}
+         admin_case_data: {'br-4589': {fake_dengue: 111},
+                           'br-4611': {fake_dengue: 121, fake_zika: 122},
+                           'br-4877': {fake_dengue: 1131, fake_zika: 1132}}
         },
         // Feb 8 - Feb 15: Missing dengue data for 4611. Also, 4877 has chikungunya data.
         {start_time: utc_date(2016, 2, 8), end_time: utc_date(2016, 2, 15),
-         region_case_data: {'br-4589': {fake_dengue: 211, fake_zika: 212},
-                            'br-4611': {fake_zika: 222},
-                            'br-4877': {fake_dengue: 1231, fake_zika: 1232, fake_chikungunya: 1233}}
+         admin_case_data: {'br-4589': {fake_dengue: 211, fake_zika: 212},
+                           'br-4611': {fake_zika: 222},
+                           'br-4877': {fake_dengue: 1231, fake_zika: 1232, fake_chikungunya: 1233}}
         },
         // Feb 15 - Feb 29: Only has data for 4611. 2 weeks.
         {start_time: utc_date(2016, 2, 15), end_time: utc_date(2016, 2, 29),
-         region_case_data: {'br-4611': {fake_dengue: 321, fake_zika: 322}}
+         admin_case_data: {'br-4611': {fake_dengue: 321, fake_zika: 322}}
         },
         // Feb 15 - Mar 8: Only has data fro 4589 and 4877. Overlaps with previous time span,
         // but longer.
         {start_time: utc_date(2016, 2, 15), end_time: utc_date(2016, 3, 8),
-         region_case_data: {'br-4589': {fake_dengue: 311, fake_zika: 312},
-                            'br-4877': {fake_dengue: 1331, fake_zika: 1332}}
+         admin_case_data: {'br-4589': {fake_dengue: 311, fake_zika: 312},
+                           'br-4877': {fake_dengue: 1331, fake_zika: 1332}}
         }
       ];
-      this.most_recent_start_time = _.last(this.data_by_date_interval_and_region).start_time;
+      this.most_recent_start_time = _.last(this.data_by_date_interval_and_admin).start_time;
     }).bind(this))
       .catch(function(err) {
         alert('Error getting case data! ' + err);
@@ -74,7 +74,7 @@ var EpiDataStore = P({
   },
 
   // Return a recent epi data record. If there are multiple records that include
-  // the given `date`, returns the one that has data on the most regions. If
+  // the given `date`, returns the one that has data on the most admins. If
   // there are no records that include `date`, returns the most recent record
   // that occurred before the date.
   get_best_recent_epi_data: function(date) {
@@ -83,39 +83,39 @@ var EpiDataStore = P({
       return null;
     }
     // TODO(jetpack): binary search instead of linear scan.
-    var matching_records = _.filter(this.data_by_date_interval_and_region, function(record) {
+    var matching_records = _.filter(this.data_by_date_interval_and_admin, function(record) {
       return record.start_time <= date && date < record.end_time;
     });
     if (!_.isEmpty(matching_records)) {
-      return _.maxBy(matching_records, function(r) { return _.size(r.region_case_data); });
+      return _.maxBy(matching_records, function(r) { return _.size(r.admin_case_data); });
     }
     // No epi records contain `date`. Find the record with the most recent
     // `start_time` that occurred before the date.
     // TODO(jetpack): binary search instead of linear scan.
     console.log('EpiDataStore doesnt have matching data for', date,
                 ', just looking for most recent data now..');
-    return _.findLast(this.data_by_date_interval_and_region, function(record) {
+    return _.findLast(this.data_by_date_interval_and_admin, function(record) {
       return record.start_time < date;
     });
   },
 
-  get_recent_epi_data_for_region: function(date, region_code) {
+  get_recent_epi_data_for_admin: function(date, admin_code) {
     if (!(date instanceof Date)) {
       console.error('Expected a Date, but got:', date);
       return null;
     }
     // TODO(jetpack): binary search instead of linear scan.
-    var matching_record = _.findLast(this.data_by_date_interval_and_region, function(record) {
+    var matching_record = _.findLast(this.data_by_date_interval_and_admin, function(record) {
       return record.start_time <= date && date < record.end_time &&
-        _.has(record.region_case_data, region_code);
+        _.has(record.admin_case_data, admin_code);
     });
     if (matching_record) {
       return matching_record;
     }
-    console.log('EpiDataStore doesnt have matching data for', date, region_code,
+    console.log('EpiDataStore doesnt have matching data for', date, admin_code,
                 ', just looking for most recent data now..');
-    return _.findLast(this.data_by_date_interval_and_region, function(record) {
-      return record.start_time < date && _.has(record.region_case_data, region_code);
+    return _.findLast(this.data_by_date_interval_and_admin, function(record) {
+      return record.start_time < date && _.has(record.admin_case_data, admin_code);
     });
   },
 

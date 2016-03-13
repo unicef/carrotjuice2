@@ -26,7 +26,7 @@ var MapColoring = P({
   },
 
   active_base_layer_coloring_data: function() {
-    return this.active_base_layer_data_store().region_color_for_date(
+    return this.active_base_layer_data_store().admin_color_for_date(
       this.selected_date.current_day.toISOString());
   },
 
@@ -36,8 +36,8 @@ var MapColoring = P({
    *
    * For the 'epi' layer, the data type is an object with the form:
    * {start_time: <Date>, end_time: <Date>,
-   *  region_epi_data: {'br-1': {dengue: 100, zika: 110},
-   *                    'br-2': {dengue: 200, zika: 220}}}
+   *  admin_epi_data: {'br-1': {dengue: 100, zika: 110},
+   *                   'br-2': {dengue: 200, zika: 220}}}
    */
   active_overlay_data: function() {
     var layer_name_to_data = {};

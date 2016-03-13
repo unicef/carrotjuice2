@@ -15,9 +15,9 @@ var DataLayer = require('../model/data-layer.js');
 var LoadingStatusModel = require('../model/loading-status.js');
 var EpiDataStore = require('../model/epi-data-store.js');
 var WeatherDataStore = require('../model/weather-data-store.js');
+var SelectedAdmins = require('../model/selected-admins.js');
 var SelectedDate = require('../model/selected-date.js');
-var SelectedRegions = require('../model/selected-regions.js');
-var RegionDetails = require('../model/region-details.js');
+var AdminDetails = require('../model/admin-details.js');
 var MapColoring = require('../model/map-coloring.js');
 
 // Controllers & other data-managing classes
@@ -62,15 +62,15 @@ var selected_date = new SelectedDate(function() {
   // TODO(jetpack): globalhack: pass in a SelectedCountries model instead.
   weather_data_store.on_date_select(SUPPORTED_COUNTRIES, selected_date.current_day);
 }, weather_data_store);
-var selected_regions = new SelectedRegions(function() {
+var selected_admins = new SelectedAdmins(function() {
   rerender();
-  weather_data_store.on_region_select(selected_regions.get_region_codes());
   // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
+  weather_data_store.on_admin_select(selected_admins.get_admin_codes());
 });
-var region_details = new RegionDetails({
+var admin_details = new AdminDetails({
   on_update: rerender,
   api_client: api_client,
-  selected_regions: selected_regions,
+  selected_admins: selected_admins,
   epi_data_store: epi_data_store,
   weather_data_store: weather_data_store,
   initial_countries_to_load: SUPPORTED_COUNTRIES
@@ -83,8 +83,8 @@ var map_coloring = new MapColoring({
 });
 map_controller = new MapController({
   loading_status: loading_status,
-  region_details: region_details,
-  selected_regions: selected_regions,
+  admin_details: admin_details,
+  selected_admins: selected_admins,
   map_coloring: map_coloring
 });
 
@@ -97,12 +97,12 @@ var AppMain = React.createClass({
           <LeafletMap key="1" controller={map_controller} />,
           <DateSelectionBar key="2"
                             selected_date={selected_date}
-                            selected_regions={selected_regions}
+                            selected_admins={selected_admins}
                             weather_data_store={weather_data_store} />
         ])}
         <OverlayControlsBox data_layer={data_layer}
                             selected_date={selected_date}
-                            region_details={region_details} />
+                            admin_details={admin_details} />
         <LoadingStatusView model={loading_status} />
       </div>
     );
