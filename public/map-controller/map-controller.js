@@ -119,17 +119,16 @@ var MapController = P({
 
   get_admin_style_fcn: function() {
     var admin_to_color = this.map_coloring.active_base_layer_coloring_data();
-    var selected_admins = this.selected_admins;
-    return function(feature) {
+    return (function(feature) {
       var admin_code = feature.properties.admin_code;
       return {
         fillColor: admin_to_color[admin_code],
-        fillOpacity: 1,
+        fillOpacity: this.map_coloring.base_layer_opacity(),
         color: '#000',  // Border color.
         opacity: 1,
-        weight: selected_admins.get_border_weight(admin_code)
+        weight: this.selected_admins.get_border_weight(admin_code)
       };
-    };
+    }).bind(this);
   },
 
   create_epi_circle: function(admin_code, case_data) {

@@ -6,3 +6,8 @@ div.data-source-selector .btn {
     padding: 3px 6px;
     margin: 0 4px 0 4px;
 }
+
+#data-source-opacity {
+    display: inline;
+    width: 55%;
+}

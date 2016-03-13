@@ -31,6 +31,10 @@ var MapColoring = P({
       this.selected_date.current_day.toISOString());
   },
 
+  base_layer_opacity: function() {
+    return this.data_layer.base_opacity;
+  },
+
   /**
    * Returns a map from overlay layer name to data for that layer. The type of data varies for each
    * overlay layer.
