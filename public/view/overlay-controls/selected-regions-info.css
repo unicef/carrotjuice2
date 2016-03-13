@@ -2,3 +2,7 @@
     color: #999;
     font-style: italic;
 }
+
+.selected-region-info-epi-data {
+    padding: 0 1em;  /* Indent. */
+}

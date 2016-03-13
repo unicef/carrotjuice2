@@ -12,7 +12,7 @@ describe('view/overlay-controls/data-source-selector', function() {
       display_name: function() {
         return 'test display name';
       },
-      get_valid_layers: function() {
+      get_available_base_layers: function() {
         return [];
       }
     };

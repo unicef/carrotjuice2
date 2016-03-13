@@ -8,11 +8,11 @@ var OverlayControlsBox = React.createClass({
     return <div className="overlay-controls">
       <div className="overlay-controls-section">
         <SelectedRegionsInfo
+            selected_date={this.props.selected_date}
             region_details={this.props.region_details}
         />
       </div>
       <div className="overlay-controls-section">
-        <strong>Data source</strong>:
         <DataSourceSelector
           data_layer={this.props.data_layer}
         />
