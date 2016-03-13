@@ -62,9 +62,9 @@ var SelectedAdmins = P({
 
   get_border_weight: function(admin_code) {
     if (this.is_admin_selected(admin_code)) {
-      return 5;
-    } else if (this.hovered_admin_code === admin_code) {
       return 3;
+    } else if (this.hovered_admin_code === admin_code) {
+      return 2;
     } else {
       return 1;
     }
