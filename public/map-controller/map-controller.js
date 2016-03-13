@@ -135,30 +135,32 @@ var MapController = P({
   build_epi_overlay_layer: function(epi_data) {
     var max_epi_marker_size_meters = 20000;
     var layer_group = L.layerGroup();
-    _.forEach(epi_data.admin_case_data, (function(case_data, admin_code) {
-      var latlng = this.admin_code_to_latlng[admin_code];
-      // TODO(jetpack): scale by relative admin size for the country, or something?
-      var radius_meters = max_epi_marker_size_meters *
-          this.map_coloring.case_data_to_severity(case_data);
-      var circle = L.circle(latlng, radius_meters, {opacity: 0.9, fillOpacity: 0.7});
+    _.forEach(epi_data, (function(country_epi_data) {
+      _.forEach(country_epi_data.admin_case_data, (function(case_data, admin_code) {
+        var latlng = this.admin_code_to_latlng[admin_code];
+        // TODO(jetpack): scale by relative admin size for the country, or something?
+        var radius_meters = max_epi_marker_size_meters *
+            this.map_coloring.case_data_to_severity(case_data);
+        var circle = L.circle(latlng, radius_meters, {opacity: 0.9, fillOpacity: 0.7});
 
-      var circle_popup = L.popup(this.popup_options);
-      var admin_name = this.admin_details.get_admin_properties(admin_code).name;
-      circle_popup.setContent(
-        '<b>' + admin_name + '</b><br/>' +
-          this.map_coloring.case_data_to_display_strings(case_data).join('<br/>'));
-      var map = this.map;
-      // TODO(jetpack): clicks on the circle should behave the same as clicks on
-      // the admin.
-      circle.on({
-        mousemove: function(e) {
-          circle_popup.setLatLng(e.latlng);
-          map.openPopup(circle_popup);
-        },
-        mouseout: function() { map.closePopup(circle_popup); }
-      });
+        var circle_popup = L.popup(this.popup_options);
+        var admin_name = this.admin_details.get_admin_properties(admin_code).name;
+        circle_popup.setContent(
+          '<b>' + admin_name + '</b><br/>' +
+            this.map_coloring.case_data_to_display_strings(case_data).join('<br/>'));
+        var map = this.map;
+        // TODO(jetpack): clicks on the circle should behave the same as clicks on
+        // the admin.
+        circle.on({
+          mousemove: function(e) {
+            circle_popup.setLatLng(e.latlng);
+            map.openPopup(circle_popup);
+          },
+          mouseout: function() { map.closePopup(circle_popup); }
+        });
 
-      layer_group.addLayer(circle);
+        layer_group.addLayer(circle);
+      }).bind(this));
     }).bind(this));
     return layer_group;
   },
@@ -169,7 +171,7 @@ var MapController = P({
     // Add/remove country layers. Update coloring.
     _.forEach(this.admins_layers_by_country, (function(layers, country) {
       var map = this.map;
-      if (this.admin_details.is_country_selected(country)) {
+      if (this.map_coloring.is_country_selected(country)) {
         layers.forEach(function(layer) {
           layer.setStyle(style_fcn);
           if (!map.hasLayer(layer)) {
@@ -246,7 +248,7 @@ var MapController = P({
 
       sequence.fail(function(err) { console.error(err); });
     }).bind(this);
-    this.admin_details.get_selected_countries().forEach(add_country);
+    this.map_coloring.get_selected_countries().forEach(add_country);
   }
 });
 

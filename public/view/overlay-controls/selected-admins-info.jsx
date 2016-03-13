@@ -6,7 +6,7 @@ require('./selected-admins-info.css');
 var SelectedAdminsInfo = React.createClass({
   create_case_data: function(admin) {
     var epi_display_strings = this.props.admin_details.get_epi_data_display_strings(
-      this.props.selected_date.current_day, admin.admin_code);
+      admin.admin_code, this.props.selected_date.current_day);
     if (epi_display_strings) {
       return <div className="selected-region-info-epi-data">
         {epi_display_strings.map(function(s, i) { return <div key={i}>{s}</div>; })}

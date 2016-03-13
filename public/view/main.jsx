@@ -78,7 +78,6 @@ var admin_details = new AdminDetails({
   on_update: rerender,
   api_client: api_client,
   selected_admins: selected_admins,
-  selected_countries: selected_countries,
   epi_data_store: epi_data_store,
   weather_data_store: weather_data_store,
   initial_countries_to_load: SUPPORTED_COUNTRIES
@@ -86,6 +85,7 @@ var admin_details = new AdminDetails({
 var map_coloring = new MapColoring({
   data_layer: data_layer,
   selected_date: selected_date,
+  selected_countries: selected_countries,
   weather_data_store: weather_data_store,
   epi_data_store: epi_data_store
 });

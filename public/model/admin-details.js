@@ -10,7 +10,6 @@ var AdminDetails = P({
   init: function(init_dict) {
     this.on_update = init_dict.on_update;
     this.selected_admins = init_dict.selected_admins;
-    this.selected_countries = init_dict.selected_countries;
     this.epi_data_store = init_dict.epi_data_store;
     this.weather_data_store = init_dict.weather_data_store;
     // TODO(jetpack): maybe this should be a separate class, like weather_data_store.
@@ -21,7 +20,7 @@ var AdminDetails = P({
     // admin data fields.
     this.admin_feature_collection_by_country = {};
     var fetch_admin_data_promise = Promise.all(
-      this.selected_countries.available_options.map((function(country_code) {
+      init_dict.initial_countries_to_load.map((function(country_code) {
         console.log('Fetching admins for', country_code);
         return init_dict.api_client.fetch_admin_data(country_code)
           .then(this.process_admin_data.bind(this, country_code));
@@ -47,14 +46,6 @@ var AdminDetails = P({
     }
   },
 
-  is_country_selected: function(country_code) {
-    return this.selected_countries.is_country_selected(country_code);
-  },
-
-  get_selected_countries: function() {
-    return this.selected_countries.get_selected_countries();
-  },
-
   get_geojson_features: function(country_code) {
     return _.get(this.admin_feature_collection_by_country, [country_code, 'features']);
   },
@@ -70,8 +61,8 @@ var AdminDetails = P({
     });
   },
 
-  get_epi_data_display_strings: function(date, admin_code) {
-    var epi_data = this.epi_data_store.get_recent_epi_data_for_admin(date, admin_code);
+  get_epi_data_display_strings: function(admin_code, date) {
+    var epi_data = this.epi_data_store.get_recent_epi_data_for_admin(admin_code, date);
     if (epi_data) {
       return this.epi_data_store.case_data_to_display_strings(
         epi_data.admin_case_data[admin_code], epi_data.start_time, epi_data.end_time);
