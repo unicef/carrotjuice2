@@ -26,9 +26,9 @@ var FakeOvipositionDataStore = P({
 });
 
 var WeatherDataStore = P({
-  init: function(on_update, api_client, initial_country_codes) {
-    this.api_client = api_client;
+  init: function(on_update, api_client, initial_countries_to_load) {
     this.on_update = on_update;
+    this.api_client = api_client;
     // `data_by_date_and_admin` format is ISO date string -> admin code ->
     // weather data. Currently weather data just has a single field,
     // `temp_mean`.
@@ -37,7 +37,7 @@ var WeatherDataStore = P({
     // TODO(jetpack): globalhack: `last_date` should be per-country.
     this.last_date = null;
     this.initial_load_promise = Promise.all(
-      initial_country_codes.map((function(country_code) {
+      initial_countries_to_load.map((function(country_code) {
         return this.fetch_country_data(country_code, null);
       }).bind(this)))
       .then((function() {
@@ -91,20 +91,19 @@ var WeatherDataStore = P({
     return FakeOvipositionDataStore(this);
   },
 
-  // TODO(jetpack): calls `on_update` |admin_codes| times instead of just once.
   on_admin_select: function(admin_codes) {
-    admin_codes.forEach((function(admin_code) {
-      this.fetch_admin_data(admin_code);
-    }).bind(this));
-    this.on_update();
+    return Promise.all(admin_codes.map((function(admin_code) {
+      return this.fetch_admin_data(admin_code);
+    }).bind(this)))
+      .then(this.on_update.bind(this));
   },
 
   on_date_select: function(country_codes, date) {
-    country_codes.forEach((function(country_code) {
-      this.fetch_country_data(country_code, date);
-    }).bind(this));
-    this.on_update();
-  }
+    return Promise.all(country_codes.map((function(country_code) {
+      return this.fetch_country_data(country_code, date);
+    }).bind(this)))
+      .then(this.on_update.bind(this));
+  },
 
 });
 
