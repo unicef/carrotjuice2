@@ -6,11 +6,6 @@ module.exports = function(map_element) {
   var map_zoom = 5;
   var min_map_zoom = 4;
   var max_map_zoom = 12;
-  var map_region_layer = L.layerGroup();
-
-  var overlays = {
-    'Administrative regions': map_region_layer
-  };
 
   var map = L.map(map_element, {
     center: map_center,
@@ -18,12 +13,12 @@ module.exports = function(map_element) {
     minZoom: min_map_zoom,
     maxZoom: max_map_zoom,
     fadeAnimation: false,
-    layers: [basemaps.CartoDB, map_region_layer],
+    layers: [basemaps.CartoDB],
     zoomControl: false  // Added manually below.
   });
 
   map.attributionControl.setPrefix('Carotene');
-  L.control.layers(basemaps, overlays).addTo(map);
+  L.control.layers(basemaps).addTo(map);
   L.control.scale({position: 'bottomright'}).addTo(map);
   // The zoom control is added manually so that it's above the scale control.
   L.control.zoom({position: 'bottomright'}).addTo(map);
