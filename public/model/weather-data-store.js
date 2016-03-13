@@ -78,6 +78,9 @@ var WeatherDataStore = P({
     return _.mapValues(
       this.data_by_date_and_region[date_string],
       function(data_obj) {
+        if (data_obj.temp_mean < 1 || data_obj.temp_mean > 50) {
+          console.warn("Weather data store: temperature is outside of expected range.");
+        }
         return temp_to_prevalence(data_obj.temp_mean);
       }
     );

@@ -17,8 +17,8 @@ var APIClient = P({
     fetch_weather_data: function (date) {
         return Q({
             "2016-03-10T00:00:00.000Z": {
-                "1": {
-                    "temp_mean": -3.81
+                "4877": {
+                    "temp_mean": 3.81
                 }
             }
         });
