@@ -80,6 +80,9 @@ var MapController = P({
     var admin_code = feature.properties.admin_code;
     var admin_popup = L.popup(this.popup_options, layer);
     admin_popup.setContent('<b>' + feature.properties.name + '</b>');
+    var set_border = function(e) {
+      e.target.setStyle({weight: selected_admins.get_border_weight(admin_code)});
+    };
 
     // Store geo center for each admin.
     this.admin_code_to_latlng[admin_code] = layer.getBounds().getCenter();
@@ -91,7 +94,7 @@ var MapController = P({
     };
     var mouseover = function(e) {
       selected_admins.set_admin_hovered(admin_code);
-      e.target.setStyle({weight: selected_admins.get_border_weight(admin_code)});
+      set_border(e);
     };
     var mouseout = function(e) {
       // Note: `map.openPopup` ensures only 1 popup is open at a time, but we
@@ -99,14 +102,11 @@ var MapController = P({
       // admin to a non-admin (e.g., the sea, or outside the country).
       map.closePopup(admin_popup);
       selected_admins.unset_admin_hovered(admin_code);
-      e.target.setStyle({weight: selected_admins.get_border_weight(admin_code)});
+      set_border(e);
     };
     var click = function(e) {
-      var on_unselect = function() {
-        e.target.setStyle({weight: selected_admins.get_border_weight(admin_code)});
-      };
-      selected_admins.select_admin(admin_code, on_unselect);
-      e.target.setStyle({weight: selected_admins.get_border_weight(admin_code)});
+      selected_admins.select_admin(admin_code, set_border.bind(null, e));
+      set_border(e);
       layer.bringToFront();  // Ensures border is fully visible.
     };
     layer.on({
