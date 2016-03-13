@@ -44,8 +44,8 @@ var wait_for_element = function(name) {
   };
 };
 
-describe('view/overlay-controls/data-source-selector', function() {
-  it('mounts and contains reasonable elements', function() {
+describe('map-controller/map-controller', function() {
+  it('mounts and renders a region', function() {
     var data_layer = {
       data_layer: 'test_layer',
       display_name: function() {
