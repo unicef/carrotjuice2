@@ -31,14 +31,14 @@ var DateSelectionBar = React.createClass({
     var height = 130;  // constant via css
     var x_scale = this.state.x_time_scale;
     // TODO(jetpack): hack: hard-coded domain for fake weather.
-    var y_scale = d3.scale.linear().domain([-20, 50])
+    var y_scale = d3.scale.linear().domain([0, 80])
       .range([height - 30, 0]);
 
     var make_area_graph = d3.svg.area()
       .x(function(d) {
         return x_scale(d.x);
       })
-      .y0(y_scale(-20))
+      .y0(height - 30)
       .y1(function(d) {
         return y_scale(d.y);
       });
@@ -57,9 +57,7 @@ var DateSelectionBar = React.createClass({
           points_data.push({x: new Date(date_string), y: weather_data.temp_mean});
         }
       });
-      return this.get_area_points(points_data);
-    } else {
-      console.log('Not drawing weather graph: not exactly 1 selected admin:', selected_admins);
+      return this.get_area_points(_.sortBy(points_data, 'x'));
     }
   },
 
