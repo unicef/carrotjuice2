@@ -9,7 +9,7 @@
                     "properties": {
                         "country_code": "br",
                         "name": "São Paulo",
-                        "region_code": 4877,
+                        "admin_code": "br-4877",
                         "geo_area_sqkm": 1531.3071691050166
                     },
                     "arcs": [
