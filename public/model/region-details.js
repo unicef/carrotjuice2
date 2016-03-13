@@ -56,10 +56,10 @@ var RegionDetails = P({
     });
   },
 
-  get_epi_data_display_string: function(date, region_code) {
+  get_epi_data_display_strings: function(date, region_code) {
     var epi_data = this.epi_data_store.get_recent_epi_data_for_region(date, region_code);
     if (epi_data) {
-      return this.epi_data_store.case_data_to_html_string(
+      return this.epi_data_store.case_data_to_display_strings(
         epi_data.region_case_data[region_code], epi_data.start_time, epi_data.end_time);
     }
   }

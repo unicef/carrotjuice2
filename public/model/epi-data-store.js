@@ -67,7 +67,10 @@ var EpiDataStore = P({
         }
       ];
       this.most_recent_start_time = _.last(this.data_by_date_interval_and_region).start_time;
-    }).bind(this));
+    }).bind(this))
+      .catch(function(err) {
+        alert('Error getting case data! ' + err);
+      });
   },
 
   // Return a recent epi data record. If there are multiple records that include
@@ -75,17 +78,16 @@ var EpiDataStore = P({
   // there are no records that include `date`, returns the most recent record
   // that occurred before the date.
   get_best_recent_epi_data: function(date) {
+    if (!(date instanceof Date)) {
+      console.error('Expected a Date, but got:', date);
+      return null;
+    }
     // TODO(jetpack): binary search instead of linear scan.
     var matching_records = _.filter(this.data_by_date_interval_and_region, function(record) {
       return record.start_time <= date && date < record.end_time;
     });
-    if (matching_records.length) {
-      console.log('EDS GBRED matching records:', matching_records);
-      var best_record = _.reduce(matching_records, function(best_record, record) {
-        return (_.size(record.region_case_data) > _.size(best_record.region_case_data)) ?
-          record : best_record;
-      });
-      return best_record;
+    if (!_.isEmpty(matching_records)) {
+      return _.maxBy(matching_records, function(r) { return _.size(r.region_case_data); });
     }
     // No epi records contain `date`. Find the record with the most recent
     // `start_time` that occurred before the date.
@@ -93,12 +95,15 @@ var EpiDataStore = P({
     console.log('EpiDataStore doesnt have matching data for', date,
                 ', just looking for most recent data now..');
     return _.findLast(this.data_by_date_interval_and_region, function(record) {
-      console.log('testing if', record.start_time, 'older than', date, 'for record', record);
       return record.start_time < date;
     });
   },
 
   get_recent_epi_data_for_region: function(date, region_code) {
+    if (!(date instanceof Date)) {
+      console.error('Expected a Date, but got:', date);
+      return null;
+    }
     // TODO(jetpack): binary search instead of linear scan.
     var matching_record = _.findLast(this.data_by_date_interval_and_region, function(record) {
       return record.start_time <= date && date < record.end_time &&
@@ -116,9 +121,7 @@ var EpiDataStore = P({
 
   // Returns value from [0, 1], representing relative badness.
   case_data_to_severity: function(case_data) {
-    var total_cases = _.reduce(case_data, function(total_cases, num_cases) {
-      return total_cases + num_cases;
-    }, 0);
+    var total_cases = _.sum(_.values(case_data));
 
     // TODO(jetpack): consult with UX + research on what makes sense here.
     var severity = Math.log(total_cases) / 10;
@@ -127,7 +130,7 @@ var EpiDataStore = P({
     return severity;
   },
 
-  case_data_to_html_string: function(case_data, start_time, end_time) {
+  case_data_to_display_strings: function(case_data, start_time, end_time) {
     var date_string = (start_time && end_time) ?
         ['(', DateUtil.iso_to_yyyymmdd(start_time), ' to ', DateUtil.iso_to_yyyymmdd(end_time), ')']
         .join('') : '';
@@ -135,7 +138,7 @@ var EpiDataStore = P({
     _.forEach(case_data, function(num_cases, condition) {
       lines.push([condition, 'cases:', num_cases, date_string].join(' '));
     });
-    return lines.join('<br/>');
+    return lines;
   }
 
 });

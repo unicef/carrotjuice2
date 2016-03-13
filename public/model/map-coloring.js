@@ -30,6 +30,15 @@ var MapColoring = P({
       this.selected_date.current_day.toISOString());
   },
 
+  /**
+   * Returns a map from overlay layer name to data for that layer. The type of data varies for each
+   * overlay layer.
+   *
+   * For the 'epi' layer, the data type is an object with the form:
+   * {start_time: <Date>, end_time: <Date>,
+   *  region_epi_data: {'br-1': {dengue: 100, zika: 110},
+   *                    'br-2': {dengue: 200, zika: 220}}}
+   */
   active_overlay_data: function() {
     var layer_name_to_data = {};
     var epi_data_store = this.epi_data_store;
@@ -53,8 +62,8 @@ var MapColoring = P({
     return this.epi_data_store.case_data_to_severity(case_data);
   },
 
-  case_data_to_html_string: function(case_data) {
-    return this.epi_data_store.case_data_to_html_string(case_data);
+  case_data_to_display_strings: function(case_data) {
+    return this.epi_data_store.case_data_to_display_strings(case_data);
   }
 });
 

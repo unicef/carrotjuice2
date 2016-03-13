@@ -132,17 +132,20 @@ var MapController = P({
   },
 
   build_epi_overlay_layer: function(epi_data) {
+    var max_epi_marker_size_meters = 20000;
     var layer_group = L.layerGroup();
     _.forEach(epi_data.region_case_data, (function(case_data, region_code) {
       var latlng = this.region_code_to_latlng[region_code];
       // TODO(jetpack): scale by relative admin size for the country, or something?
-      var radius_meters = 20000 * this.map_coloring.case_data_to_severity(case_data);
+      var radius_meters = max_epi_marker_size_meters *
+          this.map_coloring.case_data_to_severity(case_data);
       var circle = L.circle(latlng, radius_meters, {opacity: 0.9, fillOpacity: 0.7});
 
       var circle_popup = L.popup(this.popup_options);
       var region_name = this.region_details.get_region_properties(region_code).name;
-      circle_popup.setContent('<b>' + region_name + '</b><br/>' +
-                              this.map_coloring.case_data_to_html_string(case_data));
+      circle_popup.setContent(
+        '<b>' + region_name + '</b><br/>' +
+          this.map_coloring.case_data_to_display_strings(case_data).join('<br/>'));
       var map = this.map;
       // TODO(jetpack): clicks on the circle should behave the same as clicks on
       // the region.
