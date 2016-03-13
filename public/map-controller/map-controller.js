@@ -34,12 +34,16 @@ var make_distance_from_viewport_center = function(bounds) {
 };
 
 var MapController = P({
-  init: function(loading_status_model, region_details, selected_regions, map_coloring) {
-    this.loading_status_model = loading_status_model;
-    this.region_details = region_details;
-    this.selected_regions = selected_regions;
-    this.map_coloring = map_coloring;
+  init: function(init_dict) {
+    this.loading_status = init_dict.loading_status;
+    this.region_details = init_dict.region_details;
+    this.selected_regions = init_dict.selected_regions;
+    this.map_coloring = init_dict.map_coloring;
     this.regions_layers = [];
+    // TODO(jetpack): the latlng stored is just the center of the bounding box,
+    // which can be very terrible. instead, we should compute the centroid in
+    // the backend: https://github.com/mikefab/majicbox/issues/6
+    this.region_code_to_latlng = {};
   },
 
   /**
@@ -52,10 +56,8 @@ var MapController = P({
     this.map_element = map_element;
     this.map = draw_initial_map(map_element);
     window._leaflet_map = this.map;  // save a reference for easier debugging
-    Q.all([
-      this.map_coloring.load_promise,
-      this.region_details.load_promise
-    ])
+    Q.all([this.map_coloring.initial_load_promise,
+           this.region_details.initial_load_promise])
       .then(this.post_initial_load.bind(this))
       .fail(function(error) {
         console.error(error);
@@ -76,7 +78,10 @@ var MapController = P({
     }, layer);
     region_popup.setContent('<b>' + feature.properties.name + '</b>');
 
-    // Draw popup that tracks mouse movement.
+    // Store geo center for each region.
+    this.region_code_to_latlng[region_code] = layer.getBounds().getCenter();
+
+    // Set up handlers.
     var mousemove = function(e) {
       region_popup.setLatLng(e.latlng);
       map.openPopup(region_popup);
@@ -93,7 +98,6 @@ var MapController = P({
       selected_regions.unset_region_hovered(region_code);
       e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
     };
-    // Change selected region (updates region panel).
     var click = function(e) {
       var on_unselect = function() {
         e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
@@ -159,7 +163,7 @@ var MapController = P({
     var sequence = Q(null).then(
       this.load_feature_chunk.bind(this, _.take(features_by_distance, 500))
     ).then(function() {
-      this.loading_status_model.setLoadedTopojson();
+      this.loading_status.setLoadedTopojson();
     }.bind(this));
 
     _.forEach(_.chunk(_.drop(features_by_distance, 500), 2500), (function(feature) {
