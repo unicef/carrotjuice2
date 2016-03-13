@@ -39,7 +39,8 @@ var MapController = P({
     this.admin_details = init_dict.admin_details;
     this.selected_admins = init_dict.selected_admins;
     this.map_coloring = init_dict.map_coloring;
-    this.admins_layers = [];
+    // `admins_layers_by_country` is a map from country code to array of Leaflet GeoJSON layers.
+    this.admins_layers_by_country = {};
     this.overlay_layers = [];
     // TODO(jetpack): the latlng stored is just the center of the bounding box,
     // which can be very terrible. instead, we should compute the centroid in
@@ -164,9 +165,23 @@ var MapController = P({
 
   redraw: function() {
     var style_fcn = this.get_admin_style_fcn();
-    _.forEach(this.admins_layers, function(layer) {
-      layer.setStyle(style_fcn);
-    });
+
+    // Add/remove country layers. Update coloring.
+    _.forEach(this.admins_layers_by_country, (function(layers, country) {
+      var map = this.map;
+      if (this.admin_details.is_country_selected(country)) {
+        layers.forEach(function(layer) {
+          layer.setStyle(style_fcn);
+          if (!map.hasLayer(layer)) {
+            map.addLayer(layer);
+          }
+        });
+      } else {
+        layers.forEach(function(layer) {
+          if (map.hasLayer(layer)) { map.removeLayer(layer); }
+        });
+      }
+    }).bind(this));
 
     // Clear previous overlays.
     _.forEach(this.overlay_layers, (function(overlay_map_layer) {
@@ -194,7 +209,7 @@ var MapController = P({
   /**
    * Loads a chunk of polygon features. This makes it so we don't tie up the UI threads.
    */
-  load_feature_chunk: function(features) {
+  load_feature_chunk: function(country_code, features) {
     var feature_collection = {type: 'FeatureCollection', features: features};
     var admins_layer = L.geoJson(
       feature_collection,
@@ -204,7 +219,9 @@ var MapController = P({
       }
     );
     this.map.addLayer(admins_layer);
-    this.admins_layers.push(admins_layer);
+    var admins_layers = this.admins_layers_by_country[country_code] || [];
+    admins_layers.push(admins_layer);
+    this.admins_layers_by_country[country_code] = admins_layers;
   },
 
   /**
@@ -213,21 +230,23 @@ var MapController = P({
    */
   post_initial_load: function() {
     var distance_fcn = make_distance_from_viewport_center(this.map.getBounds());
-    var features_by_distance = _.sortBy(this.admin_details.get_geojson_features(), distance_fcn);
+    var add_country = (function(country_code) {
+      var features_by_distance = _.sortBy(this.admin_details.get_geojson_features(country_code),
+                                          distance_fcn);
 
-    var sequence = Q(null).then(
-      this.load_feature_chunk.bind(this, _.take(features_by_distance, 500))
-    ).then(function() {
-      this.loading_status.setLoadedTopojson();
-    }.bind(this));
+      var sequence = Q(null).then(
+        this.load_feature_chunk.bind(this, country_code, _.take(features_by_distance, 500))
+      ).then(function() {
+        this.loading_status.setLoadedTopojson();
+      }.bind(this));
 
-    _.forEach(_.chunk(_.drop(features_by_distance, 500), 2500), (function(feature) {
-      sequence = sequence.delay(10).then(this.load_feature_chunk.bind(this, feature));
-    }).bind(this));
+      _.forEach(_.chunk(_.drop(features_by_distance, 500), 2500), (function(chunk) {
+        sequence = sequence.delay(10).then(this.load_feature_chunk.bind(this, country_code, chunk));
+      }).bind(this));
 
-    sequence.fail(function(err) {
-      console.error(err);
-    });
+      sequence.fail(function(err) { console.error(err); });
+    }).bind(this);
+    this.admin_details.get_selected_countries().forEach(add_country);
   }
 });
 

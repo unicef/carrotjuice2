@@ -105,6 +105,9 @@ var WeatherDataStore = P({
       .then(this.on_update.bind(this));
   },
 
+  on_country_select: function(country_codes, date) {
+    return this.on_date_select(country_codes, date);
+  }
 });
 
 module.exports = WeatherDataStore;
