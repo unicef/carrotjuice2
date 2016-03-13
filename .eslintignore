@@ -1,0 +1,7 @@
+build/
+
+# remove this when we deprecate public/js/
+public/js/
+
+# eventually remove this exclusion ... but let's focus on making other files compliant first
+config/
