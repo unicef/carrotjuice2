@@ -7,6 +7,7 @@ var ReactDOM = require('react-dom');
 var MockApiClient = require('../api-client/api-client-mock.js');
 var DataLayer = require('../../model/data-layer.js');
 var WeatherDataStore = require('../../model/weather-data-store.js');
+var EpiDataStore = require('../../model/epi-data-store.js');
 var SelectedDate = require('../../model/selected-date.js');
 var MapColoring = require('../../model/map-coloring.js');
 var LeafletMap = require('../../view/leaflet-map.jsx');
@@ -16,20 +17,34 @@ var SelectedRegions = require('../../model/selected-regions.js');
 var LoadingStatusModel = require('../../model/loading-status.js');
 
 var setup_controller = function() {
-  var rerender = function() {};
+  var rerender = function() {
+  };
   var loading_status = new LoadingStatusModel(rerender);
   var api_client = new MockApiClient('br');
-  var weather_data_store = new WeatherDataStore(function() {}, api_client);
-  var data_layer = new DataLayer(function() {});
+  var epi_data_store = new EpiDataStore(rerender);
+  var weather_data_store = new WeatherDataStore(rerender, api_client);
+  var data_layer = new DataLayer(rerender);
   var selected_regions = new SelectedRegions(rerender);
-  var region_details = new RegionDetails(rerender, api_client, selected_regions, weather_data_store);
+  var region_details = new RegionDetails({
+    on_update: rerender,
+    api_client: api_client,
+    selected_regions: selected_regions,
+    weather_data_store: weather_data_store,
+    epi_data_store: epi_data_store
+  });
   var selected_date = new SelectedDate(rerender, weather_data_store);
   var map_coloring = new MapColoring({
     data_layer: data_layer,
     selected_date: selected_date,
-    weather_data_store: weather_data_store
+    weather_data_store: weather_data_store,
+    epi_data_store: epi_data_store
   });
-  return new MapController(loading_status, region_details, selected_regions, map_coloring);
+  return new MapController({
+    loading_status: loading_status,
+    region_details: region_details,
+    selected_regions: selected_regions,
+    map_coloring: map_coloring
+  });
 };
 
 // pass the result to a `then` block.

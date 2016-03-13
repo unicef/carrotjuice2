@@ -76,7 +76,7 @@ var map_coloring = new MapColoring({
   weather_data_store: weather_data_store,
   epi_data_store: epi_data_store
 });
-map_controller = new MapController({
+var map_controller = new MapController({
   loading_status: loading_status,
   region_details: region_details,
   selected_regions: selected_regions,
