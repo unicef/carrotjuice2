@@ -60,13 +60,13 @@ var SelectedAdmins = P({
     return _.has(this.selected_admin_codes, admin_code);
   },
 
-  get_border_weight: function(admin_code) {
+  get_border_weight: function(admin_code, map_zoom) {
     if (this.is_admin_selected(admin_code)) {
       return 3;
     } else if (this.hovered_admin_code === admin_code) {
       return 2;
     } else {
-      return 1;
+      return (map_zoom <= 5) ? 0 : 1;
     }
   }
 });

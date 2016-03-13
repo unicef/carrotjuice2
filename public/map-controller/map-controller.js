@@ -58,6 +58,9 @@ var MapController = P({
     this.map_element = map_element;
     this.map = draw_initial_map(map_element);
     window._leaflet_map = this.map;  // save a reference for easier debugging
+    // TODO(jetpack): We redraw on zoom because we only want to admin borders when zoomed in past a
+    // certain level. This should only require `setStyle` on all admin layers, not a full `redraw`.
+    this.map.on('zoomend', this.redraw.bind(this));
     Q.all([this.map_coloring.initial_load_promise,
            this.admin_details.initial_load_promise])
       .then(this.post_initial_load.bind(this))
@@ -81,7 +84,7 @@ var MapController = P({
     var admin_popup = L.popup(this.popup_options, layer);
     admin_popup.setContent('<b>' + feature.properties.name + '</b>');
     var set_border = function(e) {
-      e.target.setStyle({weight: selected_admins.get_border_weight(admin_code)});
+      e.target.setStyle({weight: selected_admins.get_border_weight(admin_code, map.getZoom())});
     };
 
     // Store geo center for each admin.
@@ -126,7 +129,7 @@ var MapController = P({
         fillOpacity: this.map_coloring.base_layer_opacity(),
         color: '#000',  // Border color.
         opacity: 1,
-        weight: this.selected_admins.get_border_weight(admin_code)
+        weight: this.selected_admins.get_border_weight(admin_code, this.map.getZoom())
       };
     }).bind(this);
   },
