@@ -62,14 +62,6 @@ var MapColoring = P({
     return layer_name_to_data;
   },
 
-  is_country_selected: function(country_code) {
-    return this.selected_countries.is_country_selected(country_code);
-  },
-
-  get_selected_countries: function() {
-    return this.selected_countries.get_selected_countries();
-  },
-
   case_data_to_severity: function(case_data) {
     return this.epi_data_store.case_data_to_severity(case_data);
   },

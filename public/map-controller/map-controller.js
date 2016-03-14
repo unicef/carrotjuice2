@@ -132,34 +132,40 @@ var MapController = P({
     };
   },
 
-  build_epi_overlay_layer: function(epi_data) {
+  create_epi_circle: function(admin_code, case_data) {
     var max_epi_marker_size_meters = 20000;
+    // TODO(jetpack): scale by relative admin size for the country, or something?
+    var radius_meters = max_epi_marker_size_meters *
+        this.map_coloring.case_data_to_severity(case_data);
+    var circle = L.circle(this.admin_code_to_latlng[admin_code], radius_meters, {
+      opacity: 0.9,
+      fillOpacity: 0.7
+    });
+
+    var circle_popup = L.popup(this.popup_options);
+    var admin_name = this.admin_details.get_admin_properties(admin_code).name;
+    circle_popup.setContent(
+      '<b>' + admin_name + '</b><br/>' +
+        this.map_coloring.case_data_to_display_strings(case_data).join('<br/>'));
+    var map = this.map;
+    // TODO(jetpack): clicks on the circle should behave the same as clicks on
+    // the admin.
+    circle.on({
+      mousemove: function(e) {
+        circle_popup.setLatLng(e.latlng);
+        map.openPopup(circle_popup);
+      },
+      mouseout: function() { map.closePopup(circle_popup); }
+    });
+
+    return circle;
+  },
+
+  build_epi_overlay_layer: function(epi_data) {
     var layer_group = L.layerGroup();
     _.forEach(epi_data, (function(country_epi_data) {
       _.forEach(country_epi_data.admin_case_data, (function(case_data, admin_code) {
-        var latlng = this.admin_code_to_latlng[admin_code];
-        // TODO(jetpack): scale by relative admin size for the country, or something?
-        var radius_meters = max_epi_marker_size_meters *
-            this.map_coloring.case_data_to_severity(case_data);
-        var circle = L.circle(latlng, radius_meters, {opacity: 0.9, fillOpacity: 0.7});
-
-        var circle_popup = L.popup(this.popup_options);
-        var admin_name = this.admin_details.get_admin_properties(admin_code).name;
-        circle_popup.setContent(
-          '<b>' + admin_name + '</b><br/>' +
-            this.map_coloring.case_data_to_display_strings(case_data).join('<br/>'));
-        var map = this.map;
-        // TODO(jetpack): clicks on the circle should behave the same as clicks on
-        // the admin.
-        circle.on({
-          mousemove: function(e) {
-            circle_popup.setLatLng(e.latlng);
-            map.openPopup(circle_popup);
-          },
-          mouseout: function() { map.closePopup(circle_popup); }
-        });
-
-        layer_group.addLayer(circle);
+        layer_group.addLayer(this.create_epi_circle(admin_code, case_data));
       }).bind(this));
     }).bind(this));
     return layer_group;
@@ -171,7 +177,7 @@ var MapController = P({
     // Add/remove country layers. Update coloring.
     _.forEach(this.admins_layers_by_country, (function(layers, country) {
       var map = this.map;
-      if (this.map_coloring.is_country_selected(country)) {
+      if (this.map_coloring.selected_countries.is_country_selected(country)) {
         layers.forEach(function(layer) {
           layer.setStyle(style_fcn);
           if (!map.hasLayer(layer)) {
@@ -232,23 +238,22 @@ var MapController = P({
    */
   post_initial_load: function() {
     var distance_fcn = make_distance_from_viewport_center(this.map.getBounds());
+    // TODO(jetpack): probably makes more sense to do this just once with all selected countries'
+    // polygons rather than once per country.
     var add_country = (function(country_code) {
       var features_by_distance = _.sortBy(this.admin_details.get_geojson_features(country_code),
                                           distance_fcn);
+      this.load_feature_chunk(country_code, _.take(features_by_distance, 500));
+      this.loading_status.setLoadedTopojson();
 
-      var sequence = Q(null).then(
-        this.load_feature_chunk.bind(this, country_code, _.take(features_by_distance, 500))
-      ).then(function() {
-        this.loading_status.setLoadedTopojson();
-      }.bind(this));
-
+      var sequence = Q();
       _.forEach(_.chunk(_.drop(features_by_distance, 500), 2500), (function(chunk) {
         sequence = sequence.delay(10).then(this.load_feature_chunk.bind(this, country_code, chunk));
       }).bind(this));
 
       sequence.fail(function(err) { console.error(err); });
     }).bind(this);
-    this.map_coloring.get_selected_countries().forEach(add_country);
+    this.map_coloring.selected_countries.get_selected_countries().forEach(add_country);
   }
 });
 

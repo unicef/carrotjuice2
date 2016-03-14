@@ -107,6 +107,8 @@ var EpiDataStore = P({
   // include the given `date`, returns the one that has data on the most admins. If there are no
   // records that include `date`, returns the most recent record that occurred before the date.
   //
+  // TODO(jetpack): there should probably be some limit for the age of the data we return.
+  //
   // TODO(jetpack): The returned records are not guaranteed to be for the same time interval. For
   // example, if the most recent data for Brazil is from 2016-01-01 and for Colombia is from
   // 2016-03-15, both data sets will be returned. This is probably misleading, but leaving for now
