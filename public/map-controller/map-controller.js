@@ -180,6 +180,24 @@ var MapController = P({
     return layer_group;
   },
 
+  // TODO(jetpack): finalize styling and weight function. and do we want a popup or something?
+  build_mobility_overlay_layer: function(mobility_data) {
+    var layer_group = L.layerGroup();
+    var admin_latlng = this.admin_code_to_latlng;
+    _.forEach(mobility_data, function(destination_counts, origin_admin) {
+      _.forEach(destination_counts, function(count, destination_admin) {
+        var latlngs = [admin_latlng[origin_admin], admin_latlng[destination_admin]];
+        var polyline = L.polyline(latlngs, {
+          color: '#03f',
+          weight: Math.log(count) / 2,
+          opacity: 0.8
+        });
+        layer_group.addLayer(polyline);
+      });
+    });
+    return layer_group;
+  },
+
   redraw: function() {
     var style_fcn = this.get_admin_style_fcn();
 
@@ -214,6 +232,9 @@ var MapController = P({
       switch (overlay_name) {
         case 'epi':
           overlay_layer = this.build_epi_overlay_layer(overlay_data);
+          break;
+        case 'mobility':
+          overlay_layer = this.build_mobility_overlay_layer(overlay_data);
           break;
         default:
           console.error('BUG! MapController does not support overlay type:', overlay_name);
