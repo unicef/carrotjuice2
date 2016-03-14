@@ -15,9 +15,10 @@ var DataLayer = require('../model/data-layer.js');
 var LoadingStatusModel = require('../model/loading-status.js');
 var EpiDataStore = require('../model/epi-data-store.js');
 var WeatherDataStore = require('../model/weather-data-store.js');
+var SelectedCountries = require('../model/selected-countries.js');
+var SelectedAdmins = require('../model/selected-admins.js');
 var SelectedDate = require('../model/selected-date.js');
-var SelectedRegions = require('../model/selected-regions.js');
-var RegionDetails = require('../model/region-details.js');
+var AdminDetails = require('../model/admin-details.js');
 var MapColoring = require('../model/map-coloring.js');
 
 // Controllers & other data-managing classes
@@ -26,6 +27,8 @@ var MapController = require('../map-controller/map-controller.js');
 
 // module-local style
 require('./main.css');
+
+const SUPPORTED_COUNTRIES = ['br', 'co', 'pa'];
 
 // callback to re-render the main view. we need a little bit of
 // ugliness here because AppMain hasn't yet been instantiated.
@@ -47,39 +50,49 @@ var rerender_and_redraw = function() {
 window.addEventListener('resize', rerender);
 
 var loading_status = new LoadingStatusModel(rerender);
-var api_client = new APIClient('br');
+var api_client = new APIClient();
 var epi_data_store = new EpiDataStore(rerender_and_redraw);
-var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client);
+var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client, SUPPORTED_COUNTRIES);
 var data_layer = new DataLayer(rerender_and_redraw);
-var selected_date = new SelectedDate(function() {
-  // TODO(jetpack): if we call redraw here, the map goes black until the new
-  // weather data is fetched. should we show a spinner or something?
+// ugliness because the on_update callbacks for both `selected_date` and `selected_countries`
+// require a reference to both.
+var selected_date = null;
+var selected_countries = new SelectedCountries(function() {
+  console.log('selected countries changed, rerender...');
   rerender();
-  weather_data_store.on_date_select(selected_date.current_day);
+  weather_data_store.on_country_select(selected_countries.get_selected_countries(),
+                                       selected_date.current_day);
+}, SUPPORTED_COUNTRIES);
+selected_date = new SelectedDate(function() {
+  rerender();
   // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
+  weather_data_store.on_date_select(selected_countries.get_selected_countries(),
+                                    selected_date.current_day);
 }, weather_data_store);
-var selected_regions = new SelectedRegions(function() {
+var selected_admins = new SelectedAdmins(function() {
   rerender();
-  weather_data_store.on_region_select(selected_regions.get_region_codes());
   // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
+  weather_data_store.on_admin_select(selected_admins.get_admin_codes());
 });
-var region_details = new RegionDetails({
+var admin_details = new AdminDetails({
   on_update: rerender,
   api_client: api_client,
-  selected_regions: selected_regions,
+  selected_admins: selected_admins,
   epi_data_store: epi_data_store,
-  weather_data_store: weather_data_store
+  weather_data_store: weather_data_store,
+  initial_countries_to_load: SUPPORTED_COUNTRIES
 });
 var map_coloring = new MapColoring({
   data_layer: data_layer,
   selected_date: selected_date,
+  selected_countries: selected_countries,
   weather_data_store: weather_data_store,
   epi_data_store: epi_data_store
 });
 map_controller = new MapController({
   loading_status: loading_status,
-  region_details: region_details,
-  selected_regions: selected_regions,
+  admin_details: admin_details,
+  selected_admins: selected_admins,
   map_coloring: map_coloring
 });
 
@@ -92,12 +105,13 @@ var AppMain = React.createClass({
           <LeafletMap key="1" controller={map_controller} />,
           <DateSelectionBar key="2"
                             selected_date={selected_date}
-                            selected_regions={selected_regions}
+                            selected_admins={selected_admins}
                             weather_data_store={weather_data_store} />
         ])}
         <OverlayControlsBox data_layer={data_layer}
+                            selected_countries={selected_countries}
                             selected_date={selected_date}
-                            region_details={region_details} />
+                            admin_details={admin_details} />
         <LoadingStatusView model={loading_status} />
       </div>
     );

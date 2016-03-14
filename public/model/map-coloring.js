@@ -11,6 +11,7 @@ var Q = require('q');
 var MapColoring = P({
   init: function(init_dict) {
     this.data_layer = init_dict.data_layer;
+    this.selected_countries = init_dict.selected_countries;
     this.selected_date = init_dict.selected_date;
     this.data_stores_for_base_layer = {
       weather: init_dict.weather_data_store,
@@ -26,7 +27,7 @@ var MapColoring = P({
   },
 
   active_base_layer_coloring_data: function() {
-    return this.active_base_layer_data_store().region_color_for_date(
+    return this.active_base_layer_data_store().admin_color_for_date(
       this.selected_date.current_day.toISOString());
   },
 
@@ -34,19 +35,22 @@ var MapColoring = P({
    * Returns a map from overlay layer name to data for that layer. The type of data varies for each
    * overlay layer.
    *
-   * For the 'epi' layer, the data type is an object with the form:
+   * For the 'epi' layer, the data type is an array of epi data objects (one per selected country)
+   * each with the form:
    * {start_time: <Date>, end_time: <Date>,
-   *  region_epi_data: {'br-1': {dengue: 100, zika: 110},
-   *                    'br-2': {dengue: 200, zika: 220}}}
+   *  admin_epi_data: {'br-1': {dengue: 100, zika: 110},
+   *                   'br-2': {dengue: 200, zika: 220}}}
    */
   active_overlay_data: function() {
     var layer_name_to_data = {};
     var epi_data_store = this.epi_data_store;
+    var selected_countries = this.selected_countries.get_selected_countries();
     var selected_date = this.selected_date.current_day;
     this.data_layer.get_active_overlay_layers().forEach(function(overlay_name) {
       switch (overlay_name) {
         case 'epi':
-          layer_name_to_data.epi = epi_data_store.get_best_recent_epi_data(selected_date);
+          layer_name_to_data.epi = epi_data_store.get_best_recent_epi_data(selected_countries,
+                                                                           selected_date);
           break;
         case 'mobility':
           console.error('Mobility overlay not yet supported!');
