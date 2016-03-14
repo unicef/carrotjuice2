@@ -4,6 +4,11 @@ var _ = require('lodash');
 require('./selected-admins-info.css');
 
 var SelectedAdminsInfo = React.createClass({
+
+  commify: function( x ) {
+    return parseInt(x).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  },
+
   create_case_data: function(admin) {
     var epi_display_strings = this.props.admin_details.get_epi_data_display_strings(
       admin.admin_code, this.props.selected_date.current_day);
@@ -22,6 +27,7 @@ var SelectedAdminsInfo = React.createClass({
       <h3>{admin.name}</h3>
       <div>Area: {admin.geo_area_sqkm} km²</div>
       <div>Case data: {this.create_case_data(admin)}</div>
+      <div>Population: {this.commify(admin.population)}</div>
     </div>;
   },
 

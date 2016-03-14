@@ -41,7 +41,7 @@ var AdminDetails = P({
       data.objects.collection.geometries.forEach(function(obj) {
         // FWIW, `properties` also has `country_code` .
         admin_data_by_code[obj.properties.admin_code] =
-          _.pick(obj.properties, ['name', 'admin_code', 'geo_area_sqkm']);
+          _.pick(obj.properties, ['name', 'admin_code', 'geo_area_sqkm', 'population']);
       });
     }
   },
