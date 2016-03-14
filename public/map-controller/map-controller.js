@@ -137,8 +137,9 @@ var MapController = P({
     var radius_meters = max_epi_marker_size_meters *
         this.map_coloring.case_data_to_severity(case_data);
     var circle = L.circle(this.admin_code_to_latlng[admin_code], radius_meters, {
+      weight: 1,
       opacity: 0.9,
-      fillOpacity: 0.7
+      fillOpacity: 0.3
     });
 
     var circle_popup = L.popup(this.popup_options);
