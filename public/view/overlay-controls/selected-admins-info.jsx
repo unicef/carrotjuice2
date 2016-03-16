@@ -5,8 +5,9 @@ require('./selected-admins-info.css');
 
 var SelectedAdminsInfo = React.createClass({
 
-  commify: function( x ) {
-    return parseInt(x).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  population_figure: function(x) {
+    if (isNaN(x)) {return 'No data.';}
+    return parseInt(x, 10).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   },
 
   create_case_data: function(admin) {
@@ -27,7 +28,7 @@ var SelectedAdminsInfo = React.createClass({
       <h3>{admin.name}</h3>
       <div>Area: {admin.geo_area_sqkm} km²</div>
       <div>Case data: {this.create_case_data(admin)}</div>
-      <div>Population: {this.commify(admin.population)}</div>
+      <div>Population: {this.population_figure(admin.population)}</div>
     </div>;
   },
 
