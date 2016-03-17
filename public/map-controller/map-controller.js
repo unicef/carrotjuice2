@@ -121,11 +121,14 @@ var MapController = P({
   },
 
   get_admin_style_fcn: function() {
-    var admin_to_color = this.map_coloring.active_base_layer_coloring_data();
+    var admin_to_color_obj = this.map_coloring.active_base_layer_coloring_data();
+    // When there's no base layer data, color all regions gray.
+    var admin_to_color = _.isEmpty(admin_to_color_obj) ? _.constant('#ccc') :
+        function(admin_code) { return admin_to_color_obj[admin_code]; };
     return (function(feature) {
       var admin_code = feature.properties.admin_code;
       return {
-        fillColor: admin_to_color[admin_code],
+        fillColor: admin_to_color(admin_code),
         fillOpacity: this.map_coloring.base_layer_opacity(),
         color: '#000',  // Border color.
         // Use lighter borders when zoomed out. Otherwise, the map looks very noisy in areas with
