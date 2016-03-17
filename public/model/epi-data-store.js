@@ -48,57 +48,7 @@ var EpiDataStore = P({
     this.records_by_country = {};
 
     this.initial_load_promise = Q.delay(10).then((function() {
-      this.records_by_country = {
-        // 4589 is Iguape, 4611 is Itanhaém, and 4877 is São Paulo.
-        br: [
-          // Feb 1-7: Missing malaria data for 4589.
-          {start_time: utc_date(2016, 2, 1), end_time: utc_date(2016, 2, 8),
-           admin_case_data: {'br-4589': {fake_dengue: 111},
-                             'br-4611': {fake_dengue: 121, fake_zika: 122},
-                             'br-4877': {fake_dengue: 1131, fake_zika: 1132}}
-          },
-          // Feb 8-14: Missing dengue data for 4611. Also, 4877 has chikungunya data.
-          {start_time: utc_date(2016, 2, 8), end_time: utc_date(2016, 2, 15),
-           admin_case_data: {'br-4589': {fake_dengue: 211, fake_zika: 212},
-                             'br-4611': {fake_zika: 222},
-                             'br-4877': {fake_dengue: 1231, fake_zika: 1232,
-                                         fake_chikungunya: 1233}}
-          },
-          // Feb 15-28: Only has data for 4611. 2 weeks.
-          {start_time: utc_date(2016, 2, 15), end_time: utc_date(2016, 2, 29),
-           admin_case_data: {'br-4611': {fake_dengue: 321, fake_zika: 322}}
-          },
-          // Feb 15 - Mar 7: Only has data fro 4589 and 4877. Overlaps with previous time span,
-          // but longer.
-          {start_time: utc_date(2016, 2, 15), end_time: utc_date(2016, 3, 8),
-           admin_case_data: {'br-4589': {fake_dengue: 311, fake_zika: 312},
-                             'br-4877': {fake_dengue: 1331, fake_zika: 1332}}
-          }
-        ],
-        co: [
-          // Feb 1-14.
-          {start_time: utc_date(2016, 2, 1), end_time: utc_date(2016, 2, 15),
-           admin_case_data: {'co-1017': {fake_dengue: 101}, 'co-1020': {fake_dengue: 201},
-                             'co-1051': {fake_dengue: 151}, 'co-1031': {fake_dengue: 301},
-                             'co-1001': {fake_dengue: 501}, 'co-987': {fake_dengue: 401}
-                            }
-          },
-          // Feb 15-21.
-          {start_time: utc_date(2016, 2, 15), end_time: utc_date(2016, 2, 22),
-           admin_case_data: {'co-1017': {fake_dengue: 144}, 'co-1020': {fake_dengue: 244},
-                             'co-1051': {fake_dengue: 194}, 'co-1031': {fake_dengue: 344},
-                             'co-1001': {fake_dengue: 544}, 'co-987': {fake_dengue: 444}
-                            }
-          },
-          // Feb 22-28.
-          {start_time: utc_date(2016, 2, 22), end_time: utc_date(2016, 2, 29),
-           admin_case_data: {'co-1017': {fake_dengue: 166}, 'co-1020': {fake_dengue: 266},
-                             'co-1051': {fake_dengue: 216}, 'co-1031': {fake_dengue: 366},
-                             'co-1001': {fake_dengue: 566}, 'co-987': {fake_dengue: 466}
-                            }
-          }
-        ]
-      };
+      this.records_by_country = require('./hardcoded-epi-data.js');
     }).bind(this))
       .catch(function(err) { alert('Error getting case data! ' + err); });
   },
