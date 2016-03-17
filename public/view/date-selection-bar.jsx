@@ -112,7 +112,7 @@ var DateSelectionBar = React.createClass({
     this.state.x_time_scale.domain([DateUtil.subtract_days(today, num_days), today]);
     return <div className="date-selection-bar" id="date-selection-bar">
       <svg>
-        <path id="time-series" d={this.get_weather_graph()}/>
+        <path id="time-series" transform="translate(30, 0)" d={this.get_weather_graph()}/>
         <g
           className="axis"
           ref={this.initialize_x_axis}
