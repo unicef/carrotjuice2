@@ -4,9 +4,10 @@ var _ = require('lodash');
 require('./selected-admins-info.css');
 
 var SelectedAdminsInfo = React.createClass({
+  no_data: <em>No data.</em>,
 
   population_figure: function(x) {
-    if (isNaN(x)) {return 'No data.';}
+    if (!x) { return this.no_data; }
     return parseInt(x, 10).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   },
 
@@ -18,12 +19,12 @@ var SelectedAdminsInfo = React.createClass({
         {epi_display_strings.map(function(s, i) { return <div key={i}>{s}</div>; })}
       </div>;
     } else {
-      return <em>No data avilable.</em>;
+      return this.no_data;
     }
   },
 
   create_admin_panel: function(admin) {
-    // TODO(jetpack): remove area and add population, weather data, and mosquito data.
+    // TODO(jetpack): add weather, mosquito data. probably remove area?
     return <div className="selected-admin-info" key={admin.name}>
       <h3>{admin.name}</h3>
       <div>Area: {admin.geo_area_sqkm} km²</div>
