@@ -123,8 +123,9 @@ var MapController = P({
   get_admin_style_fcn: function() {
     var admin_to_color_obj = this.map_coloring.active_base_layer_coloring_data();
     // When there's no base layer data, color all regions gray.
-    var admin_to_color = _.isEmpty(admin_to_color_obj) ? _.constant('#ccc') :
-        function(admin_code) { return admin_to_color_obj[admin_code]; };
+    var admin_to_color = function(admin_code) {
+      return admin_to_color_obj[admin_code] || '#ccc';
+    };
     return (function(feature) {
       var admin_code = feature.properties.admin_code;
       return {
