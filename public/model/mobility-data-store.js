@@ -4,7 +4,6 @@
 
 var _ = require('lodash');
 var P = require('pjs').P;
-var Q = require('q');
 
 var MobilityDataStore = P({
   init: function(on_update, api_client) {
@@ -18,29 +17,9 @@ var MobilityDataStore = P({
     // }
     this.egress_records_by_date = {};
 
-    // TODO(jetpack): get real data.
-    this.initial_load_promise = Q.delay(10).then((function() {
-      this.egress_records_by_date = {
-        // 4589 is Iguape, 4611 is Itanhaém, and 4877 is São Paulo.
-        '2016-02-28T00:00:00.000Z': {'br-4589': {'br-4589': 1000, 'br-4611': 100, 'br-4877': 500},
-                                     'br-4611': {'br-4589': 120, 'br-4611': 2000, 'br-4877': 600},
-                                     'br-4877': {'br-4589': 200, 'br-4611': 300,
-                                                 'br-4877': 10000},
-                                     'co-987': {'co-987': 2000, 'co-1001': 100, 'co-1051': 500},
-                                     'co-1001': {'co-987': 200, 'co-1001': 4000, 'co-1051': 700},
-                                     'co-1051': {'co-987': 300, 'co-1001': 400, 'co-1051': 5000}
-                                    },
-        '2016-02-29T00:00:00.000Z': {'br-4589': {'br-4589': 1010, 'br-4611': 110, 'br-4877': 510},
-                                     'br-4611': {'br-4589': 130, 'br-4611': 2010, 'br-4877': 610},
-                                     'br-4877': {'br-4589': 210, 'br-4611': 810,
-                                                 'br-4877': 11000},
-                                     'co-987': {'co-987': 2100, 'co-1001': 200, 'co-1051': 600},
-                                     'co-1001': {'co-987': 300, 'co-1001': 4100, 'co-1051': 800},
-                                     'co-1051': {'co-987': 400, 'co-1001': 500, 'co-1051': 5100}
-                                    }
-      };
-    }).bind(this))
-      .catch(function(err) { alert('Error getting case data! ' + err); });
+    // TODO(jetpack): should we prefetch some data on load?
+    this.initial_load_promise = Promise.resolve()
+      .catch(function(err) { console.error('Error getting case data! ' + err); });
   },
 
   // TODO(jetpack): we probably want to get recent records, if there's no data for this exact date.
@@ -51,6 +30,22 @@ var MobilityDataStore = P({
     return _.pickBy(records_for_date, function(_destinations, origin_admin_code) {
       return _.has(origin_admins, origin_admin_code);
     });
+  },
+
+  fetch_egress_data: function(origin_admin_code, date) {
+    console.log('Fetching mobility for admin', origin_admin_code, 'for date', date);
+    return this.api_client.fetch_egress_mobility_data(origin_admin_code, date)
+      .then((function(data) {
+        console.log('..Got', data, 'mobility data for admin', origin_admin_code);
+        this.egress_records_by_date = _.merge(this.egress_records_by_date, data);
+      }).bind(this));
+  },
+
+  on_select: function(origin_admin_codes, date) {
+    return Promise.all(origin_admin_codes.map((function(origin_admin_code) {
+      return this.fetch_egress_data(origin_admin_code, date);
+    }).bind(this)))
+      .then(this.on_update.bind(this));
   }
 
 });

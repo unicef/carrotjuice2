@@ -47,6 +47,10 @@ var APIClient = P({
     return makeRequest('/api/admin_weather/' + admin_code + '/' +
                        DateUtil.iso_to_yyyymmdd(start_date) + '/' +
                        DateUtil.iso_to_yyyymmdd(today));
+  },
+  fetch_egress_mobility_data: function(admin_code, date) {
+    var d = '/' + DateUtil.iso_to_yyyymmdd(date);
+    return makeRequest('/api/egress_mobility/' + admin_code + d + d);
   }
 });
 

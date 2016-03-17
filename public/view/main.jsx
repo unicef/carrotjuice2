@@ -67,12 +67,14 @@ var selected_countries = new SelectedCountries(function() {
 }, SUPPORTED_COUNTRIES);
 selected_date = new SelectedDate(function() {
   rerender();
+  mobility_data_store.on_select(selected_admins.get_admin_codes(), selected_date.current_day);
   // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
   weather_data_store.on_date_select(selected_countries.get_selected_countries(),
                                     selected_date.current_day);
 }, weather_data_store);
 var selected_admins = new SelectedAdmins(function() {
   rerender();
+  mobility_data_store.on_select(selected_admins.get_admin_codes(), selected_date.current_day);
   // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
   weather_data_store.on_admin_select(selected_admins.get_admin_codes());
 });
