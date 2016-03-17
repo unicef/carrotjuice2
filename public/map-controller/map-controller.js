@@ -140,7 +140,7 @@ var MapController = P({
   },
 
   create_epi_circle: function(admin_code, case_data) {
-    var max_epi_marker_size_meters = 20000;
+    var max_epi_marker_size_meters = 10000;
     // TODO(jetpack): scale by relative admin size for the country, or something?
     var radius_meters = max_epi_marker_size_meters *
         this.map_coloring.case_data_to_severity(case_data);
