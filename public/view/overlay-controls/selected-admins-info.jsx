@@ -12,7 +12,7 @@ var SelectedAdminsInfo = React.createClass({
 
   population_figure: function(x) {
     if (!x) { return this.no_data; }
-    return this.commify(parseInt(x, 10));
+    return this.commify(x);
   },
 
   create_case_data: function(admin_code) {
