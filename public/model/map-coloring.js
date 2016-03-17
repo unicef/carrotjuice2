@@ -15,10 +15,12 @@ var MapColoring = P({
     this.selected_date = init_dict.selected_date;
     this.data_stores_for_base_layer = {
       weather: init_dict.weather_data_store,
-      oviposition: init_dict.weather_data_store.fake_oviposition_model()
+      oviposition: init_dict.weather_data_store.fake_oviposition_model(),
+      population_density: init_dict.admin_details
     };
     this.epi_data_store = init_dict.epi_data_store;
     this.initial_load_promise = Q.all([init_dict.weather_data_store.initial_load_promise,
+                                       init_dict.admin_details.initial_load_promise,
                                        this.epi_data_store.initial_load_promise]);
   },
 
@@ -26,6 +28,8 @@ var MapColoring = P({
     return this.data_stores_for_base_layer[this.data_layer.base_layer];
   },
 
+  // TODO(jetpack): is there a principled way to implement interfaces w/ P.js? e.g. have weather,
+  // oviposition, and admin_details implement a "admin_color_layer" interface or something.
   active_base_layer_coloring_data: function() {
     return this.active_base_layer_data_store().admin_color_for_date(
       this.selected_date.current_day.toISOString());

@@ -2,8 +2,10 @@
  * Model for admin details. Combines other models (selected admins, etc.) and data stores.
  */
 
+var _ = require('lodash');
 var P = require('pjs').P;
 var Q = require('q');
+var d3 = require('d3');
 var topojson = require('topojson');
 
 var AdminDetails = P({
@@ -13,8 +15,8 @@ var AdminDetails = P({
     this.epi_data_store = init_dict.epi_data_store;
     this.weather_data_store = init_dict.weather_data_store;
     // TODO(jetpack): maybe this should be a separate class, like weather_data_store.
-    // `admin_data_by_code` is a map from admin code to admin data. Admin
-    // data has fields `name`, `admin_code`, and `geo_area_sqkm`.
+    // `admin_data_by_code` is a map from admin code to admin data. Admin data has fields `name`,
+    // `admin_code`, `geo_area_sqkm`, and possibly `population`.
     this.admin_data_by_code = {};
     // Map from country code to GeoJSON FeatureCollection. The features' properties include the
     // admin data fields.
@@ -67,7 +69,26 @@ var AdminDetails = P({
       return this.epi_data_store.case_data_to_display_strings(
         epi_data.admin_case_data[admin_code], epi_data.start_time, epi_data.end_time);
     }
-  }
+  },
+
+  // Used by MapColoring for the population density base layer. The raw function should only be
+  // called once, as this data is static (and doesn't vary by date).
+  admin_color_for_date_raw: function() {
+    console.log('generating admin population density chloropleth - should only run once!');
+    var density_to_color = d3.scale.log().domain([1, 1000])
+        .range(['white', 'purple']).clamp(true);
+    return _.mapValues(this.admin_data_by_code, function(admin_data) {
+      var density = admin_data.population / admin_data.geo_area_sqkm;
+      return density ? density_to_color(density) : 'white';
+    });
+  },
+
+  // We use a constant function for the resolver so that we only ever call the raw function once,
+  // regardless of the date argument.
+  // TODO(jetpack): without the wrapper, we get error about this.admin_color_for_date_raw not being
+  // a function. wat?
+  admin_color_for_date: _.memoize(function() { return this.admin_color_for_date_raw(); },
+                                  _.constant(true))
 
 });
 

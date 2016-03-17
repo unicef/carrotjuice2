@@ -86,6 +86,7 @@ var map_coloring = new MapColoring({
   data_layer: data_layer,
   selected_date: selected_date,
   selected_countries: selected_countries,
+  admin_details: admin_details,
   weather_data_store: weather_data_store,
   epi_data_store: epi_data_store
 });
