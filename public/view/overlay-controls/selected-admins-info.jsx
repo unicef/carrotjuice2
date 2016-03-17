@@ -7,7 +7,7 @@ var SelectedAdminsInfo = React.createClass({
   no_data: <em>No data.</em>,
 
   commify: function(i) {
-    return i.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return Math.round(i).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   },
 
   population_figure: function(x) {
@@ -32,7 +32,7 @@ var SelectedAdminsInfo = React.createClass({
     return <div className="selected-admin-info" key={admin.name}>
       <h3>{admin.name}</h3>
       <div>Population: {this.population_figure(admin.population)}</div>
-      <div>Area: {this.commify(Math.round(admin.geo_area_sqkm))} km²</div>
+      <div>Area: {this.commify(admin.geo_area_sqkm)} km²</div>
       <div>Case data: {this.create_case_data(admin.admin_code)}</div>
     </div>;
   },
