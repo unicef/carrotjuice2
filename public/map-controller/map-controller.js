@@ -84,7 +84,7 @@ var MapController = P({
     var admin_popup = L.popup(this.popup_options, layer);
     admin_popup.setContent('<b>' + feature.properties.name + '</b>');
     var set_border = function(e) {
-      e.target.setStyle({weight: selected_admins.get_border_weight(admin_code, map.getZoom())});
+      e.target.setStyle({weight: selected_admins.get_border_weight(admin_code)});
     };
 
     // Store geo center for each admin.
@@ -128,8 +128,10 @@ var MapController = P({
         fillColor: admin_to_color[admin_code],
         fillOpacity: this.map_coloring.base_layer_opacity(),
         color: '#000',  // Border color.
-        opacity: 1,
-        weight: this.selected_admins.get_border_weight(admin_code, this.map.getZoom())
+        // Use lighter borders when zoomed out. Otherwise, the map looks very noisy in areas with
+        // lots of little admins.
+        opacity: this.map.getZoom() <= 5 ? 0.05 : 0.3,
+        weight: this.selected_admins.get_border_weight(admin_code)
       };
     }).bind(this);
   },
