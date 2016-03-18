@@ -40,16 +40,16 @@ function setup_routes(app, passport) {
     });
   };
 
-  // Get regions (including polygons) from backend.
-  app.get('/api/regions/:country_code', apicache('1 day'), forward_route);
+  // Get admins (including polygons) from backend.
+  app.get('/api/admins/:country_code', apicache('1 day'), forward_route);
   app.get('/api/admin_polygons_topojson/:country_code', apicache('1 day'), forward_route);
 
-  // Get recent weather data for all regions.
+  // Get recent weather data for all admins.
   app.get('/api/country_weather/:country_code/:time?', apicache('1 day'),
           forward_route);
 
-  // Get weather data for a single regions.
-  app.get('/api/region_weather/:country_code/:region_code/:start_time?/:end_time?',
+  // Get weather data for a single admin.
+  app.get('/api/admin_weather/:admin_code/:start_time?/:end_time?',
           apicache('1 day'), forward_route);
 
   /*

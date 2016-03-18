@@ -6,6 +6,13 @@ var DataSourceSelector = React.createClass({
     return this.props.data_layer.display_name(name);
   },
 
+  create_opacity_slider: function() {
+    return <input id="data-source-opacity" type="range" min="0" max="1" step="0.1"
+                  value={this.props.data_layer.base_opacity} onChange={(function(event) {
+                    this.props.data_layer.set_base_opacity(event.target.value);
+                  }).bind(this)} />;
+  },
+
   createBaseLayerOption: function(layer_name) {
     return <li key={layer_name}>
       <a href="#" onClick={
@@ -29,6 +36,7 @@ var DataSourceSelector = React.createClass({
 
   render: function() {
     return <div className="data-source-selector">
+      <div>Opacity: {this.create_opacity_slider()}</div>
       Data source:
       <div className="data-source-selector-base dropdown">
         <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown"

@@ -36,15 +36,16 @@ var make_distance_from_viewport_center = function(bounds) {
 var MapController = P({
   init: function(init_dict) {
     this.loading_status = init_dict.loading_status;
-    this.region_details = init_dict.region_details;
-    this.selected_regions = init_dict.selected_regions;
+    this.admin_details = init_dict.admin_details;
+    this.selected_admins = init_dict.selected_admins;
     this.map_coloring = init_dict.map_coloring;
-    this.regions_layers = [];
+    // `admins_layers_by_country` is a map from country code to array of Leaflet GeoJSON layers.
+    this.admins_layers_by_country = {};
     this.overlay_layers = [];
     // TODO(jetpack): the latlng stored is just the center of the bounding box,
     // which can be very terrible. instead, we should compute the centroid in
     // the backend: https://github.com/mikefab/majicbox/issues/6
-    this.region_code_to_latlng = {};
+    this.admin_code_to_latlng = {};
   },
 
   /**
@@ -57,8 +58,11 @@ var MapController = P({
     this.map_element = map_element;
     this.map = draw_initial_map(map_element);
     window._leaflet_map = this.map;  // save a reference for easier debugging
+    // TODO(jetpack): We redraw on zoom because we only want to admin borders when zoomed in past a
+    // certain level. This should only require `setStyle` on all admin layers, not a full `redraw`.
+    this.map.on('zoomend', this.redraw.bind(this));
     Q.all([this.map_coloring.initial_load_promise,
-           this.region_details.initial_load_promise])
+           this.admin_details.initial_load_promise])
       .then(this.post_initial_load.bind(this))
       .fail(function(error) {
         console.error(error);
@@ -75,37 +79,37 @@ var MapController = P({
 
   on_each_feature: function(feature, layer) {
     var map = this.map;
-    var selected_regions = this.selected_regions;
-    var region_code = feature.properties.region_code;
-    var region_popup = L.popup(this.popup_options, layer);
-    region_popup.setContent('<b>' + feature.properties.name + '</b>');
+    var selected_admins = this.selected_admins;
+    var admin_code = feature.properties.admin_code;
+    var admin_popup = L.popup(this.popup_options, layer);
+    admin_popup.setContent('<b>' + feature.properties.name + '</b>');
+    var set_border = function(e) {
+      e.target.setStyle({weight: selected_admins.get_border_weight(admin_code)});
+    };
 
-    // Store geo center for each region.
-    this.region_code_to_latlng[region_code] = layer.getBounds().getCenter();
+    // Store geo center for each admin.
+    this.admin_code_to_latlng[admin_code] = layer.getBounds().getCenter();
 
     // Set up handlers.
     var mousemove = function(e) {
-      region_popup.setLatLng(e.latlng);
-      map.openPopup(region_popup);
+      admin_popup.setLatLng(e.latlng);
+      map.openPopup(admin_popup);
     };
     var mouseover = function(e) {
-      selected_regions.set_region_hovered(region_code);
-      e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
+      selected_admins.set_admin_hovered(admin_code);
+      set_border(e);
     };
     var mouseout = function(e) {
       // Note: `map.openPopup` ensures only 1 popup is open at a time, but we
       // still call `closePopup` on mouseout for when the mouse moves from an
-      // region to a non-region (e.g., the sea, or outside the country).
-      map.closePopup(region_popup);
-      selected_regions.unset_region_hovered(region_code);
-      e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
+      // admin to a non-admin (e.g., the sea, or outside the country).
+      map.closePopup(admin_popup);
+      selected_admins.unset_admin_hovered(admin_code);
+      set_border(e);
     };
     var click = function(e) {
-      var on_unselect = function() {
-        e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
-      };
-      selected_regions.select_region(region_code, on_unselect);
-      e.target.setStyle({weight: selected_regions.get_border_weight(region_code)});
+      selected_admins.select_admin(admin_code, set_border.bind(null, e));
+      set_border(e);
       layer.bringToFront();  // Ensures border is fully visible.
     };
     layer.on({
@@ -116,57 +120,85 @@ var MapController = P({
     });
   },
 
-  get_region_style_fcn: function() {
-    var region_to_color = this.map_coloring.active_base_layer_coloring_data();
-    var selected_regions = this.selected_regions;
-    return function(feature) {
-      var region_code = feature.properties.region_code;
-      return {
-        fillColor: region_to_color[region_code],
-        fillOpacity: 1,
-        color: '#000',  // Border color.
-        opacity: 1,
-        weight: selected_regions.get_border_weight(region_code)
-      };
+  get_admin_style_fcn: function() {
+    var admin_to_color_obj = this.map_coloring.active_base_layer_coloring_data();
+    // When there's no base layer data, color all regions gray.
+    var admin_to_color = function(admin_code) {
+      return admin_to_color_obj[admin_code] || '#ccc';
     };
+    return (function(feature) {
+      var admin_code = feature.properties.admin_code;
+      return {
+        fillColor: admin_to_color(admin_code),
+        fillOpacity: this.map_coloring.base_layer_opacity(),
+        color: '#000',  // Border color.
+        // Use lighter borders when zoomed out. Otherwise, the map looks very noisy in areas with
+        // lots of little admins.
+        opacity: this.map.getZoom() <= 5 ? 0.05 : 0.3,
+        weight: this.selected_admins.get_border_weight(admin_code)
+      };
+    }).bind(this);
+  },
+
+  create_epi_circle: function(admin_code, case_data) {
+    var max_epi_marker_size_meters = 10000;
+    // TODO(jetpack): scale by relative admin size for the country, or something?
+    var radius_meters = max_epi_marker_size_meters *
+        this.map_coloring.case_data_to_severity(case_data);
+    var circle = L.circle(this.admin_code_to_latlng[admin_code], radius_meters, {
+      weight: 1,
+      opacity: 0.9,
+      fillOpacity: 0.3
+    });
+
+    var circle_popup = L.popup(this.popup_options);
+    var admin_name = this.admin_details.get_admin_properties(admin_code).name;
+    circle_popup.setContent(
+      '<b>' + admin_name + '</b><br/>' +
+        this.map_coloring.case_data_to_display_strings(case_data).join('<br/>'));
+    var map = this.map;
+    // TODO(jetpack): clicks on the circle should behave the same as clicks on
+    // the admin.
+    circle.on({
+      mousemove: function(e) {
+        circle_popup.setLatLng(e.latlng);
+        map.openPopup(circle_popup);
+      },
+      mouseout: function() { map.closePopup(circle_popup); }
+    });
+
+    return circle;
   },
 
   build_epi_overlay_layer: function(epi_data) {
-    var max_epi_marker_size_meters = 20000;
     var layer_group = L.layerGroup();
-    _.forEach(epi_data.region_case_data, (function(case_data, region_code) {
-      var latlng = this.region_code_to_latlng[region_code];
-      // TODO(jetpack): scale by relative admin size for the country, or something?
-      var radius_meters = max_epi_marker_size_meters *
-          this.map_coloring.case_data_to_severity(case_data);
-      var circle = L.circle(latlng, radius_meters, {opacity: 0.9, fillOpacity: 0.7});
-
-      var circle_popup = L.popup(this.popup_options);
-      var region_name = this.region_details.get_region_properties(region_code).name;
-      circle_popup.setContent(
-        '<b>' + region_name + '</b><br/>' +
-          this.map_coloring.case_data_to_display_strings(case_data).join('<br/>'));
-      var map = this.map;
-      // TODO(jetpack): clicks on the circle should behave the same as clicks on
-      // the region.
-      circle.on({
-        mousemove: function(e) {
-          circle_popup.setLatLng(e.latlng);
-          map.openPopup(circle_popup);
-        },
-        mouseout: function() { map.closePopup(circle_popup); }
-      });
-
-      layer_group.addLayer(circle);
+    _.forEach(epi_data, (function(country_epi_data) {
+      _.forEach(country_epi_data.admin_case_data, (function(case_data, admin_code) {
+        layer_group.addLayer(this.create_epi_circle(admin_code, case_data));
+      }).bind(this));
     }).bind(this));
     return layer_group;
   },
 
   redraw: function() {
-    var style_fcn = this.get_region_style_fcn();
-    _.forEach(this.regions_layers, function(layer) {
-      layer.setStyle(style_fcn);
-    });
+    var style_fcn = this.get_admin_style_fcn();
+
+    // Add/remove country layers. Update coloring.
+    _.forEach(this.admins_layers_by_country, (function(layers, country) {
+      var map = this.map;
+      if (this.map_coloring.selected_countries.is_country_selected(country)) {
+        layers.forEach(function(layer) {
+          layer.setStyle(style_fcn);
+          if (!map.hasLayer(layer)) {
+            map.addLayer(layer);
+          }
+        });
+      } else {
+        layers.forEach(function(layer) {
+          if (map.hasLayer(layer)) { map.removeLayer(layer); }
+        });
+      }
+    }).bind(this));
 
     // Clear previous overlays.
     _.forEach(this.overlay_layers, (function(overlay_map_layer) {
@@ -194,17 +226,19 @@ var MapController = P({
   /**
    * Loads a chunk of polygon features. This makes it so we don't tie up the UI threads.
    */
-  load_feature_chunk: function(features) {
+  load_feature_chunk: function(country_code, features) {
     var feature_collection = {type: 'FeatureCollection', features: features};
-    var regions_layer = L.geoJson(
+    var admins_layer = L.geoJson(
       feature_collection,
       {
         onEachFeature: this.on_each_feature.bind(this),
-        style: this.get_region_style_fcn()
+        style: this.get_admin_style_fcn()
       }
     );
-    this.map.addLayer(regions_layer);
-    this.regions_layers.push(regions_layer);
+    this.map.addLayer(admins_layer);
+    var admins_layers = this.admins_layers_by_country[country_code] || [];
+    admins_layers.push(admins_layer);
+    this.admins_layers_by_country[country_code] = admins_layers;
   },
 
   /**
@@ -213,21 +247,22 @@ var MapController = P({
    */
   post_initial_load: function() {
     var distance_fcn = make_distance_from_viewport_center(this.map.getBounds());
-    var features_by_distance = _.sortBy(this.region_details.get_geojson_features(), distance_fcn);
-
-    var sequence = Q(null).then(
-      this.load_feature_chunk.bind(this, _.take(features_by_distance, 500))
-    ).then(function() {
+    // TODO(jetpack): probably makes more sense to do this just once with all selected countries'
+    // polygons rather than once per country.
+    var add_country = (function(country_code) {
+      var features_by_distance = _.sortBy(this.admin_details.get_geojson_features(country_code),
+                                          distance_fcn);
+      this.load_feature_chunk(country_code, _.take(features_by_distance, 500));
       this.loading_status.setLoadedTopojson();
-    }.bind(this));
 
-    _.forEach(_.chunk(_.drop(features_by_distance, 500), 2500), (function(feature) {
-      sequence = sequence.delay(10).then(this.load_feature_chunk.bind(this, feature));
-    }).bind(this));
+      var sequence = Q();
+      _.forEach(_.chunk(_.drop(features_by_distance, 500), 2500), (function(chunk) {
+        sequence = sequence.delay(10).then(this.load_feature_chunk.bind(this, country_code, chunk));
+      }).bind(this));
 
-    sequence.fail(function(err) {
-      console.error(err);
-    });
+      sequence.fail(function(err) { console.error(err); });
+    }).bind(this);
+    this.map_coloring.selected_countries.get_selected_countries().forEach(add_country);
   }
 });
 

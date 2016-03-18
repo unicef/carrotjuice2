@@ -13,6 +13,7 @@ var P = require('pjs').P;
 var DataLayer = P({
   init: function(on_update) {
     this.on_update = on_update;
+    this.base_opacity = 1.0;
     this.base_layer = 'weather';
     // `overlay_layers_status` is a map from all available overlays to a boolean
     // indicating whether layer is active.
@@ -46,6 +47,11 @@ var DataLayer = P({
       if (is_active) { active_layers.push(layer_name); }
     });
     return active_layers;
+  },
+
+  set_base_opacity: function(opacity) {
+    this.base_opacity = opacity;
+    this.on_update();
   },
 
   // TODO(jetpack): unit test that all valid layers return a name.
