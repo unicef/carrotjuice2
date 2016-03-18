@@ -14,6 +14,9 @@ describe('view/overlay-controls/data-source-selector', function() {
       },
       get_available_base_layers: function() {
         return [];
+      },
+      get_available_overlay_layers: function() {
+        return [];
       }
     };
 
