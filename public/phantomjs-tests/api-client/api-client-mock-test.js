@@ -22,7 +22,7 @@ describe('api-client/api-client-mock', function() {
   it('returns weather data', function() {
     var client = new MockApiClient();
     return client.fetch_country_weather_data('br').then(function(data) {
-      assert.strictEqual(lodash.values(data)[0]['br-1'].temp_mean, -3.81);
+      assert.strictEqual(lodash.values(data)[0]['br-1'].temp_mean, 3.81);
     })
   })
 });

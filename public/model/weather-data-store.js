@@ -98,14 +98,14 @@ var WeatherDataStore = P({
     return Promise.all(admin_codes.map((function(admin_code) {
       return this.fetch_admin_data(admin_code);
     }).bind(this)))
-      .then(this.on_update.bind(this));
+      .then(this.on_update);
   },
 
   on_date_select: function(country_codes, date) {
     return Promise.all(country_codes.map((function(country_code) {
       return this.fetch_country_data(country_code, date);
     }).bind(this)))
-      .then(this.on_update.bind(this));
+      .then(this.on_update);
   },
 
   on_country_select: function(country_codes, date) {

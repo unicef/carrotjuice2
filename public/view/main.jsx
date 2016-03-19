@@ -22,6 +22,7 @@ var AdminDetails = require('../model/admin-details.js');
 var MapColoring = require('../model/map-coloring.js');
 
 // Controllers & other data-managing classes
+var DependencyGraph = require('../singleton-dependency-injection.js');
 var APIClient = require('../api-client/api-client.js');
 var MapController = require('../map-controller/map-controller.js');
 
@@ -30,93 +31,139 @@ require('./main.css');
 
 const SUPPORTED_COUNTRIES = ['br', 'co', 'pa'];
 
-// callback to re-render the main view. we need a little bit of
-// ugliness here because AppMain hasn't yet been instantiated.
-var main_instance = null;
-var map_controller = null;
-var rerender = function() {
-  if (main_instance !== null) {
-    main_instance.forceUpdate();
-  }
-};
-var rerender_and_redraw = function() {
-  rerender();
-  if (map_controller !== null) {
-    map_controller.redraw();
-  }
-};
+var models_graph = new DependencyGraph();
 
-// NOTE: we could model resize state formally, but this'll do for now
-window.addEventListener('resize', rerender);
+// NOTE: main_view is a manually-provided instance, set when we get the injector below.
+models_graph.add('rerender', ['main_view'], function(main_view) {
+  return main_view.forceUpdate.bind(main_view);
+});
+models_graph.add('rerender_and_redraw', ['rerender'], function(rerender, injector) {
+  return function() {
+    rerender();
+    injector.instance('map_controller').redraw();
+  };
+});
+models_graph.add_constant('SUPPORTED_COUNTRIES', SUPPORTED_COUNTRIES);
 
-var loading_status = new LoadingStatusModel(rerender);
-var api_client = new APIClient();
-var epi_data_store = new EpiDataStore(rerender_and_redraw);
-var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client, SUPPORTED_COUNTRIES);
-var data_layer = new DataLayer(rerender_and_redraw);
-// ugliness because the on_update callbacks for both `selected_date` and `selected_countries`
-// require a reference to both.
-var selected_date = null;
-var selected_countries = new SelectedCountries(function() {
-  console.log('selected countries changed, rerender...');
-  rerender();
-  weather_data_store.on_country_select(selected_countries.get_selected_countries(),
-                                       selected_date.current_day);
-}, SUPPORTED_COUNTRIES);
-selected_date = new SelectedDate(function() {
-  rerender();
-  // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
-  weather_data_store.on_date_select(selected_countries.get_selected_countries(),
-                                    selected_date.current_day);
-}, weather_data_store);
-var selected_admins = new SelectedAdmins(function() {
-  rerender();
-  // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
-  weather_data_store.on_admin_select(selected_admins.get_admin_codes());
-});
-var admin_details = new AdminDetails({
-  on_update: rerender,
-  api_client: api_client,
-  selected_admins: selected_admins,
-  epi_data_store: epi_data_store,
-  weather_data_store: weather_data_store,
-  initial_countries_to_load: SUPPORTED_COUNTRIES
-});
-var map_coloring = new MapColoring({
-  data_layer: data_layer,
-  selected_date: selected_date,
-  selected_countries: selected_countries,
-  admin_details: admin_details,
-  weather_data_store: weather_data_store,
-  epi_data_store: epi_data_store
-});
-var map_controller = new MapController({
-  loading_status: loading_status,
-  admin_details: admin_details,
-  selected_admins: selected_admins,
-  map_coloring: map_coloring
-});
+models_graph.add('api_client', [], APIClient);
+models_graph.add('loading_status', ['rerender'], LoadingStatusModel);
+
+// data stores
+models_graph.add('epi_data_store', ['rerender_and_redraw'], EpiDataStore);
+models_graph.add(
+  'weather_data_store',
+  ['rerender_and_redraw', 'api_client', 'SUPPORTED_COUNTRIES'],
+  WeatherDataStore
+);
+
+// UI state models
+models_graph.add('data_layer', ['rerender_and_redraw'], DataLayer);
+models_graph.add(
+  'selected_countries',
+  ['weather_data_store', 'rerender'],
+  function(weather_data_store, rerender, injector) {
+    return new SelectedCountries(function() {
+      rerender();
+      weather_data_store.on_country_select(
+        injector.instance('selected_countries').get_selected_countries(),
+        injector.instance('selected_date').current_day);
+    }, SUPPORTED_COUNTRIES);
+  }
+);
+models_graph.add(
+  'selected_date',
+  ['weather_data_store', 'rerender'],
+  function(weather_data_store, rerender, injector) {
+    return new SelectedDate(function() {
+      rerender();
+      // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
+      weather_data_store.on_date_select(
+        injector.instance('selected_countries').get_selected_countries(),
+        injector.instance('selected_date').current_day);
+    }, weather_data_store);
+  }
+);
+models_graph.add(
+  'selected_admins',
+  ['rerender', 'weather_data_store'],
+  function(rerender, weather_data_store, injector) {
+    return new SelectedAdmins(function() {
+      rerender();
+      // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
+      weather_data_store.on_admin_select(
+        injector.instance('selected_admins').get_admin_codes()
+      );
+    });
+  }
+);
+
+// higher-level models, combining multiple other models
+
+models_graph.add(
+  'admin_details',
+  [
+    'rerender',
+    'api_client',
+    'selected_admins',
+    'epi_data_store',
+    'weather_data_store',
+    'SUPPORTED_COUNTRIES'
+  ],
+  AdminDetails
+);
+models_graph.add(
+  'map_coloring',
+  [
+    'data_layer',
+    'selected_date',
+    'selected_countries',
+    'admin_details',
+    'weather_data_store',
+    'epi_data_store'
+  ],
+  MapColoring
+);
+models_graph.add(
+  'map_controller',
+  [
+    'loading_status',
+    'admin_details',
+    'selected_admins',
+    'map_coloring'
+  ],
+  MapController
+);
 
 var AppMain = React.createClass({
+  getInitialState: function() {
+    var injector = models_graph.injector({main_view: this});
+    // NOTE: we could model resize state formally, but this'll do for now
+    window.addEventListener('resize', injector.instance('rerender'));
+    return {injector: injector};
+  },
+
   render: function() {
-    main_instance = this;
+    var i = this.state.injector;  // alias
     return (
       <div className="mainContainer">
         {ViewUtil.flexbox_stack([
-          <LeafletMap key="1" controller={map_controller} />,
+          <LeafletMap key="1" controller={i.instance('map_controller')}/>,
           <DateSelectionBar key="2"
-                            selected_date={selected_date}
-                            selected_admins={selected_admins}
-                            weather_data_store={weather_data_store} />
+                            selected_date={i.instance('selected_date')}
+                            selected_admins={i.instance('selected_admins')}
+                            weather_data_store={i.instance('weather_data_store')}/>
         ])}
-        <OverlayControlsBox data_layer={data_layer}
-                            selected_countries={selected_countries}
-                            selected_date={selected_date}
-                            admin_details={admin_details} />
-        <LoadingStatusView model={loading_status} />
+        <OverlayControlsBox data_layer={i.instance('data_layer')}
+                            selected_countries={i.instance('selected_countries')}
+                            selected_date={i.instance('selected_date')}
+                            admin_details={i.instance('admin_details')}/>
+        <LoadingStatusView model={i.instance('loading_status')}/>
       </div>
     );
   }
 });
 
-module.exports = {AppMain: AppMain};
+module.exports = {
+  models_graph: models_graph,
+  AppMain: AppMain
+};
