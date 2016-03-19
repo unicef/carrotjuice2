@@ -12,11 +12,6 @@ var Q = require('q');
 
 var DateUtil = require('./date-util.js');
 
-var utc_date = function(year, month, day) {
-  // Note: months are zero-indexed.
-  return new Date(Date.UTC(year, month - 1, day));
-};
-
 var admin_to_country_code = function(admin_code) {
   return admin_code.match(/([a-z]{2})-/)[1];
 };
