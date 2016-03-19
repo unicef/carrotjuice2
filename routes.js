@@ -52,6 +52,10 @@ function setup_routes(app, passport) {
   app.get('/api/admin_weather/:admin_code/:start_time?/:end_time?',
           apicache('1 day'), forward_route);
 
+  // Get mobility data for a single admin.
+  app.get('/api/egress_mobility/:admin_code/:start_time?/:end_time?',
+          apicache('1 day'), forward_route);
+
   /*
   We're replacing these with Webpack/React/Flux.
 

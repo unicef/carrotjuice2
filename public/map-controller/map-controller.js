@@ -2,6 +2,7 @@ var P = require('pjs').P;
 var Q = require('q');
 var draw_initial_map = require('./draw-initial-map.js');
 var _ = require('lodash');
+var d3 = require('d3');
 
 // NOTE: this function WILL NOT work when latitude wraps around (the -180 / 180 zone)
 var make_distance_from_viewport_center = function(bounds) {
@@ -31,6 +32,14 @@ var make_distance_from_viewport_center = function(bounds) {
       return false;
     }
   };
+};
+
+var obj_to_alist = function(obj) {
+  var result = [];
+  _.forEach(obj, function(val, key) {
+    result.push([key, val]);
+  });
+  return result;
 };
 
 var MapController = P({
@@ -180,6 +189,41 @@ var MapController = P({
     return layer_group;
   },
 
+  // TODO(jetpack): finalize styling and weight function. and do we want a popup or something?
+  build_mobility_overlay_layer: function(mobility_data) {
+    var show_top_n = 30;
+    var opacity_scale = d3.scale.log().domain([1, 100000]).clamp(true).range([0, 0.8]);
+    var weight_scale = d3.scale.log().domain([1, 100000]).clamp(true).range([0, 5]);
+    var layer_group = L.layerGroup();
+    var admin_latlng = this.admin_code_to_latlng;
+    console.log('build_mobility_overlay_layer data:', mobility_data);
+    _.forEach(mobility_data, function(destination_counts, origin_admin) {
+      var sorted_destination_counts = _.sortBy(
+        obj_to_alist(destination_counts),
+        // sort by descending count
+        function(dest_and_count) { return -dest_and_count[1]; });
+      var top_destination_counts = _.take(sorted_destination_counts, show_top_n);
+      // console.log('BMOL. sorted, top:', sorted_destination_counts, top_destination_counts);
+      _.forEach(top_destination_counts, function(dest_and_count) {
+        var destination_admin = dest_and_count[0];
+        var count = dest_and_count[1];
+        if (!admin_latlng[origin_admin] || !admin_latlng[destination_admin]) {
+          console.error('BUG: unknown admin?!', origin_admin, destination_admin);
+        } else {
+          var latlngs = [admin_latlng[origin_admin], admin_latlng[destination_admin]];
+          var polyline = L.polyline(latlngs, {
+            color: '#03f',
+            weight: weight_scale(count),
+            opacity: opacity_scale(count),
+            clickable: false
+          });
+          layer_group.addLayer(polyline);
+        }
+      });
+    });
+    return layer_group;
+  },
+
   redraw: function() {
     var style_fcn = this.get_admin_style_fcn();
 
@@ -214,6 +258,9 @@ var MapController = P({
       switch (overlay_name) {
         case 'epi':
           overlay_layer = this.build_epi_overlay_layer(overlay_data);
+          break;
+        case 'mobility':
+          overlay_layer = this.build_mobility_overlay_layer(overlay_data);
           break;
         default:
           console.error('BUG! MapController does not support overlay type:', overlay_name);

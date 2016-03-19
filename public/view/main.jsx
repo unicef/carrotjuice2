@@ -14,6 +14,7 @@ var ViewUtil = require('./view-util.jsx');
 var DataLayer = require('../model/data-layer.js');
 var LoadingStatusModel = require('../model/loading-status.js');
 var EpiDataStore = require('../model/epi-data-store.js');
+var MobilityDataStore = require('../model/mobility-data-store.js');
 var WeatherDataStore = require('../model/weather-data-store.js');
 var SelectedCountries = require('../model/selected-countries.js');
 var SelectedAdmins = require('../model/selected-admins.js');
@@ -52,6 +53,7 @@ window.addEventListener('resize', rerender);
 var loading_status = new LoadingStatusModel(rerender);
 var api_client = new APIClient();
 var epi_data_store = new EpiDataStore(rerender_and_redraw);
+var mobility_data_store = new MobilityDataStore(rerender_and_redraw, api_client);
 var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client, SUPPORTED_COUNTRIES);
 var data_layer = new DataLayer(rerender_and_redraw);
 // ugliness because the on_update callbacks for both `selected_date` and `selected_countries`
@@ -65,12 +67,14 @@ var selected_countries = new SelectedCountries(function() {
 }, SUPPORTED_COUNTRIES);
 selected_date = new SelectedDate(function() {
   rerender();
+  mobility_data_store.on_select(selected_admins.get_admin_codes(), selected_date.current_day);
   // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
   weather_data_store.on_date_select(selected_countries.get_selected_countries(),
                                     selected_date.current_day);
 }, weather_data_store);
 var selected_admins = new SelectedAdmins(function() {
   rerender();
+  mobility_data_store.on_select(selected_admins.get_admin_codes(), selected_date.current_day);
   // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
   weather_data_store.on_admin_select(selected_admins.get_admin_codes());
 });
@@ -84,11 +88,13 @@ var admin_details = new AdminDetails({
 });
 var map_coloring = new MapColoring({
   data_layer: data_layer,
+  selected_admins: selected_admins,
   selected_date: selected_date,
   selected_countries: selected_countries,
   admin_details: admin_details,
   weather_data_store: weather_data_store,
-  epi_data_store: epi_data_store
+  epi_data_store: epi_data_store,
+  mobility_data_store: mobility_data_store
 });
 map_controller = new MapController({
   loading_status: loading_status,
