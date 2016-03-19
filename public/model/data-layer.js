@@ -34,7 +34,7 @@ var DataLayer = P({
   },
 
   get_available_base_layers: function() {
-    return ['weather', 'oviposition', 'population_density'];
+    return ['weather', 'oviposition', 'population_density', 'socioeconomic'];
   },
 
   get_available_overlay_layers: function() {
@@ -60,6 +60,7 @@ var DataLayer = P({
       weather: 'Weather',
       oviposition: 'Mosquito Oviposition',
       population_density: 'Population Density',
+      socioeconomic: 'Socioeconomic',
       epi: 'Epidemiological',
       mobility: 'Mobility'
     }[layer_name];
