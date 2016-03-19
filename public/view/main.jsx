@@ -14,6 +14,8 @@ var ViewUtil = require('./view-util.jsx');
 var DataLayer = require('../model/data-layer.js');
 var LoadingStatusModel = require('../model/loading-status.js');
 var EpiDataStore = require('../model/epi-data-store.js');
+var EconDataStore = require('../model/econ-data-store.js');
+var MobilityDataStore = require('../model/mobility-data-store.js');
 var WeatherDataStore = require('../model/weather-data-store.js');
 var SelectedCountries = require('../model/selected-countries.js');
 var SelectedAdmins = require('../model/selected-admins.js');
@@ -55,6 +57,12 @@ models_graph.add(
   ['rerender_and_redraw', 'api_client', 'SUPPORTED_COUNTRIES'],
   WeatherDataStore
 );
+models_graph.add('econ_data_store', ['rerender_and_redraw'], EconDataStore);
+models_graph.add(
+  'mobility_data_store',
+  ['rerender_and_redraw', 'api_client'],
+  MobilityDataStore
+);
 
 // UI state models
 models_graph.add('data_layer', ['rerender_and_redraw'], DataLayer);
@@ -72,11 +80,15 @@ models_graph.add(
 );
 models_graph.add(
   'selected_date',
-  ['weather_data_store', 'rerender'],
-  function(weather_data_store, rerender, injector) {
+  ['rerender', 'weather_data_store', 'mobility_data_store'],
+  function(rerender, weather_data_store, mobility_data_store, injector) {
     return new SelectedDate(function() {
       rerender();
       // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
+      mobility_data_store.on_select(
+        injector.instance('selected_admins').get_admin_codes(),
+        injector.instance('selected_date').current_day
+      );
       weather_data_store.on_date_select(
         injector.instance('selected_countries').get_selected_countries(),
         injector.instance('selected_date').current_day);
@@ -85,11 +97,15 @@ models_graph.add(
 );
 models_graph.add(
   'selected_admins',
-  ['rerender', 'weather_data_store'],
-  function(rerender, weather_data_store, injector) {
+  ['rerender', 'weather_data_store', 'mobility_data_store'],
+  function(rerender, weather_data_store, mobility_data_store, injector) {
     return new SelectedAdmins(function() {
       rerender();
       // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
+      mobility_data_store.on_select(
+        injector.instance('selected_admins').get_admin_codes(),
+        injector.instance('selected_date').current_day
+      );
       weather_data_store.on_admin_select(
         injector.instance('selected_admins').get_admin_codes()
       );
@@ -115,11 +131,14 @@ models_graph.add(
   'map_coloring',
   [
     'data_layer',
+    'selected_admins',
     'selected_date',
     'selected_countries',
     'admin_details',
     'weather_data_store',
-    'epi_data_store'
+    'econ_data_store',
+    'epi_data_store',
+    'mobility_data_store'
   ],
   MapColoring
 );
