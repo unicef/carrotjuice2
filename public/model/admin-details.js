@@ -27,7 +27,7 @@ var AdminDetails = P({
     // Map from country code to GeoJSON FeatureCollection. The features' properties include the
     // admin data fields.
     this.admin_feature_collection_by_country = {};
-    var fetch_admin_data_promise = Promise.all(
+    var fetch_admin_data_promise = Q.all(
       initial_countries_to_load.map((function(country_code) {
         console.log('Fetching admins for', country_code);
         return api_client.fetch_admin_data(country_code)
