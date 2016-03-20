@@ -36,10 +36,41 @@ var PopulationDensityModel = P({
   }
 });
 
+var SocioeconomicModel = P({
+  init: function(admin_details) {
+    admin_details.initial_load_promise.then((function() {
+      this.admin_color_by_code = this.get_color_mapping(
+        admin_details.admin_data_by_code, admin_details.econ_data_store.spending_by_admin);
+    }).bind(this));
+  },
+
+  get_color_mapping: function(admin_data_by_code, spending_by_code) {
+    console.log('generating socioeconomic chloropleth');
+    // TODO(jetpack): log vs. linear, domain?
+    var spending_to_color = d3.scale.log().domain([1, 100])
+        .range(['red', '#0d5']).clamp(true);
+
+    var result = {};
+    _.forEach(spending_by_code, function(spending, admin_code) {
+      if (admin_data_by_code[admin_code] && admin_data_by_code[admin_code].population) {
+        var normalized_spending = spending / admin_data_by_code[admin_code].population;
+        result[admin_code] = spending_to_color(normalized_spending);
+      }
+    });
+    console.log(result);
+    return result;
+  },
+
+  admin_color_for_date: function() {
+    return this.admin_color_by_code;
+  }
+});
+
 var AdminDetails = P({
   init: function(init_dict) {
     this.on_update = init_dict.on_update;
     this.selected_admins = init_dict.selected_admins;
+    this.econ_data_store = init_dict.econ_data_store;
     this.epi_data_store = init_dict.epi_data_store;
     this.weather_data_store = init_dict.weather_data_store;
     // TODO(jetpack): maybe this should be a separate class, like weather_data_store.
@@ -56,7 +87,8 @@ var AdminDetails = P({
           .then(this.process_admin_data.bind(this, country_code));
       }).bind(this)))
         .catch(function(err) { console.error(err); });
-    this.initial_load_promise = Q.all([this.epi_data_store.initial_load_promise,
+    this.initial_load_promise = Q.all([this.econ_data_store.initial_load_promise,
+                                       this.epi_data_store.initial_load_promise,
                                        this.weather_data_store.initial_load_promise,
                                        fetch_admin_data_promise]);
   },
@@ -101,6 +133,10 @@ var AdminDetails = P({
 
   population_density_model: function() {
     return new PopulationDensityModel(this);
+  },
+
+  socioeconomic_model: function() {
+    return new SocioeconomicModel(this);
   }
 
 });

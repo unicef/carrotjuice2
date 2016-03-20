@@ -18,13 +18,12 @@ var MapColoring = P({
       weather: init_dict.weather_data_store,
       oviposition: init_dict.weather_data_store.fake_oviposition_model(),
       population_density: init_dict.admin_details.population_density_model(),
-      socioeconomic: init_dict.econ_data_store
+      socioeconomic: init_dict.admin_details.socioeconomic_model()
     };
     this.epi_data_store = init_dict.epi_data_store;
     this.mobility_data_store = init_dict.mobility_data_store;
     this.initial_load_promise = Q.all([init_dict.weather_data_store.initial_load_promise,
                                        init_dict.admin_details.initial_load_promise,
-                                       init_dict.econ_data_store.initial_load_promise,
                                        this.epi_data_store.initial_load_promise,
                                        this.mobility_data_store.initial_load_promise]);
   },
