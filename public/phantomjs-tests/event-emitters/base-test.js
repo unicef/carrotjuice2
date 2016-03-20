@@ -72,4 +72,24 @@ describe('event-emitter/base', function() {
       {payload: "what a wonderful world"}
     ]);
   });
+
+  it('single-event listeners work fine', function() {
+    var listener_a_1 = new Listener();
+
+    // create the event emitter, subscribe listeners.
+    var ee = new TestEventEmitter();
+    ee.add_listener(EventA, listener_a_1.callback, true);
+
+    // Event B shouldn't remove listener A (and shouldn't call it either).
+    ee.emit(new EventB("hello world"));
+    assert.deepEqual(listener_a_1.calls, []);
+
+    // this should call and remove listener A
+    ee.emit(new EventA());
+    assert.deepEqual(listener_a_1.calls, [{}]);
+
+    // further events should not add any new calls to listener A
+    ee.emit(new EventA());
+    assert.deepEqual(listener_a_1.calls, [{}]);
+  });
 });
