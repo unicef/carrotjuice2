@@ -3,7 +3,7 @@
  */
 
 var assert = require('assert');
-var EventEmitter = require('../../event-emitters/base.js');
+var EventEmitter = require('../../event-emitters/event-emitter-base.js');
 var P = require('pjs').P;
 
 var EventA = P({key: 'Event A'});
