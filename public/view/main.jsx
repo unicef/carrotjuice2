@@ -57,7 +57,7 @@ window.addEventListener('resize', rerender);
 var selection_ee = new SelectionEvents.SelectionEventEmitter();
 
 var loading_status = new LoadingStatusModel(rerender);
-var api_client = new APIClient();
+var api_client = new APIClient(loading_status);
 var epi_data_store = new EpiDataStore(rerender_and_redraw);
 var econ_data_store = new EconDataStore(rerender_and_redraw);
 var mobility_data_store = new MobilityDataStore(rerender_and_redraw, api_client);
@@ -124,7 +124,10 @@ var AppMain = React.createClass({
     return (
       <div className="mainContainer">
         {ViewUtil.flexbox_stack([
-          <LeafletMap key="1" controller={map_controller} />,
+           <div key="1" style={{'flexGrow': 1, position: 'relative'}}>
+             <LeafletMap controller={map_controller} />
+             <LoadingStatusView model={loading_status} />
+           </div>,
           <DateSelectionBar key="2"
                             selected_date={selected_date}
                             selected_admins={selected_admins}
@@ -134,7 +137,6 @@ var AppMain = React.createClass({
                             selected_countries={selected_countries}
                             selected_date={selected_date}
                             admin_details={admin_details} />
-        <LoadingStatusView model={loading_status} />
       </div>
     );
   }

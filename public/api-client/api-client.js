@@ -4,30 +4,35 @@
  */
 
 var P = require('pjs').P;
-var Q = require('q');
 var jQuery = require('jquery');
 var DateUtil = require('../model/date-util.js');
 
-var make_request = function(url) {
-  var deferred = Q.defer();
-
-  jQuery.ajax({
-    method: 'GET',
-    url: url,
-    success: function(data) {
-      deferred.resolve(data);
-    },
-    fail: function(error) {
-      deferred.reject(error);
-    }
-  });
-
-  return deferred.promise;
-};
-
 var APIClient = P({
+  init: function(loading_status) {
+    this.loading_status = loading_status;
+  },
+
+  make_request: function(url) {
+    var loading_status = this.loading_status;
+    ++loading_status.inflight_requests;
+    return new Promise(function(resolve, reject) {
+      jQuery.ajax({
+        method: 'GET',
+        url: url,
+        success: function(data) {
+          --loading_status.inflight_requests;
+          resolve(data);
+        },
+        fail: function(error) {
+          --loading_status.inflight_requests;
+          reject(error);
+        }
+      });
+    });
+  },
+
   fetch_admin_data: function(country_code) {
-    return make_request("/api/admin_polygons_topojson/" + country_code);
+    return this.make_request("/api/admin_polygons_topojson/" + country_code);
   },
 
   fetch_country_weather_data: function(country_code, date) {
@@ -37,7 +42,7 @@ var APIClient = P({
     } else {
       console.log('No date specified - fetching latest available data..');
     }
-    return make_request('/api/country_weather/' + country_code + date_str);
+    return this.make_request('/api/country_weather/' + country_code + date_str);
   },
 
   fetch_admin_weather_data: function(admin_code, num_days) {
@@ -46,14 +51,14 @@ var APIClient = P({
     }
     var today = new Date();
     var start_date = DateUtil.subtract_days(today, num_days);
-    return make_request('/api/admin_weather/' + admin_code + '/' +
-                       DateUtil.iso_to_yyyymmdd(start_date) + '/' +
-                       DateUtil.iso_to_yyyymmdd(today));
+    return this.make_request('/api/admin_weather/' + admin_code + '/' +
+                             DateUtil.iso_to_yyyymmdd(start_date) + '/' +
+                             DateUtil.iso_to_yyyymmdd(today));
   },
 
   fetch_egress_mobility_data: function(admin_code, date) {
     var d = '/' + DateUtil.iso_to_yyyymmdd(date);
-    return make_request('/api/egress_mobility/' + admin_code + d + d);
+    return this.make_request('/api/egress_mobility/' + admin_code + d + d);
   }
 });
 

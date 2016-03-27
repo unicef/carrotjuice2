@@ -1,4 +1,4 @@
-.loading-status {
+.loading-status-initializing {
     position: absolute;
     top: 0;
     left: 0;
@@ -12,14 +12,34 @@
     opacity: 0.9;
 }
 
-.loading-status .centering-container {
+.loading-status-initializing .centering-container {
     display: table-cell;
     vertical-align: middle;
     width: 400px;
     height: 100px;
 }
 
-.loading-status p {
+p.loading-status {
     text-align: center;
     margin-bottom: 0;  /* override bootstrap default */
+    font-size: large;
+}
+
+.loading-status-requests {
+    position: absolute;
+    left: 2em;
+    bottom: 3em;
+    width: 200px;
+    height: 50px;
+    margin: auto;
+    background-color: #ffffff;
+    border: 1px solid #aaaaaa;
+    opacity: 0.8;
+}
+
+.loading-status-requests .centering-container {
+    display: table-cell;
+    vertical-align: middle;
+    width: 200px;
+    height: 50px;
 }

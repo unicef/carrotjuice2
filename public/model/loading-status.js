@@ -7,8 +7,8 @@ var P = require('pjs').P;
 var LoadingStatusModel = P({
   init: function(on_update) {
     this.on_update = on_update;
-    this.status = 'loading base map';
     this.is_initializing = true;
+    this.inflight_requests = 0;
   },
 
   set_initialized_topojson: function() {
