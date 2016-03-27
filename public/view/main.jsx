@@ -84,13 +84,13 @@ selection_ee.add_listener(SelectionEvents.CountrySelectEvent, function(action) {
   rerender();
 });
 selection_ee.add_listener(SelectionEvents.AdminSelectEvent, function(action) {
-  mobility_data_store.on_select(selected_admins.get_admin_codes(), selected_date.current_day);
-  weather_data_store.on_admin_select(selected_admins.get_admin_codes());
+  mobility_data_store.on_select(action.selected_admins, selected_date.current_day);
+  weather_data_store.on_admin_select(action.selected_admins);
   rerender();
 });
 selection_ee.add_listener(SelectionEvents.DateSelectEvent, function(action) {
-  mobility_data_store.on_select(selected_admins.get_admin_codes(), action.date);
-  weather_data_store.on_date_select(selected_countries.get_selected_countries(), action.date);
+  mobility_data_store.on_select(selected_admins.get_admin_codes(), action.selected_date);
+  weather_data_store.on_date_select(selected_countries.get_selected_countries(), action.selected_date);
   rerender();
 });
 

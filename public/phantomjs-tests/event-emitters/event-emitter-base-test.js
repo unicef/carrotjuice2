@@ -92,4 +92,22 @@ describe('event-emitter/base', function() {
     ee.emit(new EventA());
     assert.deepEqual(listener_a_1.calls, [{}]);
   });
+
+  it('errors on duplicate event types', function() {
+    assert.throws(function() {
+      new EventEmitter([EventA, EventA]);
+    }, Error);
+  });
+
+  it('errors when bad action types are given', function() {
+    var ee = new TestEventEmitter();
+    assert.throws(function() {
+      ee.emit('bad action');
+    }, /Bad action, not of specified types; got bad action/);
+
+    var EventC = P({key: 'Event C'});
+    assert.throws(function() {
+      ee.emit(new EventC());
+    }, /Bad action, not of specified types; got \[object Object\]/);
+  });
 });

@@ -7,11 +7,16 @@ var EventEmitter = require('./event-emitter-base.js');
 
 var DateSelectEvent = P({
   key: 'DateSelectEvent',
-  init: function(date) {
-    this.date = date;
+  init: function(selected_date) {
+    this.selected_date = selected_date;
   }
 });
-var AdminSelectEvent = P({key: 'AdminSelectEvent'});
+var AdminSelectEvent = P({
+  key: 'AdminSelectEvent',
+  init: function(selected_admins) {
+    this.selected_admins = selected_admins;
+  }
+});
 var CountrySelectEvent = P({
   key: 'CountrySelectEvent',
   init: function(selected_country_codes) {
