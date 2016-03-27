@@ -8,10 +8,69 @@ var Q = require('q');
 var d3 = require('d3');
 var topojson = require('topojson');
 
+// Used by MapColoring for the population density base layer.
+var PopulationDensityModel = P({
+  init: function(admin_details) {
+    admin_details.initial_load_promise.then((function() {
+      this.admin_color_by_code = this.get_color_mapping(admin_details.admin_data_by_code);
+    }).bind(this));
+  },
+
+  get_color_mapping: function(admin_data_by_code) {
+    console.log('generating admin population density chloropleth - should only run once!');
+    var density_to_color = d3.scale.log().domain([1, 1000])
+        .range(['white', 'purple']).clamp(true);
+    var result = {};
+    _.forEach(admin_data_by_code, function(admin_data, admin_code) {
+      var density = admin_data.population / admin_data.geo_area_sqkm;
+      // Guard against one (or both) of admin_data fields being unset.
+      if (density) {
+        result[admin_code] = density_to_color(density);
+      }
+    });
+    return result;
+  },
+
+  admin_color_for_date: function() {
+    return this.admin_color_by_code;
+  }
+});
+
+var SocioeconomicModel = P({
+  init: function(admin_details) {
+    admin_details.initial_load_promise.then((function() {
+      this.admin_color_by_code = this.get_color_mapping(
+        admin_details.admin_data_by_code, admin_details.econ_data_store.spending_by_admin);
+    }).bind(this));
+  },
+
+  get_color_mapping: function(admin_data_by_code, spending_by_code) {
+    console.log('generating socioeconomic chloropleth');
+    // TODO(jetpack): log vs. linear, domain?
+    var spending_to_color = d3.scale.log().domain([1, 100])
+        .range(['red', '#0d5']).clamp(true);
+
+    var result = {};
+    _.forEach(spending_by_code, function(spending, admin_code) {
+      if (admin_data_by_code[admin_code] && admin_data_by_code[admin_code].population) {
+        var normalized_spending = spending / admin_data_by_code[admin_code].population;
+        result[admin_code] = spending_to_color(normalized_spending);
+      }
+    });
+    console.log(result);
+    return result;
+  },
+
+  admin_color_for_date: function() {
+    return this.admin_color_by_code;
+  }
+});
+
 var AdminDetails = P({
   init: function(init_dict) {
     this.on_update = init_dict.on_update;
     this.selected_admins = init_dict.selected_admins;
+    this.econ_data_store = init_dict.econ_data_store;
     this.epi_data_store = init_dict.epi_data_store;
     this.weather_data_store = init_dict.weather_data_store;
     // TODO(jetpack): maybe this should be a separate class, like weather_data_store.
@@ -28,7 +87,8 @@ var AdminDetails = P({
           .then(this.process_admin_data.bind(this, country_code));
       }).bind(this)))
         .catch(function(err) { console.error(err); });
-    this.initial_load_promise = Q.all([this.epi_data_store.initial_load_promise,
+    this.initial_load_promise = Q.all([this.econ_data_store.initial_load_promise,
+                                       this.epi_data_store.initial_load_promise,
                                        this.weather_data_store.initial_load_promise,
                                        fetch_admin_data_promise]);
   },
@@ -71,24 +131,13 @@ var AdminDetails = P({
     }
   },
 
-  // Used by MapColoring for the population density base layer. The raw function should only be
-  // called once, as this data is static (and doesn't vary by date).
-  admin_color_for_date_raw: function() {
-    console.log('generating admin population density chloropleth - should only run once!');
-    var density_to_color = d3.scale.log().domain([1, 1000])
-        .range(['white', 'purple']).clamp(true);
-    return _.mapValues(this.admin_data_by_code, function(admin_data) {
-      var density = admin_data.population / admin_data.geo_area_sqkm;
-      return density ? density_to_color(density) : 'white';
-    });
+  population_density_model: function() {
+    return new PopulationDensityModel(this);
   },
 
-  // We use a constant function for the resolver so that we only ever call the raw function once,
-  // regardless of the date argument.
-  // TODO(jetpack): without the wrapper, we get error about this.admin_color_for_date_raw not being
-  // a function. wat?
-  admin_color_for_date: _.memoize(function() { return this.admin_color_for_date_raw(); },
-                                  _.constant(true))
+  socioeconomic_model: function() {
+    return new SocioeconomicModel(this);
+  }
 
 });
 
