@@ -3,7 +3,7 @@ require('./loading-status.css');
 
 var LoadingStatus = React.createClass({
   render: function() {
-    var visible = this.props.model.is_loading;
+    var visible = this.props.model.is_initializing;
     return <div className="loading-status" style={{
       display: (visible ? 'block' : 'none')
     }}>
@@ -14,7 +14,7 @@ var LoadingStatus = React.createClass({
           </p>
         </div>
       </div>
-    </div>
+    </div>;
   }
 });
 

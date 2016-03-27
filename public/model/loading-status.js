@@ -5,19 +5,15 @@
 var P = require('pjs').P;
 
 var LoadingStatusModel = P({
-  init: function(onUpdate) {
+  init: function(on_update) {
+    this.on_update = on_update;
     this.status = 'loading base map';
-    this.is_loading = true;
-    this.onUpdate = onUpdate;  // callback to update views
+    this.is_initializing = true;
   },
 
-  setLoadedBase: function() {
-    this.is_loading = false;
-  },
-
-  setLoadedTopojson: function() {
-    this.is_loading = false;
-    this.onUpdate();
+  set_initialized_topojson: function() {
+    this.is_initializing = false;
+    this.on_update();
   }
 });
 
