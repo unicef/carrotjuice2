@@ -3,18 +3,21 @@ require('./loading-status.css');
 
 var LoadingStatus = React.createClass({
   render: function() {
-    var visible = this.props.model.is_loading;
-    return <div className="loading-status" style={{
-      display: (visible ? 'block' : 'none')
-    }}>
-      <div className="loading-status-relbox">
+    var is_initializing = this.props.model.is_initializing;
+    var has_inflight_requests = this.props.model.inflight_requests > 0;
+    if (is_initializing || has_inflight_requests) {
+      var div_class = is_initializing ? 'loading-status-initializing' :
+                      'loading-status-requests';
+      return <div className={div_class}>
         <div className="centering-container">
-          <p className="lead">
-            Loading, please wait ...
+          <p className="lead loading-status">
+            Loading...
           </p>
         </div>
-      </div>
-    </div>
+      </div>;
+    } else {
+      return null;
+    }
   }
 });
 

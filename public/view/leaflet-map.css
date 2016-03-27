@@ -1,7 +1,11 @@
 div#leaflet-map {
-    flex-grow: 1;
     min-width: 200px;
     min-height: 200px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 .carotene-popup .leaflet-popup-tip-container {
     display: none;  /* Kill popup stem/tip thingy. */

@@ -300,7 +300,7 @@ var MapController = P({
       var features_by_distance = _.sortBy(this.admin_details.get_geojson_features(country_code),
                                           distance_fcn);
       this.load_feature_chunk(country_code, _.take(features_by_distance, 500));
-      this.loading_status.setLoadedTopojson();
+      this.loading_status.set_initialized_topojson();
 
       var sequence = Q();
       _.forEach(_.chunk(_.drop(features_by_distance, 500), 2500), (function(chunk) {
