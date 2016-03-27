@@ -15,6 +15,7 @@ window.test_content_div = document.getElementById("test-content");
 
 window.mocha.setup('bdd');
 require('./global-hooks.js');
+require('./event-emitters/event-emitter-base-test.js');
 require('./model/selected-date-test.js');
 require('./view/overlay-controls/data-source-selector-test.jsx');
 require('./api-client/api-client-mock-test.js');

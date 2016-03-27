@@ -5,6 +5,7 @@
 var _ = require('lodash');
 var P = require('pjs').P;
 var d3 = require('d3');
+var SelectionEvents = require('../event-emitters/selection-events.js');
 
 var FakeOvipositionDataStore = P({
   init: function(weather_data_store) {

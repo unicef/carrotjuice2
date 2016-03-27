@@ -1,5 +1,6 @@
 var assert = require('assert');
 var SelectedDate = require('../../model/selected-date.js');
+var SelectionEvents = require('../../event-emitters/selection-events.js');
 var Q = require('q');
 
 describe('model/selected-date', function() {
@@ -8,9 +9,11 @@ describe('model/selected-date', function() {
     var onUpdate = function() {
       update_call_count++;
     };
+    var selection_ee = new SelectionEvents.SelectionEventEmitter();
+    selection_ee.add_listener(SelectionEvents.DateSelectEvent, onUpdate);
 
     var deferred = Q.defer();
-    var model = new SelectedDate(onUpdate, {
+    var model = new SelectedDate(selection_ee, {
       initial_load_promise: deferred.promise,
       last_date: 'test last date'
     });
