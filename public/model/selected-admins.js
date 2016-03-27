@@ -3,11 +3,10 @@
  */
 
 var P = require('pjs').P;
-var SelectionEvents = require('../event-emitters/selection-events.js');
 
 var SelectedAdmins = P({
-  init: function(selection_ee) {
-    this.selection_ee = selection_ee;
+  init: function(onUpdate) {
+    this.onUpdate = onUpdate;
     // `selected_admin_codes` is a map from admin code to callbacks. The
     // callbacks are called when the admin is unselected.
     this.selected_admin_codes = {};
@@ -16,7 +15,6 @@ var SelectedAdmins = P({
 
   // Note: `on_unselect` is only used when `admin_code` is toggled on.
   toggle_admin: function(admin_code, on_unselect) {
-    // TODO(zora): Migrate these callbacks to an event-emitter-like pattern?
     if (this.is_admin_selected(admin_code)) {
       var cb = this.selected_admin_codes[admin_code];
       delete this.selected_admin_codes[admin_code];
@@ -24,9 +22,7 @@ var SelectedAdmins = P({
     } else {
       this.selected_admin_codes[admin_code] = on_unselect || _.noop;
     }
-    this.selection_ee.emit(
-      new SelectionEvents.AdminSelectEvent(this.get_admin_codes())
-    );
+    this.onUpdate();
   },
 
   set_admin_hovered: function(admin_code) {
@@ -53,9 +49,7 @@ var SelectedAdmins = P({
     this.selected_admin_codes[admin_code] = on_unselect || _.noop;
     unselect_cbs.forEach(function(cb) { cb(); });
 
-    this.selection_ee.emit(
-      new SelectionEvents.AdminSelectEvent(this.get_admin_codes())
-    );
+    this.onUpdate();
   },
 
   get_admin_codes: function() {
