@@ -63,8 +63,6 @@ var econ_data_store = new EconDataStore(rerender_and_redraw);
 var mobility_data_store = new MobilityDataStore(rerender_and_redraw, api_client);
 var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client, SUPPORTED_COUNTRIES);
 var data_layer = new DataLayer(rerender_and_redraw);
-// ugliness because the on_update callbacks for both `selected_date` and `selected_countries`
-// require a reference to both.
 var selected_countries = new SelectedCountries(selection_ee, SUPPORTED_COUNTRIES);
 var selected_date = new SelectedDate(selection_ee, weather_data_store);
 var selected_admins = new SelectedAdmins(selection_ee);
