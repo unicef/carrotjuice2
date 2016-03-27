@@ -124,10 +124,10 @@ var AppMain = React.createClass({
     return (
       <div className="mainContainer">
         {ViewUtil.flexbox_stack([
-           <div key="1" style={{'flexGrow': 1, position: 'relative'}}>
-             <LeafletMap controller={map_controller} />
-             <LoadingStatusView model={loading_status} />
-           </div>,
+          <div key="1" style={{flexGrow: 1, position: 'relative'}}>
+            <LeafletMap controller={map_controller} />
+            <LoadingStatusView model={loading_status} />
+          </div>,
           <DateSelectionBar key="2"
                             selected_date={selected_date}
                             selected_admins={selected_admins}
