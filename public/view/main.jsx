@@ -10,6 +10,9 @@ var LoadingStatusView = require('./loading-status.jsx');
 var OverlayControlsBox = require('./overlay-controls/overlay-controls-box.jsx');
 var ViewUtil = require('./view-util.jsx');
 
+// Event emitters
+var SelectionEvents = require('../event-emitters/selection-events.js');
+
 // Models
 var DataLayer = require('../model/data-layer.js');
 var LoadingStatusModel = require('../model/loading-status.js');
@@ -51,6 +54,8 @@ var rerender_and_redraw = function() {
 // NOTE: we could model resize state formally, but this'll do for now
 window.addEventListener('resize', rerender);
 
+var selection_ee = new SelectionEvents.SelectionEventEmitter();
+
 var loading_status = new LoadingStatusModel(rerender);
 var api_client = new APIClient();
 var epi_data_store = new EpiDataStore(rerender_and_redraw);
@@ -60,26 +65,35 @@ var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client, S
 var data_layer = new DataLayer(rerender_and_redraw);
 // ugliness because the on_update callbacks for both `selected_date` and `selected_countries`
 // require a reference to both.
-var selected_date = null;
-var selected_countries = new SelectedCountries(function() {
-  console.log('selected countries changed, rerender...');
+var selected_countries = new SelectedCountries(selection_ee, SUPPORTED_COUNTRIES);
+var selected_date = new SelectedDate(selection_ee, weather_data_store);
+var selected_admins = new SelectedAdmins(selection_ee);
+
+// Upon selection, we may want to fetch more data from the server. This code is a
+// little out-of-band, because when one dimension is changed/selectied (e.g. admin
+// regions), we also want to know about the current date so we only fetch data with
+// the relevant date.
+//
+// TODO: Move this code to a more appropriate file?
+// TODO(jetpack): for all of these, we'll want a similar thing for epi_data_store?
+selection_ee.add_listener(SelectionEvents.CountrySelectEvent, function(action) {
+  weather_data_store.on_country_select(
+    action.selected_country_codes,
+    selected_date.current_day
+  );
   rerender();
-  weather_data_store.on_country_select(selected_countries.get_selected_countries(),
-                                       selected_date.current_day);
-}, SUPPORTED_COUNTRIES);
-selected_date = new SelectedDate(function() {
-  rerender();
-  mobility_data_store.on_select(selected_admins.get_admin_codes(), selected_date.current_day);
-  // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
-  weather_data_store.on_date_select(selected_countries.get_selected_countries(),
-                                    selected_date.current_day);
-}, weather_data_store);
-var selected_admins = new SelectedAdmins(function() {
-  rerender();
-  mobility_data_store.on_select(selected_admins.get_admin_codes(), selected_date.current_day);
-  // TODO(jetpack): we'll want a similar thing for epi_data_store, I think?
-  weather_data_store.on_admin_select(selected_admins.get_admin_codes());
 });
+selection_ee.add_listener(SelectionEvents.AdminSelectEvent, function(action) {
+  mobility_data_store.on_select(selected_admins.get_admin_codes(), selected_date.current_day);
+  weather_data_store.on_admin_select(selected_admins.get_admin_codes());
+  rerender();
+});
+selection_ee.add_listener(SelectionEvents.DateSelectEvent, function(action) {
+  mobility_data_store.on_select(selected_admins.get_admin_codes(), action.date);
+  weather_data_store.on_date_select(selected_countries.get_selected_countries(), action.date);
+  rerender();
+});
+
 var admin_details = new AdminDetails({
   on_update: rerender,
   api_client: api_client,
