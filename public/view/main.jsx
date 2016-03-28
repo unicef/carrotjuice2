@@ -37,33 +37,38 @@ const SUPPORTED_COUNTRIES = ['br', 'co', 'pa'];
 // ugliness here because AppMain hasn't yet been instantiated.
 var main_instance = null;
 var map_controller = null;
-var rerender = _.debounce(function() {
+var _base_rerender = function() {
   if (main_instance !== null) {
     main_instance.forceUpdate();
   }
-}, 16);  // 16 milliseconds is 60 frames per second ... fast enough
-var rerender_and_redraw = function() {
-  rerender();
+};
+var rerender = _.debounce(_base_rerender, 16);  // 16 milliseconds is 60 frames per second ... fast enough
+var rerender_and_redraw = _.debounce(function() {
+  _base_rerender();
   if (map_controller !== null) {
     map_controller.redraw();
   }
-};
+}, 16);
 
 // NOTE: we could model resize state formally, but this'll do for now
 window.addEventListener('resize', rerender);
 
 var loading_status = new LoadingStatusModel();
 var api_client = new APIClient(loading_status);
-var epi_data_store = new EpiDataStore(rerender_and_redraw);
-var econ_data_store = new EconDataStore(rerender_and_redraw);
-var mobility_data_store = new MobilityDataStore(rerender_and_redraw, api_client);
-var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client, SUPPORTED_COUNTRIES);
-var selected_layers = new SelectedLayers(rerender_and_redraw);
+var epi_data_store = new EpiDataStore();
+var econ_data_store = new EconDataStore();
+var mobility_data_store = new MobilityDataStore(api_client);
+var weather_data_store = new WeatherDataStore(api_client, SUPPORTED_COUNTRIES);
+var selected_layers = new SelectedLayers();
 var selected_countries = new SelectedCountries(SUPPORTED_COUNTRIES);
 var selected_date = new SelectedDate(weather_data_store);
 var selected_admins = new SelectedAdmins();
 
 loading_status.emitter.any_event_listener(rerender);
+epi_data_store.emitter.any_event_listener(rerender_and_redraw);
+econ_data_store.emitter.any_event_listener(rerender_and_redraw);
+mobility_data_store.emitter.any_event_listener(rerender_and_redraw);
+weather_data_store.emitter.any_event_listener(rerender_and_redraw);
 
 // Upon selection, we may want to fetch more data from the server. This code is a
 // little out-of-band, because when one dimension is changed/selectied (e.g. admin
@@ -72,6 +77,7 @@ loading_status.emitter.any_event_listener(rerender);
 //
 // TODO: Move this code to a more appropriate file?
 // TODO(jetpack): for all of these, we'll want a similar thing for epi_data_store?
+selected_layers.emitter.any_event_listener(rerender_and_redraw);
 selected_countries.emitter.any_event_listener(function(action) {
   weather_data_store.on_country_select(
     action.selected_country_codes,

@@ -10,9 +10,12 @@
 var _ = require('lodash');
 var P = require('pjs').P;
 
+var EventEmitter = require('../event-emitters/event-emitter-base.js');
+var SelectLayersEvent = require('../event-emitters/select-layers-event.js');
+
 var SelectedLayers = P({
-  init: function(on_update) {
-    this.on_update = on_update;
+  init: function() {
+    this.emitter = new EventEmitter([SelectLayersEvent]);
     this.base_opacity = 1.0;
     this.base_layer = 'weather';
     // `overlay_layers_status` is a map from all available overlays to a boolean
@@ -25,12 +28,12 @@ var SelectedLayers = P({
 
   set_base_layer: function(base_layer) {
     this.base_layer = base_layer;
-    this.on_update();
+    this.emitter.emit(new SelectLayersEvent());
   },
 
   toggle_overlay_layer: function(overlay_layer) {
     this.overlay_layers_status[overlay_layer] = !this.overlay_layers_status[overlay_layer];
-    this.on_update();
+    this.emitter.emit(new SelectLayersEvent());
   },
 
   get_available_base_layers: function() {
@@ -51,7 +54,7 @@ var SelectedLayers = P({
 
   set_base_opacity: function(opacity) {
     this.base_opacity = opacity;
-    this.on_update();
+    this.emitter.emit(new SelectLayersEvent());
   },
 
   // TODO(jetpack): unit test that all valid layers return a name.

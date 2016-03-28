@@ -9,7 +9,7 @@ var SelectCountryEvent = require('../event-emitters/select-country-event.js');
 
 var SelectedCountries = P({
   init: function(available_options) {
-    this.emitter = new EventEmitter([SelectCountryEvent])
+    this.emitter = new EventEmitter([SelectCountryEvent]);
     this.selected_country_codes = {};
     this.available_options = available_options;
     // Start with all options selected.

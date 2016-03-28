@@ -1,5 +1,5 @@
 /**
- * Defines selection-related events
+ * When the user selects a date.
  */
 
 var P = require('pjs').P;

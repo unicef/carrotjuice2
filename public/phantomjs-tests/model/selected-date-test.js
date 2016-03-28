@@ -7,16 +7,15 @@ var SelectDateEvent = require('../../event-emitters/select-date-event.js');
 describe('model/selected-date', function() {
   it('initializes current day', function() {
     var update_call_count = 0;
-    var onUpdate = function() {
-      update_call_count++;
-    };
 
     var deferred = Q.defer();
     var model = new SelectedDate({
       initial_load_promise: deferred.promise,
       last_date: 'test last date'
     });
-    model.emitter.add_listener(SelectDateEvent, onUpdate);
+    model.emitter.add_listener(SelectDateEvent, function() {
+      update_call_count++;
+    });
 
     // before resolution, should be uninitialized
     assert.strictEqual(update_call_count, 0);

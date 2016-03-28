@@ -16,23 +16,17 @@ var LoadingStatusModel = P({
 
   set_initialized_topojson: function() {
     this.is_initializing = false;
-    this.emitter.emit(new LoadingStatusChange(
-      this.is_initializing, this.inflight_requests, 0
-    ));
+    this.emitter.emit(new LoadingStatusChange());
   },
 
   track_loading_promise: function(promise) {
     this.inflight_requests++;
-    this.emitter.emit(new LoadingStatusChange(
-      this.is_initializing, this.inflight_requests, 1
-    ));
+    this.emitter.emit(new LoadingStatusChange());
 
     // TODO(zora): handle failures better
     var finally_fcn = function() {
       this.inflight_requests--;
-      this.emitter.emit(new LoadingStatusChange(
-        this.is_initializing, this.inflight_requests, -1
-      ));
+      this.emitter.emit(new LoadingStatusChange());
     }.bind(this);
     promise.then(finally_fcn, finally_fcn);
   }

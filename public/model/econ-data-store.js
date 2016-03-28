@@ -9,9 +9,12 @@
 var P = require('pjs').P;
 var Q = require('q');
 
+var EventEmitter = require('../event-emitters/event-emitter-base.js');
+var GenericDataLoadedEvent = require('../event-emitters/generic-data-loaded-event.js');
+
 var EconDataStore = P({
-  init: function(on_update) {
-    this.on_update = on_update;
+  init: function() {
+    this.emitter = new EventEmitter([GenericDataLoadedEvent]);
 
     this.spending_by_admin = {};
 

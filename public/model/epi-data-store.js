@@ -11,6 +11,8 @@ var P = require('pjs').P;
 var Q = require('q');
 
 var DateUtil = require('./date-util.js');
+var EventEmitter = require('../event-emitters/event-emitter-base.js');
+var GenericDataLoadedEvent = require('../event-emitters/generic-data-loaded-event.js');
 
 var admin_to_country_code = function(admin_code) {
   return admin_code.match(/([a-z]{2})-/)[1];
@@ -19,8 +21,8 @@ var admin_to_country_code = function(admin_code) {
 // TODO(jetpack): screaming for unit tests.
 
 var EpiDataStore = P({
-  init: function(on_update) {
-    this.on_update = on_update;
+  init: function() {
+    this.emitter = new EventEmitter([GenericDataLoadedEvent]);
 
     // `records_by_country` format is map from country_code to an array of epi
     // data records:

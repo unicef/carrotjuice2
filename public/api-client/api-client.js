@@ -37,9 +37,8 @@ var APIClient = P({
     var date_str = '';
     if (date) {
       date_str = '/' + DateUtil.iso_to_yyyymmdd(date);
-    } else {
-      console.log('No date specified - fetching latest available data..');
     }
+    // otherwise, fetch latest available data.
     return this.make_request('/api/country_weather/' + country_code + date_str);
   },
 

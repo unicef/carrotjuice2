@@ -1,5 +1,5 @@
 /**
- * Defines selection-related events
+ * When the user selects a country.
  */
 
 var P = require('pjs').P;

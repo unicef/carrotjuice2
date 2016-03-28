@@ -17,7 +17,6 @@ var PopulationDensityModel = P({
   },
 
   get_color_mapping: function(admin_data_by_code) {
-    console.log('generating admin population density chloropleth - should only run once!');
     var density_to_color = d3.scale.log().domain([1, 1000])
         .range(['white', 'purple']).clamp(true);
     var result = {};
@@ -45,7 +44,6 @@ var SocioeconomicModel = P({
   },
 
   get_color_mapping: function(admin_data_by_code, spending_by_code) {
-    console.log('generating socioeconomic chloropleth');
     // TODO(jetpack): log vs. linear, domain?
     var spending_to_color = d3.scale.log().domain([1, 100])
         .range(['red', '#0d5']).clamp(true);
@@ -57,7 +55,6 @@ var SocioeconomicModel = P({
         result[admin_code] = spending_to_color(normalized_spending);
       }
     });
-    console.log(result);
     return result;
   },
 
@@ -81,7 +78,6 @@ var AdminDetails = P({
     this.admin_feature_collection_by_country = {};
     var fetch_admin_data_promise = Promise.all(
       init_dict.initial_countries_to_load.map((function(country_code) {
-        console.log('Fetching admins for', country_code);
         return init_dict.api_client.fetch_admin_data(country_code)
           .then(this.process_admin_data.bind(this, country_code));
       }).bind(this)))

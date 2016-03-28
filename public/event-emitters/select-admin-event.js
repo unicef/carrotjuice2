@@ -1,5 +1,5 @@
 /**
- * Defines selection-related events
+ * When the user selects and administrative region in a country (polygon on the map).
  */
 
 var P = require('pjs').P;

@@ -5,9 +5,15 @@
 var _ = require('lodash');
 var P = require('pjs').P;
 
+var EventEmitter = require('../event-emitters/event-emitter-base.js');
+var GenericDataLoadedEvent = require('../event-emitters/generic-data-loaded-event.js');
+
 var MobilityDataStore = P({
-  init: function(on_update, api_client) {
-    this.on_update = on_update;
+  init: function(api_client) {
+    this.emitter = new EventEmitter([GenericDataLoadedEvent]);
+    this.on_update = function() {
+      this.emitter.emit(new GenericDataLoadedEvent());
+    }.bind(this);
     this.api_client = api_client;
 
     // `egress_records_by_date` is a mapping from date -> origin admin code -> destination admin
