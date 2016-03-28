@@ -11,29 +11,22 @@ var SelectedAdminsInfo = React.createClass({
   },
 
   population_figure: function(x) {
-    if (!x) { return this.no_data; }
-    return this.commify(x);
+    return x ? this.commify(x) : this.no_data;
   },
 
   weather_data: function(admin_code) {
     var weather_data = this.props.admin_details.weather_data_store.weather_data_for_date_and_admin(
       this.props.selected_date.current_day, admin_code);
-    if (_.has(weather_data, 'temp_mean')) {
-      return <span>{weather_data.temp_mean.toFixed(1)} °C</span>;
-    } else {
-      return this.no_data;
-    }
+    return (_.has(weather_data, 'temp_mean')) ?
+           <span>{weather_data.temp_mean.toFixed(1)} °C</span> :
+           this.no_data;
   },
 
   oviposition_data: function(admin_code) {
     var oviposition = this.props.admin_details.weather_data_store.oviposition_model
                           .oviposition_factor_for_date_and_admin(
                             this.props.selected_date.current_day, admin_code);
-    if (oviposition) {
-      return <span>{oviposition}%</span>;
-    } else {
-      return this.no_data;
-    }
+    return oviposition ? <span>{oviposition}%</span> : this.no_data;
   },
 
   case_data: function(admin_code) {
