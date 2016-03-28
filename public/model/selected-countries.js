@@ -3,11 +3,13 @@
  */
 
 var P = require('pjs').P;
-var SelectionEvents = require('../event-emitters/selection-events.js');
+
+var EventEmitter = require('../event-emitters/event-emitter-base.js');
+var SelectCountryEvent = require('../event-emitters/select-country-event.js');
 
 var SelectedCountries = P({
-  init: function(selection_ee, available_options) {
-    this.selection_ee = selection_ee;
+  init: function(available_options) {
+    this.emitter = new EventEmitter([SelectCountryEvent])
     this.selected_country_codes = {};
     this.available_options = available_options;
     // Start with all options selected.
@@ -31,9 +33,7 @@ var SelectedCountries = P({
       this.selected_country_codes[country_code] = true;
     }
     console.log('new coutries:', this.selected_country_codes);
-    this.selection_ee.emit(
-      new SelectionEvents.CountrySelectEvent(this.get_selected_countries())
-    );
+    this.emitter.emit(new SelectCountryEvent(this.get_selected_countries()));
   }
 });
 

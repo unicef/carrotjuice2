@@ -3,12 +3,14 @@
  */
 
 var P = require('pjs').P;
-var SelectionEvents = require('../event-emitters/selection-events.js');
+
+var EventEmitter = require('../event-emitters/event-emitter-base.js');
+var SelectDateEvent = require('../event-emitters/select-date-event.js');
 
 var SelectedDate = P({
-  init: function(selection_ee, weather_data_store) {
+  init: function(weather_data_store) {
     // `current_day` is a Date.
-    this.selection_ee = selection_ee;
+    this.emitter = new EventEmitter([SelectDateEvent]);
     this.current_day = null;
     this.date_bar_visible = true;
 
@@ -20,7 +22,7 @@ var SelectedDate = P({
   set_date: function(date) {
     console.log('Setting date to', date);
     this.current_day = date;
-    this.selection_ee.emit(new SelectionEvents.DateSelectEvent(date));
+    this.emitter.emit(new SelectDateEvent(date));
   }
 });
 
