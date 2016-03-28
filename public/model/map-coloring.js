@@ -16,7 +16,7 @@ var MapColoring = P({
     this.selected_date = init_dict.selected_date;
     this.data_stores_for_base_layer = {
       weather: init_dict.weather_data_store,
-      oviposition: init_dict.weather_data_store.fake_oviposition_model(),
+      oviposition: init_dict.weather_data_store.oviposition_model,
       population_density: init_dict.admin_details.population_density_model(),
       socioeconomic: init_dict.admin_details.socioeconomic_model()
     };
