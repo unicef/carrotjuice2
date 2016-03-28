@@ -14,7 +14,7 @@ var ViewUtil = require('./view-util.jsx');
 var SelectionEvents = require('../event-emitters/selection-events.js');
 
 // Models
-var DataLayer = require('../model/data-layer.js');
+var SelectedLayers = require('../model/selected-layers.js');
 var LoadingStatusModel = require('../model/loading-status.js');
 var EpiDataStore = require('../model/epi-data-store.js');
 var EconDataStore = require('../model/econ-data-store.js');
@@ -62,7 +62,7 @@ var epi_data_store = new EpiDataStore(rerender_and_redraw);
 var econ_data_store = new EconDataStore(rerender_and_redraw);
 var mobility_data_store = new MobilityDataStore(rerender_and_redraw, api_client);
 var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client, SUPPORTED_COUNTRIES);
-var data_layer = new DataLayer(rerender_and_redraw);
+var data_layer = new SelectedLayers(rerender_and_redraw);
 var selected_countries = new SelectedCountries(selection_ee, SUPPORTED_COUNTRIES);
 var selected_date = new SelectedDate(selection_ee, weather_data_store);
 var selected_admins = new SelectedAdmins(selection_ee);
