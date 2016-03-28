@@ -75,6 +75,10 @@ var WeatherDataStore = P({
     });
   },
 
+  weather_data_for_date_and_admin: function(date, admin_code) {
+    return _.get(this.data_by_date_and_admin, [date.toISOString(), admin_code]);
+  },
+
   admin_color_for_date: function(date_string) {
     // TODO(jetpack): Use real science and stuff.
     var temp_to_prevalence = d3.scale.log().domain([1, 50])
