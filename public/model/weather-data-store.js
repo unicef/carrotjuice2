@@ -57,7 +57,7 @@ var MosquitoPrevalenceModel = P({
     this.weather_data_store = weather_data_store;
     // `temp_to_prevalence` ranges from ~0 to ~1e8. We map this logarithmically to a white->red
     // color gradient.
-    this.prevalence_to_color = d3.scale.log().domain([1, 1e8]).clamp(true)
+    this.prevalence_to_color = d3.scale.log().domain([200, 1e8]).clamp(true)
       .range(['white', 'red']);
   },
 
@@ -83,13 +83,30 @@ var MosquitoPrevalenceModel = P({
     );
   },
 
-  // TODO(jetpack): return categorical description instead (low, high, very high, etc.)
+  // TODO(jetpack): consult w/ research on this and add link to graph to justify these thresholds.
+  prevalence_to_category: function(p) {
+    if (p < 2000) {
+      return 'Very low';
+    } else if (p < 3500) {
+      return 'Low';
+    } else if (p < 10000) {
+      return 'Medium';
+    } else if (p < 1e6) {
+      return 'High';
+    } else {
+      return 'Very high';
+    }
+  },
+
   prevalence_for_date_and_admin: function(date, admin_code) {
     var weather_data = _.get(this.weather_data_store.data_by_date_and_admin,
                              [date.toISOString(), admin_code]);
     if (_.has(weather_data, 'temp_mean')) {
-      var prevalence = Math.max(0, this.temp_to_prevalence(weather_data.temp_mean));
-      return Math.round(prevalence);
+      var prevalence = Math.round(Math.max(0, this.temp_to_prevalence(weather_data.temp_mean)));
+      return {
+        value: prevalence,
+        description: this.prevalence_to_category(prevalence)
+      };
     }
   }
 });

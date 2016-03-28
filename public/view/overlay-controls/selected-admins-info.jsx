@@ -33,7 +33,9 @@ var SelectedAdminsInfo = React.createClass({
     var prevalence = this.props.admin_details.weather_data_store.prevalence_model
                          .prevalence_for_date_and_admin(
                            this.props.selected_date.current_day, admin_code);
-    return prevalence ? this.commify(prevalence) : this.no_data;
+    return (!_.isEmpty(prevalence)) ?
+           <span>{prevalence.description} ({this.commify(prevalence.value)})</span> :
+           this.no_data;
   },
 
   case_data: function(admin_code) {
