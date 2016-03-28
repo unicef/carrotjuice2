@@ -7,6 +7,17 @@ var P = require('pjs').P;
 var d3 = require('d3');
 var SelectionEvents = require('../event-emitters/selection-events.js');
 
+// TODO(jetpack): we should have comments with exact pointers into these papers for where we get our
+// models, along with explanations for how and why we deviate from them...
+
+// See the papers "Vectorial Capacity of Aedes aegypti: Effects of Temperature and Implications for
+// Global Dengue Epidemic Potential" by J. Liu-Helmersson et al [1] and "Impact of human mobility on
+// the emergence of dengue epidemics in Pakistan" by A. Wesolowski et al [2] for the source of the
+// oviposition and mosquito prevalence models.
+//
+// [1] http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0089783
+// [2] http://www.pnas.org/content/112/38/11887.abstract
+
 var OvipositionModel = P({
   init: function(weather_data_store) {
     this.weather_data_store = weather_data_store;
@@ -16,10 +27,6 @@ var OvipositionModel = P({
       .range(['#b4d642', '#f8cd4e', '#ff7f47']);
   },
 
-  // TODO(jetpack): confirm this is the correct source.
-  // See the paper "Vectorial Capacity of Aedes aegypti: Effects of Temperature and Implications for
-  // Global Dengue Epidemic Potential"
-  // http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0089783
   temp_to_oviposition: function(x) {
     return -5.4 + 1.8 * x - 0.2124 * Math.pow(x, 2) + 0.01015 * Math.pow(x, 3) -
       0.0001515 * Math.pow(x, 4);
@@ -45,6 +52,48 @@ var OvipositionModel = P({
   }
 });
 
+var MosquitoPrevalenceModel = P({
+  init: function(weather_data_store) {
+    this.weather_data_store = weather_data_store;
+    // `temp_to_prevalence` ranges from ~0 to ~1e8. We map this logarithmically to a white->red
+    // color gradient.
+    this.prevalence_to_color = d3.scale.log().domain([1, 1e8]).clamp(true)
+      .range(['white', 'red']);
+  },
+
+  temp_to_prevalence: function(x) {
+    var r_const = 1.987;  // Gas constant in cal/K/mol.
+    var k = x + 273.15;  // Temp in Kelvin.
+    // Extrinsic incubation period of adult mosquito.
+    var gamma_v = (3.3589e-3 / 298 * k * Math.exp(1500 / r_const * (1 / 298 - 1 / k))) /
+        (1 + Math.exp(6.203e21 / r_const / -2.176e30 - 1 / k));
+    // Adult mosquito mortality.
+    var mu_v = 0.8692 - 0.1599 * x + 0.01116 * Math.pow(x, 2) - 3.408e-4 * Math.pow(x, 3) +
+        3.809e-6 * Math.pow(x, 4);
+    // Dengue suitability.
+    return Math.exp(-mu_v * gamma_v) / Math.pow(mu_v, 2);
+  },
+
+  admin_color_for_date: function(date_string) {
+    return _.mapValues(
+      this.weather_data_store.data_by_date_and_admin[date_string],
+      (function(data_obj) {
+        return this.prevalence_to_color(this.temp_to_prevalence(data_obj.temp_mean));
+      }).bind(this)
+    );
+  },
+
+  // TODO(jetpack): return categorical description instead (low, high, very high, etc.)
+  prevalence_for_date_and_admin: function(date, admin_code) {
+    var weather_data = _.get(this.weather_data_store.data_by_date_and_admin,
+                             [date.toISOString(), admin_code]);
+    if (_.has(weather_data, 'temp_mean')) {
+      var prevalence = Math.max(0, this.temp_to_prevalence(weather_data.temp_mean));
+      return Math.round(prevalence);
+    }
+  }
+});
+
 var WeatherDataStore = P({
   init: function(on_update, api_client, initial_countries_to_load) {
     this.on_update = on_update;
@@ -54,6 +103,7 @@ var WeatherDataStore = P({
     // `temp_mean`.
     this.data_by_date_and_admin = {};
     this.oviposition_model = new OvipositionModel(this);
+    this.prevalence_model = new MosquitoPrevalenceModel(this);
     // TODO(jetpack): globalhack: `last_date` should be per-country.
     this.last_date = null;
     this.initial_load_promise = Promise.all(

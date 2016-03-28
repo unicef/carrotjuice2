@@ -29,6 +29,13 @@ var SelectedAdminsInfo = React.createClass({
     return oviposition ? <span>{oviposition}%</span> : this.no_data;
   },
 
+  prevalence_data: function(admin_code) {
+    var prevalence = this.props.admin_details.weather_data_store.prevalence_model
+                         .prevalence_for_date_and_admin(
+                           this.props.selected_date.current_day, admin_code);
+    return prevalence ? this.commify(prevalence) : this.no_data;
+  },
+
   case_data: function(admin_code) {
     var epi_display_strings = this.props.admin_details.get_epi_data_display_strings(
       admin_code, this.props.selected_date.current_day);
@@ -49,6 +56,7 @@ var SelectedAdminsInfo = React.createClass({
       <div>Area: {this.commify(admin.geo_area_sqkm)} km²</div>
       <div>Weather: {this.weather_data(admin.admin_code)}</div>
       <div>Oviposition: {this.oviposition_data(admin.admin_code)}</div>
+      <div>Prevalence: {this.prevalence_data(admin.admin_code)}</div>
       <div>Case data: {this.case_data(admin.admin_code)}</div>
     </div>;
   },

@@ -34,7 +34,7 @@ var SelectedLayers = P({
   },
 
   get_available_base_layers: function() {
-    return ['weather', 'oviposition', 'population_density', 'socioeconomic'];
+    return ['weather', 'oviposition', 'prevalence', 'population_density', 'socioeconomic'];
   },
 
   get_available_overlay_layers: function() {
@@ -59,6 +59,7 @@ var SelectedLayers = P({
     return {
       weather: 'Weather',
       oviposition: 'Mosquito Oviposition',
+      prevalence: 'Mosquito Prevalence',
       population_density: 'Population Density',
       socioeconomic: 'Socioeconomic',
       epi: 'Epidemiological',
