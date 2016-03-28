@@ -15,7 +15,17 @@ var SelectedAdminsInfo = React.createClass({
     return this.commify(x);
   },
 
-  create_case_data: function(admin_code) {
+  weather_data: function(admin_code) {
+    var weather_data = this.props.admin_details.weather_data_store.weather_data_for_date_and_admin(
+      this.props.selected_date.current_day, admin_code);
+    if (_.has(weather_data, 'temp_mean')) {
+      return <span>{weather_data.temp_mean.toFixed(1)} °C</span>;
+    } else {
+      return this.no_data;
+    }
+  },
+
+  case_data: function(admin_code) {
     var epi_display_strings = this.props.admin_details.get_epi_data_display_strings(
       admin_code, this.props.selected_date.current_day);
     if (epi_display_strings) {
@@ -28,12 +38,13 @@ var SelectedAdminsInfo = React.createClass({
   },
 
   create_admin_panel: function(admin) {
-    // TODO(jetpack): add weather, mosquito data. probably remove area?
+    // TODO(jetpack): add mosquito data. probably remove area?
     return <div className="selected-admin-info" key={admin.name}>
       <h3>{admin.name}</h3>
       <div>Population: {this.population_figure(admin.population)}</div>
       <div>Area: {this.commify(admin.geo_area_sqkm)} km²</div>
-      <div>Case data: {this.create_case_data(admin.admin_code)}</div>
+      <div>Weather: {this.weather_data(admin.admin_code)}</div>
+      <div>Case data: {this.case_data(admin.admin_code)}</div>
     </div>;
   },
 
