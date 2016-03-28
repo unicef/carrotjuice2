@@ -13,22 +13,20 @@ var APIClient = P({
   },
 
   make_request: function(url) {
-    var loading_status = this.loading_status;
-    ++loading_status.inflight_requests;
-    return new Promise(function(resolve, reject) {
+    var result = new Promise(function(resolve, reject) {
       jQuery.ajax({
         method: 'GET',
         url: url,
         success: function(data) {
-          --loading_status.inflight_requests;
           resolve(data);
         },
         fail: function(error) {
-          --loading_status.inflight_requests;
           reject(error);
         }
       });
     });
+    this.loading_status.track_loading_promise(result);
+    return result;
   },
 
   fetch_admin_data: function(country_code) {

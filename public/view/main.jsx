@@ -10,11 +10,6 @@ var LoadingStatusView = require('./loading-status.jsx');
 var OverlayControlsBox = require('./overlay-controls/overlay-controls-box.jsx');
 var ViewUtil = require('./view-util.jsx');
 
-// Event emitters
-var SelectAdminEvent = require('../event-emitters/select-admin-event.js');
-var SelectCountryEvent = require('../event-emitters/select-country-event.js');
-var SelectDateEvent = require('../event-emitters/select-date-event.js');
-
 // Models
 var SelectedLayers = require('../model/selected-layers.js');
 var LoadingStatusModel = require('../model/loading-status.js');
@@ -56,7 +51,7 @@ var rerender_and_redraw = function() {
 // NOTE: we could model resize state formally, but this'll do for now
 window.addEventListener('resize', rerender);
 
-var loading_status = new LoadingStatusModel(rerender);
+var loading_status = new LoadingStatusModel();
 var api_client = new APIClient(loading_status);
 var epi_data_store = new EpiDataStore(rerender_and_redraw);
 var econ_data_store = new EconDataStore(rerender_and_redraw);
@@ -67,6 +62,8 @@ var selected_countries = new SelectedCountries(SUPPORTED_COUNTRIES);
 var selected_date = new SelectedDate(weather_data_store);
 var selected_admins = new SelectedAdmins();
 
+loading_status.emitter.any_event_listener(rerender);
+
 // Upon selection, we may want to fetch more data from the server. This code is a
 // little out-of-band, because when one dimension is changed/selectied (e.g. admin
 // regions), we also want to know about the current date so we only fetch data with
@@ -74,26 +71,25 @@ var selected_admins = new SelectedAdmins();
 //
 // TODO: Move this code to a more appropriate file?
 // TODO(jetpack): for all of these, we'll want a similar thing for epi_data_store?
-selected_countries.emitter.add_listener(SelectCountryEvent, function(action) {
+selected_countries.emitter.any_event_listener(function(action) {
   weather_data_store.on_country_select(
     action.selected_country_codes,
     selected_date.current_day
   );
   rerender();
 });
-selected_admins.emitter.add_listener(SelectAdminEvent, function(action) {
+selected_admins.emitter.any_event_listener(function(action) {
   mobility_data_store.on_select(action.selected_admins, selected_date.current_day);
   weather_data_store.on_admin_select(action.selected_admins);
   rerender();
 });
-selected_date.emitter.add_listener(SelectDateEvent, function(action) {
+selected_date.emitter.any_event_listener(function(action) {
   mobility_data_store.on_select(selected_admins.get_admin_codes(), action.selected_date);
   weather_data_store.on_date_select(selected_countries.get_selected_countries(), action.selected_date);
   rerender();
 });
 
 var admin_details = new AdminDetails({
-  on_update: rerender,
   api_client: api_client,
   selected_admins: selected_admins,
   econ_data_store: econ_data_store,

@@ -12,7 +12,6 @@ var SelectedDate = P({
     // `current_day` is a Date.
     this.emitter = new EventEmitter([SelectDateEvent]);
     this.current_day = null;
-    this.date_bar_visible = true;
 
     weather_data_store.initial_load_promise.then((function() {
       this.set_date(weather_data_store.last_date);

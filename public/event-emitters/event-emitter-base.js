@@ -57,6 +57,18 @@ var EventEmitter = P({
     this.listeners_by_action_key[action_type.prototype.key].push(
       new ListenerWrapper(listener, remove_after_call)
     );
+  },
+
+  /**
+   * Adds a listener to all valid event types. Currently, because of implementation
+   * details, remove_after_call is not supported.
+   *
+   * @param{function} listener
+   */
+  any_event_listener: function(listener) {
+    _.values(this.actions_by_key).forEach(function(action_type) {
+      this.add_listener(action_type, listener, false);
+    }.bind(this));
   }
 });
 
