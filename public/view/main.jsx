@@ -1,6 +1,7 @@
 /**
  * this is the main entrypoint for our single-page app
  */
+var _ = require('lodash');
 var React = require('react');
 
 // Views
@@ -36,11 +37,11 @@ const SUPPORTED_COUNTRIES = ['br', 'co', 'pa'];
 // ugliness here because AppMain hasn't yet been instantiated.
 var main_instance = null;
 var map_controller = null;
-var rerender = function() {
+var rerender = _.debounce(function() {
   if (main_instance !== null) {
     main_instance.forceUpdate();
   }
-};
+}, 16);  // 16 milliseconds is 60 frames per second ... fast enough
 var rerender_and_redraw = function() {
   rerender();
   if (map_controller !== null) {
