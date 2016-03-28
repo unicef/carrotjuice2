@@ -10,7 +10,7 @@
 var _ = require('lodash');
 var P = require('pjs').P;
 
-var DataLayer = P({
+var SelectedLayers = P({
   init: function(on_update) {
     this.on_update = on_update;
     this.base_opacity = 1.0;
@@ -67,4 +67,4 @@ var DataLayer = P({
   }
 });
 
-module.exports = DataLayer;
+module.exports = SelectedLayers;

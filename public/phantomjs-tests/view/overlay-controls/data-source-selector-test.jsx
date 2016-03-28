@@ -7,8 +7,8 @@ var ReactDOM = require('react-dom');
 
 describe('view/overlay-controls/data-source-selector', function() {
   it('mounts and contains reasonable elements', function() {
-    var data_layer = {
-      data_layer: 'test_layer',
+    var selected_layers = {
+      base_layer: 'test_layer',
       display_name: function() {
         return 'test display name';
       },
@@ -22,7 +22,7 @@ describe('view/overlay-controls/data-source-selector', function() {
 
     return Q().then(function() {
       ReactDOM.render(
-        <DataSourceSelector data_layer={data_layer}/>,
+        <DataSourceSelector selected_layers={selected_layers}/>,
         window.test_content_div
       );
     }).delay(1).then(function() {
