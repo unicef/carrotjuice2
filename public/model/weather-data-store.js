@@ -32,6 +32,16 @@ var OvipositionModel = P({
         return this.oviposition_to_color(this.temp_to_oviposition(data_obj.temp_mean));
       }).bind(this)
     );
+  },
+
+  // Return oviposition rate as an integer between 0 and 100.
+  oviposition_factor_for_date_and_admin: function(date, admin_code) {
+    var weather_data = _.get(this.weather_data_store.data_by_date_and_admin,
+                             [date.toISOString(), admin_code]);
+    if (_.has(weather_data, 'temp_mean')) {
+      var oviposition = Math.max(0, this.temp_to_oviposition(weather_data.temp_mean));
+      return Math.round(oviposition / 8.8 * 100);
+    }
   }
 });
 

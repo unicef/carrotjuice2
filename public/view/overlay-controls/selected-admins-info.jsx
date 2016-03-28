@@ -25,6 +25,17 @@ var SelectedAdminsInfo = React.createClass({
     }
   },
 
+  oviposition_data: function(admin_code) {
+    var oviposition = this.props.admin_details.weather_data_store.oviposition_model
+                          .oviposition_factor_for_date_and_admin(
+                            this.props.selected_date.current_day, admin_code);
+    if (oviposition) {
+      return <span>{oviposition}%</span>;
+    } else {
+      return this.no_data;
+    }
+  },
+
   case_data: function(admin_code) {
     var epi_display_strings = this.props.admin_details.get_epi_data_display_strings(
       admin_code, this.props.selected_date.current_day);
@@ -44,6 +55,7 @@ var SelectedAdminsInfo = React.createClass({
       <div>Population: {this.population_figure(admin.population)}</div>
       <div>Area: {this.commify(admin.geo_area_sqkm)} km²</div>
       <div>Weather: {this.weather_data(admin.admin_code)}</div>
+      <div>Oviposition: {this.oviposition_data(admin.admin_code)}</div>
       <div>Case data: {this.case_data(admin.admin_code)}</div>
     </div>;
   },
