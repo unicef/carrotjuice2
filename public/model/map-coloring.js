@@ -10,7 +10,7 @@ var Q = require('q');
 
 var MapColoring = P({
   init: function(init_dict) {
-    this.data_layer = init_dict.data_layer;
+    this.selected_layers = init_dict.selected_layers;
     this.selected_admins = init_dict.selected_admins;
     this.selected_countries = init_dict.selected_countries;
     this.selected_date = init_dict.selected_date;
@@ -29,7 +29,7 @@ var MapColoring = P({
   },
 
   active_base_layer_data_store: function() {
-    return this.data_stores_for_base_layer[this.data_layer.base_layer];
+    return this.data_stores_for_base_layer[this.selected_layers.base_layer];
   },
 
   // TODO(jetpack): is there a principled way to implement interfaces w/ P.js? e.g. have weather,
@@ -40,7 +40,7 @@ var MapColoring = P({
   },
 
   base_layer_opacity: function() {
-    return this.data_layer.base_opacity;
+    return this.selected_layers.base_opacity;
   },
 
   /**
@@ -65,7 +65,7 @@ var MapColoring = P({
     var selected_countries = this.selected_countries.get_selected_countries();
     var selected_admins = this.selected_admins.get_admin_codes();
     var selected_date = this.selected_date.current_day;
-    this.data_layer.get_active_overlay_layers().forEach((function(overlay_name) {
+    this.selected_layers.get_active_overlay_layers().forEach((function(overlay_name) {
       switch (overlay_name) {
         case 'epi':
           layer_name_to_data.epi = epi_data_store.get_best_recent_epi_data(selected_countries,

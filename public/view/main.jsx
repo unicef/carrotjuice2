@@ -62,7 +62,7 @@ var epi_data_store = new EpiDataStore(rerender_and_redraw);
 var econ_data_store = new EconDataStore(rerender_and_redraw);
 var mobility_data_store = new MobilityDataStore(rerender_and_redraw, api_client);
 var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client, SUPPORTED_COUNTRIES);
-var data_layer = new SelectedLayers(rerender_and_redraw);
+var selected_layers = new SelectedLayers(rerender_and_redraw);
 var selected_countries = new SelectedCountries(selection_ee, SUPPORTED_COUNTRIES);
 var selected_date = new SelectedDate(selection_ee, weather_data_store);
 var selected_admins = new SelectedAdmins(selection_ee);
@@ -102,7 +102,7 @@ var admin_details = new AdminDetails({
   initial_countries_to_load: SUPPORTED_COUNTRIES
 });
 var map_coloring = new MapColoring({
-  data_layer: data_layer,
+  selected_layers: selected_layers,
   selected_admins: selected_admins,
   selected_date: selected_date,
   selected_countries: selected_countries,
@@ -133,7 +133,7 @@ var AppMain = React.createClass({
                             selected_admins={selected_admins}
                             weather_data_store={weather_data_store} />
         ])}
-        <OverlayControlsBox data_layer={data_layer}
+        <OverlayControlsBox selected_layers={selected_layers}
                             selected_countries={selected_countries}
                             selected_date={selected_date}
                             admin_details={admin_details} />
