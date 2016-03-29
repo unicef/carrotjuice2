@@ -62,7 +62,7 @@ var MosquitoPrevalenceModel = P({
   },
 
   temp_to_prevalence: function(x) {
-    var r_const = 1.987;  // Gas constant in cal/K/mol.
+    var r_const = 8.314;  // Gas constant in J/K/mol.
     var k = x + 273.15;  // Temp in Kelvin.
     // Extrinsic incubation period of adult mosquito.
     var gamma_v = (3.3589e-3 / 298 * k * Math.exp(1500 / r_const * (1 / 298 - 1 / k))) /
