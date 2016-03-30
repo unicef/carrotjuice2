@@ -10,3 +10,4 @@ before_install:
 
 script:
   - docker-compose run --rm phantomjs-tests
+  - docker-compose run --rm phantomjs-tests ./node_modules/eslint/bin/eslint.js .

@@ -5,3 +5,6 @@ public/js/
 
 # eventually remove this exclusion ... but let's focus on making other files compliant first
 config/
+
+# some hardcoded data
+public/model/hardcoded-econ-data.js

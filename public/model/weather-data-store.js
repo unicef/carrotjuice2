@@ -5,7 +5,6 @@
 var _ = require('lodash');
 var P = require('pjs').P;
 var d3 = require('d3');
-var SelectionEvents = require('../event-emitters/selection-events.js');
 
 var FakeOvipositionDataStore = P({
   init: function(weather_data_store) {
@@ -93,7 +92,7 @@ var WeatherDataStore = P({
   },
 
   fake_oviposition_model: function() {
-    return FakeOvipositionDataStore(this);
+    return new FakeOvipositionDataStore(this);
   },
 
   on_admin_select: function(admin_codes) {
