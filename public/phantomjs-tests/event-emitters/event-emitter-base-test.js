@@ -95,6 +95,7 @@ describe('event-emitter/base', function() {
 
   it('errors on duplicate event types', function() {
     assert.throws(function() {
+      // eslint-disable-next-line no-new
       new EventEmitter([EventA, EventA]);
     }, Error);
   });

@@ -48,5 +48,3 @@ mongoose.connect(config.database);
 app.listen(config.port);
 console.log('Connected to datasbase', config.database);
 console.log('The magic happens on', config.port);
-
-
