@@ -120,7 +120,7 @@ var MapController = P({
     };
     var click = function(e) {
       // User has clicked an admin. Clear admin searched object.
-      selected_admins.searched_admin_codes = {}
+      selected_admins.searched_admin_codes = {};
       selected_admins.select_admin(admin_code, set_border.bind(null, e));
       set_border(e);
       layer.bringToFront();  // Ensures border is fully visible.
@@ -159,7 +159,6 @@ var MapController = P({
   },
 
   get_admin_style_fcn: function() {
-
     var searched_admin_code = Object.keys(
       this.selected_admins.searched_admin_codes
     )[0];
@@ -170,7 +169,7 @@ var MapController = P({
       return admin_to_color_obj[admin_code] || '#ccc';
     };
     var border_strength = function(admin_code, searched_admin_code, zoom) {
-      if(admin_code === searched_admin_code) { return 1.0 }
+      if (admin_code === searched_admin_code) {return 1.0;}
       return zoom <= 5 ? 0.05 : 0.3;
     };
 
@@ -192,7 +191,6 @@ var MapController = P({
         opacity: border_strength(admin_code, searched_admin_code, this.map.getZoom()),
         weight: this.selected_admins.get_border_weight(admin_code)
       };
-
     }).bind(this);
   },
 
