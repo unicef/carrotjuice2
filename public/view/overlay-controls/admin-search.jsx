@@ -20,8 +20,7 @@ var AdminSearch = React.createClass({
       });
     // Return array of admin names
     }).map(function(key) {
-      return admin_objs[key].name + ' ' +
-      admin_objs[key].admin_code;
+      return admin_objs[key].name + ' ' + admin_objs[key].admin_code;
     }).sort();
     return admins;
   },
