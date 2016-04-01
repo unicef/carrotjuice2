@@ -33,7 +33,6 @@ var AdminSearch = React.createClass({
 
   optionSelected: function(admin_name_code) {
     var admin_code = this.search_key_to_admin[admin_name_code];
-    this.props.admin_details.selected_admins.select_admin(admin_code);
     this.props.admin_details.selected_admins.search_admin(admin_code);
   },
 

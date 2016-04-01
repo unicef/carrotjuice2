@@ -63,6 +63,7 @@ var SelectedAdmins = P({
   },
 
   search_admin: function(admin_code, on_unsearch) {
+    this.select_admin(admin_code);
     if (this.is_admin_searched(admin_code)) {
       console.log('Admin', admin_code, 'already selected, not doing anything.');
       return;
