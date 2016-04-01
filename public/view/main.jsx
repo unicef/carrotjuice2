@@ -65,8 +65,6 @@ var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client, S
 var selected_layers = new SelectedLayers(rerender_and_redraw);
 var selected_countries = new SelectedCountries(selection_ee, SUPPORTED_COUNTRIES);
 var selected_date = new SelectedDate(selection_ee, weather_data_store);
-// var selected_admins = new SelectedAdmins(selection_ee);
-
 var selected_admins = new SelectedAdmins(selection_ee, function() {
   rerender();
 });
