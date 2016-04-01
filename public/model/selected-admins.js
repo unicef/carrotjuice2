@@ -6,8 +6,7 @@ var P = require('pjs').P;
 var SelectionEvents = require('../event-emitters/selection-events.js');
 
 var SelectedAdmins = P({
-  init: function(selection_ee, onUpdate) {
-    this.onUpdate = onUpdate;
+  init: function(selection_ee) {
     this.selection_ee = selection_ee;
     // `selected_admin_codes` is a map from admin code to callbacks. The
     // callbacks are called when the admin is unselected.

@@ -65,9 +65,7 @@ var weather_data_store = new WeatherDataStore(rerender_and_redraw, api_client, S
 var selected_layers = new SelectedLayers(rerender_and_redraw);
 var selected_countries = new SelectedCountries(selection_ee, SUPPORTED_COUNTRIES);
 var selected_date = new SelectedDate(selection_ee, weather_data_store);
-var selected_admins = new SelectedAdmins(selection_ee, function() {
-  rerender();
-});
+var selected_admins = new SelectedAdmins(selection_ee);
 
 // Upon selection, we may want to fetch more data from the server. This code is a
 // little out-of-band, because when one dimension is changed/selectied (e.g. admin
