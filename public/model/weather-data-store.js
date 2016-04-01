@@ -6,7 +6,6 @@ var _ = require('lodash');
 var P = require('pjs').P;
 var d3 = require('d3');
 var Science = require('./science.js');
-var SelectionEvents = require('../event-emitters/selection-events.js');
 
 var WeatherDataStore = P({
   init: function(on_update, api_client, initial_countries_to_load) {
@@ -66,8 +65,12 @@ var WeatherDataStore = P({
     // TODO(jetpack): Use real science and stuff.
     var temp_to_color = d3.scale.linear().domain([15, 25, 35]).clamp(true)
       .range(['green', 'yellow', 'red']);
-    return _.mapValues(this.data_by_date_and_admin[date_string],
-                       function(data_obj) { return temp_to_color(data_obj.temp_mean); });
+    return _.mapValues(
+      this.data_by_date_and_admin[date_string],
+      function(data_obj) {
+        return temp_to_color(data_obj.temp_mean);
+      }
+    );
   },
 
   on_admin_select: function(admin_codes) {
