@@ -79,8 +79,6 @@ var SelectedAdmins = P({
     this.selection_ee.emit(
       new SelectionEvents.AdminSearchEvent(this.get_admin_codes())
     );
-
-    this.onUpdate();
   },
 
   get_admin_codes: function() {
