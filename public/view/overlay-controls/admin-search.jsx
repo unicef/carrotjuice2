@@ -36,8 +36,6 @@ var AdminSearch = React.createClass({
 
     this.props.admin_details.selected_admins.select_admin(admin_code);
     this.props.admin_details.selected_admins.search_admin(admin_code);
-    // Temporary hack to avoid double map refocus on search select.
-    this.props.admin_details.selected_admins.fresh = true;
   },
 
   render: function() {

@@ -17,8 +17,6 @@ var SelectedAdmins = P({
     // `searched_admin_codes` is a map from admin code to callbacks. The
     // callbacks are called when the admin is unsearched.
     this.searched_admin_codes = {};
-    // Temp hack to avoid double refocus on search select
-    this.fresh = false;
   },
 
   // Note: `on_unselect` is only used when `admin_code` is toggled on.
