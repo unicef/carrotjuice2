@@ -15,7 +15,9 @@
     // I don't buy this.
     "no-negated-condition": 0,
     // new-cap exceptions for P.js and Q.
-    "new-cap": [2, {"capIsNewExceptions": ["P", "Q"]}]
+    "new-cap": [2, {"capIsNewExceptions": ["P", "Q"]}],
+    // Meh.
+    "require-jsdoc": 0
   },
   "env": {
     // Don't warn for Mocha globals.
