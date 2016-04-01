@@ -63,7 +63,8 @@ var EventEmitter = P({
    * Adds a listener to all valid event types. Currently, because of implementation
    * details, remove_after_call is not supported.
    *
-   * @param{function} listener
+   * @param{function} listener -- function that will be invoked with actions as they
+   * are emitted.
    */
   any_event_listener: function(listener) {
     _.values(this.actions_by_key).forEach(function(action_type) {
