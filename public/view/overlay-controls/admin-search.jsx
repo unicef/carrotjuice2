@@ -25,12 +25,11 @@ var AdminSearch = React.createClass({
     return admins;
   },
 
-  optionSelected: function() {
-    var argument = arguments[0];
+  optionSelected: function(admin_name_code) {
     var admin_objs = this.props.admin_details.admin_data_by_code;
     var admin_code = Object.keys(this.props.admin_details.admin_data_by_code)
     .find(function(key) {
-      return admin_objs[key].name + ' ' + admin_objs[key].admin_code === argument;
+      return admin_objs[key].name + ' ' + admin_objs[key].admin_code === admin_name_code;
     });
 
     this.props.admin_details.selected_admins.select_admin(admin_code);
