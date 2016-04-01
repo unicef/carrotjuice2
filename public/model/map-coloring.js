@@ -44,8 +44,8 @@ var MapColoring = P({
   },
 
   /**
-   * Returns a map from overlay layer name to data for that layer. The type of data varies for each
-   * overlay layer.
+   * @return{hash} a map from overlay layer name to data for that layer. The type of data varies
+   * for each overlay layer.
    *
    * For the 'epi' layer, the data type is an array of epi data objects (one per selected country)
    * each with the form:

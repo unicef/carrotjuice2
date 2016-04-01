@@ -58,11 +58,11 @@ var MapController = P({
   },
 
   /**
-   * @param map_element DOM element to mount the map to
+   * @param{object} map_element -- DOM element to mount the map to
    */
   initialize: function(map_element) {
     if (this.map_element) {
-      alert('INTERNAL ERROR: MapController getting initialized twice.');
+      console.error('INTERNAL ERROR: MapController getting initialized twice.');
     }
     this.map_element = map_element;
     this.map = draw_initial_map(map_element);
@@ -272,6 +272,9 @@ var MapController = P({
 
   /**
    * Loads a chunk of polygon features. This makes it so we don't tie up the UI threads.
+   *
+   * @param{string} country_code -- country code corresponding to the feature
+   * @param{array} features -- list of GeoJSON features
    */
   load_feature_chunk: function(country_code, features) {
     var feature_collection = {type: 'FeatureCollection', features: features};

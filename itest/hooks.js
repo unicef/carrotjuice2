@@ -9,11 +9,11 @@ before(function(done) {
       return up;
     },
     function(cb) {
-      request_lib("http://itest-frontend:8080/", function(err, response, body) {
+      request_lib("http://itest-frontend:8080/", function(err, response) {
         up = !err && response.statusCode === 200;
         // check every second
         setTimeout(function() {
-          cb(null)
+          cb(null);
         }, (up ? 0 : 1000));
       });
     },

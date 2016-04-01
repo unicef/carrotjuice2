@@ -118,12 +118,12 @@ function setup_routes(app, passport) {
 }
 
 /** Ensure user is logged in */
-// eslint-disable-next-line require-jsdoc
+// eslint-disable-next-line require-jsdoc,no-unused-vars
 function isLoggedIn(req, res, next) {
   var is_whitelisted = function() {
     whitelist.some(function(e) {
       return e === req.user.google.email || e === req.user.local.email;
-    })
+    });
   };
   if (process.env.NODE_ENV === 'development' ||
       (req.isAuthenticated() && is_whitelisted())) {

@@ -47,7 +47,7 @@ var EpiDataStore = P({
     this.initial_load_promise = Q.delay(10).then((function() {
       this.records_by_country = require('./hardcoded-epi-data.js');
     }).bind(this))
-      .catch(function(err) { alert('Error getting case data! ' + err); });
+      .catch(function(err) { console.error('Error getting case data! ' + err); });
   },
 
   // Returns recent epi data records for the given countries. If there are multiple records that
