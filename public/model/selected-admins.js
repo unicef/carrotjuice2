@@ -78,6 +78,9 @@ var SelectedAdmins = P({
     this.searched_admin_codes = {};
     this.searched_admin_codes[admin_code] = on_unsearch || _.noop;
     unsearch_cbs.forEach(function(cb) { cb(); });
+    this.selection_ee.emit(
+      new SelectionEvents.AdminSearchEvent(this.get_admin_codes())
+    );
 
     this.onUpdate();
   },

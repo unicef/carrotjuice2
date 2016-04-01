@@ -137,25 +137,19 @@ var MapController = P({
    * Refocus map to searched admin.
    *
    * @param{string} searched_admin_code - 3166-1 alpha-2 country code.
-   * @param{object} feature - geofeature
+   * @param{float} lon - longitude
+   * @param{float} lat - latitude
    */
-  refocus_map: function(searched_admin_code, feature) {
-    var lat;
-    var lon;
-    if (searched_admin_code === feature.properties.admin_code) {
-      if (feature.geometry.type.match(/MultiPolygon/)) {
-        lon = feature.geometry.coordinates[0][0][0][0];
-        lat = feature.geometry.coordinates[0][0][0][1];
-      } else {
-        lon = feature.geometry.coordinates[0][0][0];
-        lat = feature.geometry.coordinates[0][0][1];
-      }
-      var thing = this;
-
-      thing.map.setView(new L.LatLng(lat, lon), 7);
-      // Hack so that refocus doesn't reoccur on redraw.
-      this.selected_admins.fresh = false;
-    }
+  refocus_map: function(searched_admin_code, lon, lat) {
+    this.map.setView(new L.LatLng(lat, lon), 7);
+  },
+  on_admin_search: function(admin_codes) {
+    return Promise.all(admin_codes.map((function(admin_code) {
+      var lat = this.admin_code_to_latlng[admin_code].lat;
+      var lon = this.admin_code_to_latlng[admin_code].lng;
+      //
+      this.refocus_map(admin_code, lon, lat);
+    }).bind(this)));
   },
 
   get_admin_style_fcn: function() {
@@ -175,13 +169,6 @@ var MapController = P({
 
     return (function(feature) {
       var admin_code = feature.properties.admin_code;
-      if (searched_admin_code) {
-        // Center map on admin
-        if (this.selected_admins.fresh) {
-          this.refocus_map(searched_admin_code, feature);
-        }
-      }
-
       return {
         fillColor: admin_to_color(admin_code),
         fillOpacity: this.map_coloring.base_layer_opacity(),

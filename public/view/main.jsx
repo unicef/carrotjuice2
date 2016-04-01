@@ -85,6 +85,10 @@ selection_ee.add_listener(SelectionEvents.CountrySelectEvent, function(action) {
   );
   rerender();
 });
+selection_ee.add_listener(SelectionEvents.AdminSearchEvent, function(action) {
+  map_controller.on_admin_search(action.searched_admins);
+  rerender();
+});
 selection_ee.add_listener(SelectionEvents.AdminSelectEvent, function(action) {
   mobility_data_store.on_select(action.selected_admins, selected_date.current_day);
   weather_data_store.on_admin_select(action.selected_admins);
@@ -92,7 +96,9 @@ selection_ee.add_listener(SelectionEvents.AdminSelectEvent, function(action) {
 });
 selection_ee.add_listener(SelectionEvents.DateSelectEvent, function(action) {
   mobility_data_store.on_select(selected_admins.get_admin_codes(), action.selected_date);
-  weather_data_store.on_date_select(selected_countries.get_selected_countries(), action.selected_date);
+  weather_data_store.on_date_select(
+    selected_countries.get_selected_countries(), action.selected_date
+  );
   rerender();
 });
 
