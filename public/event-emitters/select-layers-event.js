@@ -4,6 +4,6 @@
 
 var P = require('pjs').P;
 
-var SelectLayersEvent = P({key: 'DateSelectEvent'});
+var SelectLayersEvent = P({key: 'SelectLayersEvent'});
 
 module.exports = SelectLayersEvent;

@@ -5,7 +5,7 @@
 var P = require('pjs').P;
 
 var SelectAdminEvent = P({
-  key: 'LoadingStatusChange',
+  key: 'SelectAdminEvent',
   init: function(selected_admins) {
     this.selected_admins = selected_admins;
   }

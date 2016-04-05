@@ -5,7 +5,7 @@
 var P = require('pjs').P;
 
 var SelectDateEvent = P({
-  key: 'DateSelectEvent',
+  key: 'SelectDateEvent',
   init: function(selected_date) {
     this.selected_date = selected_date;
   }

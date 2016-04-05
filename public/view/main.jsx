@@ -11,6 +11,10 @@ var LoadingStatusView = require('./loading-status.jsx');
 var OverlayControlsBox = require('./overlay-controls/overlay-controls-box.jsx');
 var ViewUtil = require('./view-util.jsx');
 
+// Events
+var SearchAdminEvent = require('../event-emitters/search-admin-event.js');
+var SelectAdminEvent = require('../event-emitters/select-admin-event.js');
+
 // Models
 var SelectedLayers = require('../model/selected-layers.js');
 var LoadingStatusModel = require('../model/loading-status.js');
@@ -85,14 +89,20 @@ selected_countries.emitter.any_event_listener(function(action) {
   );
   rerender();
 });
-selected_admins.emitter.any_event_listener(function(action) {
+selected_admins.emitter.add_listener(SearchAdminEvent, function(action) {
+  map_controller.on_admin_search(action.searched_admin_codes);
+  rerender();
+});
+selected_admins.emitter.add_listener(SelectAdminEvent, function(action) {
   mobility_data_store.on_select(action.selected_admins, selected_date.current_day);
   weather_data_store.on_admin_select(action.selected_admins);
   rerender();
 });
 selected_date.emitter.any_event_listener(function(action) {
   mobility_data_store.on_select(selected_admins.get_admin_codes(), action.selected_date);
-  weather_data_store.on_date_select(selected_countries.get_selected_countries(), action.selected_date);
+  weather_data_store.on_date_select(
+    selected_countries.get_selected_countries(), action.selected_date
+  );
   rerender();
 });
 
@@ -118,7 +128,8 @@ map_controller = new MapController({
   loading_status: loading_status,
   admin_details: admin_details,
   selected_admins: selected_admins,
-  map_coloring: map_coloring
+  map_coloring: map_coloring,
+  focus: [-23.3, -46.3]   // São Paulo.
 });
 
 var AppMain = React.createClass({

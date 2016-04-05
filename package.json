@@ -40,6 +40,7 @@
     "react": "^0.14.7",
     "react-datepicker": "^0.24.0",
     "react-dom": "^0.14.7",
+    "react-typeahead": "^1.1.6",
     "request": "2.60.0",
     "request-json": "latest",
     "style-loader": "^0.13.0",
