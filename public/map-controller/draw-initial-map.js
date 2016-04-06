@@ -1,8 +1,8 @@
 var L = require('leaflet');
 var basemaps = require('./basemaps.js');
 
-module.exports = function(map_element) {
-  var map_center = [-23.3, -46.3];  // São Paulo.
+module.exports = function(map_element, coords) {
+  var map_center = coords;
   var map_zoom = 5;
   var min_map_zoom = 4;
   var max_map_zoom = 12;

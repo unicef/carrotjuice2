@@ -11,6 +11,12 @@ var DateSelectEvent = P({
     this.selected_date = selected_date;
   }
 });
+var AdminSearchEvent = P({
+  key: 'AdminSearchEvent',
+  init: function(searched_admins) {
+    this.searched_admins = searched_admins;
+  }
+});
 var AdminSelectEvent = P({
   key: 'AdminSelectEvent',
   init: function(selected_admins) {
@@ -26,12 +32,13 @@ var CountrySelectEvent = P({
 
 var SelectionEventEmitter = P(EventEmitter, function(proto, event_emitter) {
   proto.init = function() {
-    event_emitter.init([DateSelectEvent, AdminSelectEvent, CountrySelectEvent]);
+    event_emitter.init([DateSelectEvent, AdminSearchEvent, AdminSelectEvent, CountrySelectEvent]);
   };
 });
 
 module.exports = {
   DateSelectEvent: DateSelectEvent,
+  AdminSearchEvent: AdminSearchEvent,
   AdminSelectEvent: AdminSelectEvent,
   CountrySelectEvent: CountrySelectEvent,
   SelectionEventEmitter: SelectionEventEmitter
