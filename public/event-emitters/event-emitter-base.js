@@ -54,6 +54,11 @@ var EventEmitter = P({
 
   add_listener: function(action_type, listener, remove_after_call) {
     check_action_class(action_type);
+    if (
+      this.actions_by_key[action_type.prototype.key] === undefined
+    ) {
+      throw new Error('Bad action type; got ' + action_type);
+    }
     this.listeners_by_action_key[action_type.prototype.key].push(
       new ListenerWrapper(listener, remove_after_call)
     );

@@ -1,5 +1,5 @@
 /**
- * When the user selects and administrative region in a country (polygon on the map).
+ * When the user clicks an administrative region on the map.
  */
 
 var P = require('pjs').P;
