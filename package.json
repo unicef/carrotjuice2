@@ -1,5 +1,8 @@
 {
   "name": "carrotjuice",
+  "engines": {
+    "node": "8.0.0"
+  },
   "main": "server.js",
   "dependencies": {
     "apicache": "0.0.12",
